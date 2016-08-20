@@ -1,0 +1,12 @@
+C:\Projects\m68kback\m68kback\bin\Debug\m68kback.exe.config
+C:\Projects\m68kback\m68kback\obj\Debug\m68kback.csprojResolveAssemblyReference.cache
+C:\Projects\m68kback\m68kback\bin\Debug\m68kback.exe
+C:\Projects\m68kback\m68kback\bin\Debug\m68kback.pdb
+C:\Projects\m68kback\m68kback\obj\Debug\m68kback.exe
+C:\Projects\m68kback\m68kback\obj\Debug\m68kback.pdb
+C:\Projects\misc\m68kback\m68kback\bin\Debug\m68kback.exe.config
+C:\Projects\misc\m68kback\m68kback\obj\Debug\m68kback.exe
+C:\Projects\misc\m68kback\m68kback\obj\Debug\m68kback.pdb
+C:\Projects\misc\m68kback\m68kback\bin\Debug\m68kback.exe
+C:\Projects\misc\m68kback\m68kback\bin\Debug\m68kback.pdb
+C:\Projects\misc\m68kback\m68kback\obj\Debug\m68kback.csprojResolveAssemblyReference.cache
