@@ -1,0 +1,6 @@
+bin/
+obj/
+*.opendb
+*.pdf
+.suo
+*.db
