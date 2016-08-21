@@ -16,6 +16,50 @@ namespace m68kback
             cursor = 0;
         }
 
+        public void ParseTarget()
+        {
+            AcceptElement(Token.Target);
+            AcceptElement(Token.Datalayout, Token.Triple);
+            AcceptElement(Token.Assign);
+            AcceptElement(Token.StringLiteral);
+        }
+
+        public void ParseComdat()
+        {
+            AcceptElement(Token.Dollar);
+            AcceptElement(Token.StringLiteral);
+            AcceptElement(Token.Assign);
+            AcceptElement(Token.Comdat);
+            AcceptElement(Token.Any);
+        }
+
+        void ParseAttributes()
+        {
+            AcceptElement(Token.Attributes);
+            AcceptElement(Token.Hash);
+            AcceptElement(Token.IntegerLiteral);
+            AcceptElement(Token.Assign);
+            AcceptElement(Token.CurlyBraceOpen);
+            while (PeekElement().Type != Token.CurlyBraceClose)
+            {
+                AcceptElement(PeekElement().Type);
+            }
+            AcceptElement(Token.CurlyBraceClose);
+        }
+
+        void ParseMetadata()
+        {
+            AcceptElement(Token.Exclamation);
+            AcceptElement(Token.IntegerLiteral, Token.Symbol);
+            AcceptElement(Token.Assign);
+            AcceptElement(Token.Exclamation);
+            while (PeekElement().Type != Token.CurlyBraceClose)
+            {
+                AcceptElement(PeekElement().Type);
+            }
+            AcceptElement(Token.CurlyBraceClose);
+        }
+
         public Program ParseProgram()
         {
             var program = new Program();
@@ -24,9 +68,17 @@ namespace m68kback
             {
                 switch (PeekElement().Type)
                 {
+                    case Token.Exclamation:
+                        ParseMetadata();
+                        break;
+                    case Token.Attributes:
+                        ParseAttributes();
+                        break;
                     case Token.Target:
+                        ParseTarget();
                         break;
                     case Token.Dollar:
+                        ParseComdat();
                         break;
                     case Token.GlobalIdentifier:
                     case Token.Declare:

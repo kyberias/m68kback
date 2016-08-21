@@ -64,7 +64,8 @@ namespace m68kback
         Srem,
         Eq,
         Ne,
-        Bitcast
+        Bitcast,
+        Attributes
     }
 
     public class TokenElement
@@ -120,6 +121,7 @@ namespace m68kback
             { "srem", Token.Srem },
             { "bitcast", Token.Bitcast },
             { "to", Token.To },
+            { "attributes", Token.Attributes },
         };
 
         public IEnumerable<TokenElement> Lex(Stream stream)
@@ -263,6 +265,9 @@ namespace m68kback
                         case 'c':
                             cSeen = true;
                             continue;
+                        case '$':
+                            yield return new TokenElement(Token.Dollar);
+                            break;
                         case '*':
                             yield return new TokenElement(Token.Asterisk);
                             break;

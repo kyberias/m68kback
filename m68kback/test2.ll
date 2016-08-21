@@ -1,3 +1,29 @@
+; ModuleID = 'test2.c'
+target datalayout = "e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32"
+target triple = "i686-pc-windows-msvc18.0.0"
+
+$"\01??_C@_0P@IEEEKLOJ@len?0?5str?$DN?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_0BC@GHOHLIIH@reverse?0?5to?$DN?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_0BE@IGNBHOIO@reverse?0?5from?$DN?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_0BE@HAKBDHCG@reverse?0?5from?$DN?8?$CFs?8?6?$AA@" = comdat any
+
+$"\01??_C@_07IJNMEDPD@l?5?$DN?5?$CFd?6?$AA@" = comdat any
+
+$"\01??_C@_0BG@BJGBGJBA@reverse?0?5to?5end?$DN?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_09NKIIDDPL@argc?3?5?$CFd?6?$AA@" = comdat any
+
+$"\01??_C@_0M@JBPHDKJA@len?5is?3?5?$CFd?6?$AA@" = comdat any
+
+$"\01??_C@_09PHPMMDDP@buf?$DN?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_0BC@HAPMGLEP@reverse?5is?3?5?$CF08X?6?$AA@" = comdat any
+
+$"\01??_C@_0BC@IGIMCCOH@reverse?5is?3?5?8?$CFs?8?6?$AA@" = comdat any
+
 @"\01??_C@_0P@IEEEKLOJ@len?0?5str?$DN?$CF08X?6?$AA@" = linkonce_odr unnamed_addr constant [15 x i8] c"len, str=%08X\0A\00", comdat, align 1
 @"\01??_C@_0BC@GHOHLIIH@reverse?0?5to?$DN?$CF08X?6?$AA@" = linkonce_odr unnamed_addr constant [18 x i8] c"reverse, to=%08X\0A\00", comdat, align 1
 @"\01??_C@_0BE@IGNBHOIO@reverse?0?5from?$DN?$CF08X?6?$AA@" = linkonce_odr unnamed_addr constant [20 x i8] c"reverse, from=%08X\0A\00", comdat, align 1
@@ -158,3 +184,10 @@ return:                                           ; preds = %if.end, %if.then
   %8 = load i32, i32* %retval
   ret i32 %8
 }
+
+attributes #0 = { nounwind "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="pentium4" "target-features"="+sse,+sse2" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="pentium4" "target-features"="+sse,+sse2" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = !{!"clang version 3.7.0 (trunk 240302) (llvm/trunk 240300)"}
