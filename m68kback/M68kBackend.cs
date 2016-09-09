@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace m68kback
@@ -37,6 +36,8 @@ namespace m68kback
                 }
 
                 Console.WriteLine("        section text,code");
+
+                var an = new LivenessAnalysis(codeGenerator.Instructions);
 
                 foreach (var inst in codeGenerator.Instructions)
                 {

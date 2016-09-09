@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 
 namespace m68kback
@@ -58,6 +59,7 @@ namespace m68kback
         A6,
         A7,
         SP,
+        CCR
     }
 
     public enum M68Width
@@ -67,13 +69,49 @@ namespace m68kback
         Long
     }
 
+    public enum RegType
+    {
+        Data,
+        Address,
+        ConditionCode
+    }
+
+    public class Register
+    {
+        public RegType Type { get; set; }
+        public int Number { get; set; }
+        public Token Condition { get; set; }
+
+        public override string ToString()
+        {
+            string str = "";
+            switch (Type)
+            {
+                case RegType.Address:
+                    str += "A";
+                    break;
+                case RegType.Data:
+                    str += "D";
+                    break;
+                case RegType.ConditionCode:
+                    str += "CCR";
+                    break;
+            }
+            return str + Number;
+        }
+    }
+
     public class M68kInstruction
     {
         public string Label { get; set; }
         public M68kOpcode Opcode { get; set; }
         public M68Width? Width { get; set; }
-        public M68kRegister? Register1 { get; set; }
-        public M68kRegister? Register2 { get; set; }
+        //public M68kRegister? Register1 { get; set; }
+        //public M68kRegister? Register2 { get; set; }
+        public Register Register1 { get; set; }
+        public Register Register2 { get; set; }
+        public M68kRegister? FinalRegister1 { get; set; }
+        public M68kRegister? FinalRegister2 { get; set; }
         public string RegOperand1 { get; set; }
         public string RegOperand2 { get; set; }
         public M68kAddressingMode AddressingMode1 { get; set; }
@@ -83,6 +121,56 @@ namespace m68kback
         public string TargetLabel { get; set; }
         public string Variable { get; set; }
         public string Comment { get; set; }
+
+        public M68kInstruction()
+        { }
+
+        public M68kInstruction(M68kOpcode opcode)
+        {
+            Opcode = opcode;
+        }
+
+        public M68kInstruction(M68kOpcode opcode, Register r1, Register r2)
+        {
+            Opcode = opcode;
+            Register1 = r1;
+            Register2 = r2;
+            AddressingMode1 = M68kAddressingMode.Register;
+            AddressingMode2 = M68kAddressingMode.Register;
+        }
+
+        public static M68kInstruction LoadFromMemory(Register addrReg, Register toreg)
+        {
+            return new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                Register1 = addrReg,
+                AddressingMode1 = M68kAddressingMode.Address,
+                Register2 = toreg,
+                AddressingMode2 = M68kAddressingMode.Register
+            };
+        }
+
+        public static M68kInstruction StoreToMemory(Register sourceReg, Register addrReg)
+        {
+            return new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                Register1 = sourceReg,
+                AddressingMode1 = M68kAddressingMode.Register,
+                Register2 = addrReg,
+                AddressingMode2 = M68kAddressingMode.Address
+            };
+        }
+
+        public M68kInstruction(M68kOpcode opcode, int immediate, Register r2)
+        {
+            Opcode = opcode;
+            Register2 = r2;
+            Immediate = immediate;
+            AddressingMode1 = M68kAddressingMode.Immediate;
+            AddressingMode2 = M68kAddressingMode.Register;
+        }
 
         // @\01??_C@_09NKIIDDPL@argc?3?5?$CFd?6?$AA@
         public static string ConvertLabel(string label)
@@ -107,7 +195,7 @@ namespace m68kback
             }
         }
 
-        bool IsBranch()
+        public bool IsBranch()
         {
             switch (Opcode)
             {
@@ -121,6 +209,38 @@ namespace m68kback
             }
             return false;
         }
+
+        public IEnumerable<string> Use
+        {
+            get
+            {
+                if (Register1 != null)
+                {
+                    yield return "D" + Register1.Number;
+                }
+
+                if ((Opcode == M68kOpcode.Add || Opcode == M68kOpcode.Sub) && Register2 != null)
+                {
+                    yield return "D" + Register2.Number;
+                }
+
+                if (Opcode == M68kOpcode.Rts)
+                {
+                    yield return "D0";
+                }
+            }
+        }
+
+        /*public IEnumerable<string> Def
+        {
+            get
+            {
+                if (Register2 != null)
+                {
+                    yield return "D" + Register2.Number;
+                }
+            }
+        }*/
 
         string Size()
         {
@@ -146,6 +266,26 @@ namespace m68kback
             }
         }
 
+        public string Reg1ToString
+        {
+            get
+            {
+                if (FinalRegister1 != null)
+                    return FinalRegister1.ToString();
+                return Register1 + "_";
+            }
+        }
+
+        public string Reg2ToString
+        {
+            get
+            {
+                if (FinalRegister2 != null)
+                    return FinalRegister2.ToString();
+                return Register2 + "_";
+            }
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -167,19 +307,19 @@ namespace m68kback
                 switch (AddressingMode1)
                 {
                     case M68kAddressingMode.Address:
-                        sb.Append("(" + Register1 + ")");
+                        sb.Append("(" + Reg1ToString + ")");
                         break;
                     case M68kAddressingMode.AddressWithOffset:
-                        sb.Append("" + Offset.Value + "(" + Register1 + ")");
+                        sb.Append("" + Offset.Value + "(" + Reg1ToString + ")");
                         break;
                     case M68kAddressingMode.AddressWithPreIncrement:
-                        sb.Append("+(" + Register1 + ")");
+                        sb.Append("+(" + Reg1ToString + ")");
                         break;
                     case M68kAddressingMode.AddressWithPreDecrement:
-                        sb.Append("-(" + Register1 + ")");
+                        sb.Append("-(" + Reg1ToString + ")");
                         break;
                     case M68kAddressingMode.Register:
-                        sb.Append(Register1);
+                        sb.Append(Reg1ToString);
                         break;
                     case M68kAddressingMode.Immediate:
                         sb.Append("#" + Immediate);
@@ -196,19 +336,19 @@ namespace m68kback
                     switch (AddressingMode2)
                     {
                         case M68kAddressingMode.Address:
-                            sb.Append("(" + Register2 + ")");
+                            sb.Append("(" + Reg2ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithOffset:
-                            sb.Append("" + Offset.Value + "(" + Register2 + ")");
+                            sb.Append("" + Offset.Value + "(" + Reg2ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithPreIncrement:
-                            sb.Append("+(" + Register2 + ")");
+                            sb.Append("+(" + Reg2ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithPreDecrement:
-                            sb.Append("-(" + Register2 + ")");
+                            sb.Append("-(" + Reg2ToString + ")");
                             break;
                         case M68kAddressingMode.Register:
-                            sb.Append(Register2);
+                            sb.Append(Reg2ToString);
                             break;
                         case M68kAddressingMode.Immediate:
                             sb.Append("#" + Immediate);
