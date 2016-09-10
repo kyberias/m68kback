@@ -40,13 +40,13 @@ namespace m68kback
 
     public class InterferenceGraphGenerator
     {
-        public static InterferenceGraph MakeGraph(IList<CfgNode> nodes)
+        public static InterferenceGraph MakeGraph(IList<CfgNode> nodes, RegType regType)
         {
             //var graph = new bool[nodes.Count, nodes.Count];
             var graph = new HashSet<Tuple<string, string>>();
             var g = new InterferenceGraph { Graph = graph };
 
-            foreach (var node in nodes)
+            foreach (var node in nodes.Where(n => n != null))
             {
                 foreach (var def in node.Def)
                 {
@@ -62,10 +62,11 @@ namespace m68kback
                     }
                 }
 
-                if (node.Instruction.Register1 != null && node.Instruction.Register2 != null)
+                if (node.Instruction.Register1 != null && node.Instruction.Register2 != null 
+                    && node.Instruction.Register1.Type == regType && node.Instruction.Register2.Type == regType)
                 {
-                    var a = "D" + node.Instruction.Register1.Number;
-                    var c = "D" + node.Instruction.Register2.Number;
+                    var a = node.Instruction.Register1.ToString();
+                    var c = node.Instruction.Register2.ToString();
 
                     if (node.Instruction.Opcode == M68kOpcode.Move)
                     {

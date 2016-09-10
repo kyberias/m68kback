@@ -31,7 +31,9 @@ namespace m68kback
         private Dictionary<string, TypeDeclaration> vars;
         private int frameOffset;
 
-        public List<string> Functions { get; set; } = new List<string>();
+        //public List<string> Functions { get; set; } = new List<string>();
+
+        public Dictionary<string,List<M68kInstruction>> Functions { get; set; } = new Dictionary<string, List<M68kInstruction>>();
 
         // Whether variable was generated as a result of GetElementPtr or Load expression
         // In that case the frame contains the pointer
@@ -41,7 +43,9 @@ namespace m68kback
 
         public object Visit(FunctionDefinition el)
         {
-            Functions.Add(el.Name);
+            Instructions = new List<M68kInstruction>();
+            Functions[el.Name] = Instructions;
+
             Emit(new M68kInstruction { Label = el.Name });
 
             frame = new Dictionary<string, int>();
@@ -287,6 +291,7 @@ namespace m68kback
 
         private int regD = 0;
         private int regA = 0;
+        private int regC = 0;
 
         Register NewDataReg()
         {
@@ -303,6 +308,15 @@ namespace m68kback
             {
                 Type = RegType.Address,
                 Number = regA++
+            };
+        }
+
+        Register NewConditionReg()
+        {
+            return new Register
+            {
+                Type = RegType.ConditionCode,
+                Number = regC++
             };
         }
 
@@ -556,12 +570,21 @@ namespace m68kback
                 throw new NotSupportedException();
             }
 
-            return new Register
+
+            var r = NewConditionReg();
+            r.Condition = icmpExpression.Condition;
+
+            Emit(new M68kInstruction
             {
-                Type = RegType.ConditionCode,
-                Number = 0,
-                Condition = icmpExpression.Condition
-            };
+                Opcode = M68kOpcode.Move,
+                Width = TypeToWidth(icmpExpression.Type),
+                AddressingMode1 = M68kAddressingMode.Register,
+                FinalRegister1 = M68kRegister.CCR,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = r,
+            });
+
+            return r;
         }
 
         public object Visit(LabelBrStatement labelBrStatement)

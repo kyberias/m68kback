@@ -12,10 +12,14 @@ namespace m68kback
         private IList<M68kInstruction> _code;
         private int K;
 
-        public GraphColoring(IList<M68kInstruction> code, int k = 8)
+        public IList<M68kInstruction> Instructions => _code;
+
+        private RegType regType;
+        public GraphColoring(IList<M68kInstruction> code, int k = 8, RegType regType = RegType.Data)
         {
             K = k;
             _code = code;
+            this.regType = regType;
 
 //            Build(Liveness());
 
@@ -114,28 +118,41 @@ namespace m68kback
             SpillWorklistInvariant();
         }
 
-        public void FinalRewrite()
+        public void FinalRewrite(RegType regType = RegType.Data)
         {
-            List<M68kInstruction> newCode = new List<M68kInstruction>();
+            M68kRegister regBase;
+            switch (regType)
+            {
+                case RegType.Data:
+                    regBase = M68kRegister.D0;
+                    break;
+                case RegType.Address:
+                    regBase = M68kRegister.A0;
+                    break;
+                case RegType.ConditionCode:
+                    regBase = M68kRegister.CCR0;
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
 
             foreach (var i in _code)
             {
-                if (!i.FinalRegister1.HasValue && i.Register1 != null)
+                if (!i.FinalRegister1.HasValue && i.Register1 != null && i.Register1.Type == regType)
                 {
-                    i.FinalRegister1 = M68kRegister.D0 + Color[i.Register1.ToString()];
+                    i.FinalRegister1 = regBase + Color[i.Register1.ToString()];
                 }
 
-                if (!i.FinalRegister2.HasValue && i.Register2 != null)
+                if (!i.FinalRegister2.HasValue && i.Register2 != null && i.Register2.Type == regType)
                 {
-                    i.FinalRegister2 = M68kRegister.D0 + Color[i.Register2.ToString()];
+                    i.FinalRegister2 = regBase + Color[i.Register2.ToString()];
                 }
             }
         }
 
         public void Main()
         {
-            var live = Liveness();
-            Build(live);
+            Build(Liveness());
             MakeInitial();
 
             CheckInvariants();
@@ -172,7 +189,7 @@ namespace m68kback
 
         private IList<CfgNode> Liveness()
         {
-            LivenessAnalysis liveness = new LivenessAnalysis(_code);
+            LivenessAnalysis liveness = new LivenessAnalysis(_code, regType);
             return liveness.Nodes;
         }
 
@@ -191,17 +208,9 @@ namespace m68kback
                 Register2 = newTemp,
                 AddressingMode2 = M68kAddressingMode.Register,
                 Opcode = M68kOpcode.Move,
+                Comment = "Spilled reg load"
             });
 
-            // Move from new temporary to target
-            /*newCode.Add(new M68kInstruction
-            {
-                Register1 = newTemp,
-                AddressingMode1 = M68kAddressingMode.Register,
-                Register2 = targetReg,
-                AddressingMode2 = M68kAddressingMode.Register,
-                Opcode = M68kOpcode.Move,
-            });*/
             return newTemp;
         }
 
@@ -264,7 +273,9 @@ namespace m68kback
                     AddressingMode1 = i.AddressingMode1,
                     AddressingMode2 = i.AddressingMode2,
                     Immediate = i.Immediate,
-                    Offset = i.Offset
+                    Offset = i.Offset,
+                    Label = i.Label,
+                    TargetLabel = i.TargetLabel
                 });
 
                 if (i.Register2 != null && spilledNodes.Contains(i.Register2.ToString()))
@@ -278,7 +289,8 @@ namespace m68kback
                         Opcode = M68kOpcode.Move,
                         FinalRegister2 = M68kRegister.SP,
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
-                        Offset = frameSpills.Count * 4
+                        Offset = frameSpills.Count * 4,
+                        Comment = "Spilled reg Store"
                     });
                     frameSpills.Add(i.Register2.ToString());
                 }
@@ -667,7 +679,7 @@ namespace m68kback
         {
             worklistMoves.Clear();
 
-            _graph = InterferenceGraphGenerator.MakeGraph(nodes);
+            _graph = InterferenceGraphGenerator.MakeGraph(nodes, regType);
             worklistMoves.AddRange(_graph.Moves);
 
             foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))

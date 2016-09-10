@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Text;
 
@@ -30,18 +31,36 @@ namespace m68kback
                     }
                 }
 
-                foreach (var func in codeGenerator.Functions)
+                foreach (var func in codeGenerator.Functions.Keys)
                 {
                     Console.WriteLine("    xdef " + func.Replace("@", "_"));
                 }
 
                 Console.WriteLine("        section text,code");
 
-                var an = new LivenessAnalysis(codeGenerator.Instructions);
-
-                foreach (var inst in codeGenerator.Instructions)
+                foreach (var func in codeGenerator.Functions)
                 {
-                    Console.WriteLine(inst);
+                    foreach (var inst in func.Value)
+                    {
+                        Console.WriteLine(inst);
+                    }
+
+                    var gcD = new GraphColoring(func.Value);
+                    gcD.Main();
+                    gcD.FinalRewrite();
+
+                    var gcA = new GraphColoring(gcD.Instructions, 6, RegType.Address);
+                    gcA.Main();
+                    gcA.FinalRewrite(RegType.Address);
+
+                    var gcC = new GraphColoring(gcA.Instructions, 2, RegType.ConditionCode);
+                    gcC.Main();
+                    gcC.FinalRewrite(RegType.ConditionCode);
+
+                    foreach (var inst in gcC.Instructions)
+                    {
+                        Console.WriteLine(inst);
+                    }
                 }
 
                 Console.WriteLine("         section __MERGED,DATA");

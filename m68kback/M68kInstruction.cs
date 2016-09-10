@@ -33,6 +33,7 @@ namespace m68kback
         AddressRegister,
         Address, // (An)
         AddressWithPostIncrement, // (An)+
+        AddressWithPostDecrement, // (An)-
         AddressWithPreIncrement, // +(An)
         AddressWithPreDecrement, // -(An)
         AddressWithOffset, // #x(An)
@@ -59,7 +60,9 @@ namespace m68kback
         A6,
         A7,
         SP,
-        CCR
+        CCR,
+        CCR0,
+        CCR1,
     }
 
     public enum M68Width
@@ -210,37 +213,78 @@ namespace m68kback
             return false;
         }
 
-        public IEnumerable<string> Use
+        public IEnumerable<string> Use(RegType regType)
         {
-            get
+            if (Register1 != null && Register1.Type == regType)
             {
-                if (Register1 != null)
-                {
-                    yield return "D" + Register1.Number;
-                }
+                yield return Register1.ToString();
+            }
 
-                if ((Opcode == M68kOpcode.Add || Opcode == M68kOpcode.Sub) && Register2 != null)
-                {
-                    yield return "D" + Register2.Number;
-                }
+            if ((Opcode == M68kOpcode.Add || Opcode == M68kOpcode.Sub) && Register2 != null && Register2.Type == regType)
+            {
+                yield return Register2.ToString();
+            }
 
-                if (Opcode == M68kOpcode.Rts)
+            if (Register2 != null && Register2.Type == regType)
+            {
+                switch (AddressingMode2)
                 {
-                    yield return "D0";
+                    case M68kAddressingMode.AddressWithOffset:
+                    case M68kAddressingMode.AddressWithPostIncrement:
+                    case M68kAddressingMode.AddressWithPostDecrement:
+                    case M68kAddressingMode.AddressWithPreDecrement:
+                    case M68kAddressingMode.AddressWithPreIncrement:
+                        yield return Register2.ToString();
+                        break;
                 }
+            }
+
+            if (Opcode == M68kOpcode.Rts && regType == RegType.Data)
+            {
+                // TODO: Only when the function returns a value!
+                // Maybe have the code generator MARK this by putting the register in D0 for RTS instruction
+                yield return "D0";
             }
         }
 
-        /*public IEnumerable<string> Def
+        public IEnumerable<string> Def(RegType regType)
         {
-            get
+            // MOVE D2,D0   Def: D0
+            // MOVE (A2)+,D0   Def: D0, A2
+            // MOVE (A2)+,A1   Def: A2
+            // MOVE (A2)+,(A1)-   Def: A2,A1
+
+            if (Register2 != null && AddressingMode2 == M68kAddressingMode.Register && Register2.Type == regType)
             {
-                if (Register2 != null)
+                yield return Register2.ToString();
+            }
+
+            if (Register1 != null && Register1.Type == regType)
+            {
+                switch (AddressingMode1)
                 {
-                    yield return "D" + Register2.Number;
+                    case M68kAddressingMode.AddressWithPostIncrement:
+                    case M68kAddressingMode.AddressWithPostDecrement:
+                    case M68kAddressingMode.AddressWithPreDecrement:
+                    case M68kAddressingMode.AddressWithPreIncrement:
+                        yield return Register1.ToString();
+                        break;
                 }
             }
-        }*/
+
+            if (Register2 != null && Register2.Type == regType)
+            {
+                switch (AddressingMode2)
+                {
+                    case M68kAddressingMode.AddressWithPostIncrement:
+                    case M68kAddressingMode.AddressWithPostDecrement:
+                    case M68kAddressingMode.AddressWithPreDecrement:
+                    case M68kAddressingMode.AddressWithPreIncrement:
+                        yield return Register2.ToString();
+                        break;
+                }
+            }
+        }
 
         string Size()
         {

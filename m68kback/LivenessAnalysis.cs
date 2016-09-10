@@ -17,7 +17,7 @@ namespace m68kback
 
     public class LivenessAnalysis
     {
-        public LivenessAnalysis(IList<M68kInstruction> code)
+        public LivenessAnalysis(IList<M68kInstruction> code, RegType regType = RegType.Data)
         {
             CfgNode prev = null;
 
@@ -55,9 +55,20 @@ namespace m68kback
                 nodes.Add(node);
                 node.Instruction = code[i];
 
-                if (code[i].Register2 != null)
+                // TODO: For address registers, this is not enough!!
+                /*if (code[i].Register2 != null && code[i].Register2.Type == regType)
                 {
-                    var def = "D" + code[i].Register2.Number;
+                    var def = code[i].Register2.ToString();
+                    if (!defs.Contains(def))
+                    {
+                        defs.Add(def);
+                    }
+                    node.Def.Add(def);
+                }*/
+
+                var idefs = code[i].Def(regType).ToList();
+                foreach (var def in idefs)
+                {
                     if (!defs.Contains(def))
                     {
                         defs.Add(def);
@@ -93,7 +104,7 @@ namespace m68kback
                 }
             }
 
-            IterativeDataFlowAnalysis(nodes);
+            IterativeDataFlowAnalysis(nodes, regType);
 //            var graph = InterferenceGraph(nodes);
 
             _nodes = nodes;
@@ -102,7 +113,7 @@ namespace m68kback
         private IList<CfgNode> _nodes;
         public IList<CfgNode> Nodes => _nodes;
 
-        void IterativeDataFlowAnalysis(IList<CfgNode> nodes)
+        void IterativeDataFlowAnalysis(IList<CfgNode> nodes, RegType regType = RegType.Data)
         {
             bool changes;
             do
@@ -111,6 +122,13 @@ namespace m68kback
                 for (int i = nodes.Count - 1; i >= 0; i--)
                 {
                     var n = nodes[i];
+
+                    if (n == null)
+                    {
+                        // label?
+                        continue;
+                    }
+
                     var newout = new HashSet<string>(n.Out);
 
                     foreach (var s in n.Succ)
@@ -121,7 +139,7 @@ namespace m68kback
                         }
                     }
 
-                    var use = n.Instruction.Use.ToList();
+                    var use = n.Instruction.Use(regType).ToList();
                     var def = n.Def;
 
                     var newin = new HashSet<string>(use.Union(newout.Where(o => !def.Contains(o))));
