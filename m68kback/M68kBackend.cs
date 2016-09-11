@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace m68kback
@@ -40,16 +41,81 @@ namespace m68kback
 
                 foreach (var func in codeGenerator.Functions)
                 {
-                    foreach (var inst in func.Value)
+                    /*foreach (var inst in func.Value.Instructions)
                     {
                         Console.WriteLine(inst);
+                    }*/
+
+                    /*func.Value.Instructions.Insert(1, new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.RegDef,
+                        DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+                    });*/
+                    /*func.Value.Instructions.Insert(1, new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.RegUse,
+                        DefsUses = Enumerable.Range(2, 6).Select(r => "D" + r).ToList()
+                    });*/
+
+                    // callee-saved: D2-D7
+                    foreach (var d in Enumerable.Range(2, 6).Select(i => new Register {Number = i, Type = RegType.Data}))
+                    {
+                        var newtemp = func.Value.NewDataReg();
+
+                        func.Value.Instructions.Insert(/*func.Value.PrologueLen + */1, new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            Register1 = d,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register2 = newtemp,
+                            AddressingMode2 = M68kAddressingMode.Register
+                        });
+
+                        func.Value.Instructions.Insert(func.Value.Instructions.Count-1, new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            Register1 = newtemp,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register2 = d,
+                            AddressingMode2 = M68kAddressingMode.Register
+                        });
                     }
 
-                    var gcD = new GraphColoring(func.Value);
+                    // callee-saved: A2-A6
+                    foreach (var d in Enumerable.Range(2, 5).Select(i => new Register { Number = i, Type = RegType.Address }))
+                    {
+                        var newtemp = func.Value.NewAddressReg();
+
+                        func.Value.Instructions.Insert(/*func.Value.PrologueLen + 1*/1, new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            Register1 = d,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register2 = newtemp,
+                            AddressingMode2 = M68kAddressingMode.Register
+                        });
+
+                        func.Value.Instructions.Insert(func.Value.Instructions.Count - 1, new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            Register1 = newtemp,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register2 = d,
+                            AddressingMode2 = M68kAddressingMode.Register
+                        });
+                    }
+
+                    /*func.Value.Instructions.Insert(func.Value.Instructions.Count-1, new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.RegUse,
+                        DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+                    });*/
+
+                    var gcD = new GraphColoring(func.Value.Instructions, 8, RegType.Data);
                     gcD.Main();
                     gcD.FinalRewrite();
 
-                    var gcA = new GraphColoring(gcD.Instructions, 6, RegType.Address);
+                    var gcA = new GraphColoring(gcD.Instructions, 7, RegType.Address);
                     gcA.Main();
                     gcA.FinalRewrite(RegType.Address);
 

@@ -105,7 +105,12 @@ namespace m68kback
             }
 
             IterativeDataFlowAnalysis(nodes, regType);
-//            var graph = InterferenceGraph(nodes);
+
+            /*var n = nodes.First(e => e != null);
+            foreach (var i in Enumerable.Range(2, 6))
+            {
+                n.In.Add("D" + i);
+            }*/
 
             _nodes = nodes;
         }

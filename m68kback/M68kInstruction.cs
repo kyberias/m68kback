@@ -24,7 +24,9 @@ namespace m68kback
         Sub,
         Cmp,
         Divs,
-        Lsr
+        Lsr,
+        RegDef,
+        RegUse
     }
 
     public enum M68kAddressingMode
@@ -124,6 +126,7 @@ namespace m68kback
         public string TargetLabel { get; set; }
         public string Variable { get; set; }
         public string Comment { get; set; }
+        public IList<string> DefsUses { get; set; }
 
         public M68kInstruction()
         { }
@@ -207,7 +210,7 @@ namespace m68kback
                 case M68kOpcode.Blt:
                 case M68kOpcode.Bne:
                 case M68kOpcode.Jmp:
-                case M68kOpcode.Jsr:
+                //case M68kOpcode.Jsr:
                     return true;
             }
             return false;
@@ -215,6 +218,14 @@ namespace m68kback
 
         public IEnumerable<string> Use(RegType regType)
         {
+            if (Opcode == M68kOpcode.RegUse)
+            {
+                foreach (var du in DefsUses)
+                {
+                    yield return du;
+                }
+            }
+
             if (Register1 != null && Register1.Type == regType)
             {
                 yield return Register1.ToString();
@@ -239,11 +250,28 @@ namespace m68kback
                 }
             }
 
-            if (Opcode == M68kOpcode.Rts && regType == RegType.Data)
+            if (Opcode == M68kOpcode.Rts)
             {
                 // TODO: Only when the function returns a value!
                 // Maybe have the code generator MARK this by putting the register in D0 for RTS instruction
-                yield return "D0";
+                if (regType == RegType.Data)
+                {
+                    yield return "D0";
+                    yield return "D2";
+                    yield return "D3";
+                    yield return "D4";
+                    yield return "D5";
+                    yield return "D6";
+                    yield return "D7";
+                }
+                if (regType == RegType.Address)
+                {
+                    yield return "A2";
+                    yield return "A3";
+                    yield return "A4";
+                    yield return "A5";
+                    yield return "A6";
+                }
             }
         }
 
@@ -253,6 +281,28 @@ namespace m68kback
             // MOVE (A2)+,D0   Def: D0, A2
             // MOVE (A2)+,A1   Def: A2
             // MOVE (A2)+,(A1)-   Def: A2,A1
+
+            if (Opcode == M68kOpcode.Jsr)
+            {
+                if (regType == RegType.Data)
+                {
+                    yield return "D0";
+                    yield return "D1";
+                }
+                if (regType == RegType.Address)
+                {
+                    yield return "A0";
+                    yield return "A1";
+                }
+            }
+
+            if (Opcode == M68kOpcode.RegDef)
+            {
+                foreach (var du in DefsUses)
+                {
+                    yield return du;
+                }
+            }
 
             if (Register2 != null && AddressingMode2 == M68kAddressingMode.Register && Register2.Type == regType)
             {

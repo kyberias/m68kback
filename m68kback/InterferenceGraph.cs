@@ -40,11 +40,25 @@ namespace m68kback
 
     public class InterferenceGraphGenerator
     {
-        public static InterferenceGraph MakeGraph(IList<CfgNode> nodes, RegType regType)
+        public static InterferenceGraph MakeGraph(IList<CfgNode> nodes, RegType regType, IList<string> preColored)
         {
             //var graph = new bool[nodes.Count, nodes.Count];
             var graph = new HashSet<Tuple<string, string>>();
             var g = new InterferenceGraph { Graph = graph };
+
+            int added = 0;
+            foreach (var p1 in preColored)
+            {
+                foreach (var p2 in preColored)
+                {
+                    if (p1 != p2 && !g.IsEdgeBetween(p1, p2) && !g.IsEdgeBetween(p2, p1))
+                    {
+                        g.Graph.Add(new Tuple<string, string>(p1, p2));
+                        added++;
+                    }
+                }
+                g.Nodes.Add(p1);
+            }
 
             foreach (var node in nodes.Where(n => n != null))
             {

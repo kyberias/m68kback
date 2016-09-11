@@ -33,18 +33,62 @@ namespace m68kback
 
         //public List<string> Functions { get; set; } = new List<string>();
 
-        public Dictionary<string,List<M68kInstruction>> Functions { get; set; } = new Dictionary<string, List<M68kInstruction>>();
+        public Dictionary<string,FunctionDef> Functions { get; set; } = new Dictionary<string, FunctionDef>();
 
         // Whether variable was generated as a result of GetElementPtr or Load expression
         // In that case the frame contains the pointer
         private Dictionary<string, bool> frameStored;
+
+        public class FunctionDef
+        {
+            public IList<M68kInstruction> Instructions { get; set; }
+            // Temporary reg numbering should start after actual register numbers
+            public int regD { get; set; } = 8;
+            public int regA { get; set; } = 7;
+            public int regC { get; set; } = 0;
+
+            public int PrologueLen { get; set; }
+
+            public Register NewDataReg()
+            {
+                return new Register
+                {
+                    Type = RegType.Data,
+                    Number = regD++
+                };
+            }
+
+            public Register NewAddressReg()
+            {
+                return new Register
+                {
+                    Type = RegType.Address,
+                    Number = regA++
+                };
+            }
+
+            public Register NewConditionReg()
+            {
+                return new Register
+                {
+                    Type = RegType.ConditionCode,
+                    Number = regC++
+                };
+            }
+        }
+
+        private FunctionDef currentFunction;
 
         private int functionIx;
 
         public object Visit(FunctionDefinition el)
         {
             Instructions = new List<M68kInstruction>();
-            Functions[el.Name] = Instructions;
+            currentFunction = new FunctionDef
+            {
+                Instructions = Instructions
+            };
+            Functions[el.Name] = currentFunction;
 
             Emit(new M68kInstruction { Label = el.Name });
 
@@ -105,6 +149,8 @@ namespace m68kback
                     Register2 = parReg,
                 });
 
+                currentFunction.PrologueLen++;
+
                 varRegs[parameter.Name] = parReg;
 
                 frame[parameter.Name] = parIx*4 + frameOffset;
@@ -122,6 +168,8 @@ namespace m68kback
                 FinalRegister2 = M68kRegister.SP,
             });
 
+            currentFunction.PrologueLen++;
+
             foreach (var s in el.Statements)
             {
                 if (s.Label != null)
@@ -132,8 +180,9 @@ namespace m68kback
             }
             functionIx++;
 
-            regD = 0;
+            /*regD = 0;
             regA = 0;
+            regC = 0;*/
             varRegs.Clear();
 
             return null;
@@ -176,7 +225,8 @@ namespace m68kback
             {
                 Opcode = M68kOpcode.Move,
                 AddressingMode1 = M68kAddressingMode.Register,
-                FinalRegister1 = M68kRegister.D0,
+                //FinalRegister1 = M68kRegister.D0,
+                Register1 = new Register { Number = 0, Type = RegType.Data},
                 AddressingMode2 = M68kAddressingMode.Register,
                 Register2 = resultReg
             });
@@ -289,35 +339,19 @@ namespace m68kback
             return resultReg;
         }
 
-        private int regD = 0;
-        private int regA = 0;
-        private int regC = 0;
-
-        Register NewDataReg()
+        public Register NewDataReg()
         {
-            return new Register
-            {
-                Type = RegType.Data,
-                Number = regD++
-            };
+            return currentFunction.NewDataReg();
         }
 
-        Register NewAddressReg()
+        public Register NewAddressReg()
         {
-            return new Register
-            {
-                Type = RegType.Address,
-                Number = regA++
-            };
+            return currentFunction.NewAddressReg();
         }
 
-        Register NewConditionReg()
+        public Register NewConditionReg()
         {
-            return new Register
-            {
-                Type = RegType.ConditionCode,
-                Number = regC++
-            };
+            return currentFunction.NewConditionReg();
         }
 
         Dictionary<string,Register> varRegs = new Dictionary<string, Register>();
@@ -519,7 +553,19 @@ namespace m68kback
         {
             if (retStatement.Value != null)
             {
-                retStatement.Value.Visit(this);
+                var reg = (Register)retStatement.Value.Visit(this);
+                if (reg != null)
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register1 = reg,
+                        AddressingMode2 = M68kAddressingMode.Register,
+                        //FinalRegister2 = M68kRegister.D0
+                        Register2 = new Register { Number = 0, Type = RegType.Data },
+                    });
+                }
             }
 
             Emit(new M68kInstruction
@@ -673,7 +719,8 @@ namespace m68kback
                 Register1 = ptrReg,
                 AddressingMode2 = M68kAddressingMode.Register,
                 Width = TypeToWidth(loadExpression.Type),
-                Register2 = reg
+                Register2 = reg,
+                Comment = "Load"
             });
 
             return reg;

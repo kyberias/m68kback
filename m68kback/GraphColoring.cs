@@ -21,7 +21,20 @@ namespace m68kback
             _code = code;
             this.regType = regType;
 
-//            Build(Liveness());
+            switch (regType)
+            {
+                case RegType.Data:
+                    foreach (var ds in Enumerable.Range(0, k))
+                    {
+                        precolored.Add("D" + ds);
+                    }
+                    break;
+                case RegType.Address:
+                    precolored.AddRange(Enumerable.Range(0, k).Select(n => "A" + n));
+                    break;
+            }
+
+            //            Build(Liveness());
 
             // Build
             // Simplify
@@ -55,6 +68,7 @@ namespace m68kback
         ISet<string> coalescedNodes = new HashSet<string>();
 
         private List<string> precolored = new List<string>();
+        readonly Dictionary<string, int> degree = new Dictionary<string, int>();
 
         public void Init()
         {
@@ -63,7 +77,7 @@ namespace m68kback
 
         void MakeInitial()
         {
-            foreach (var node in _graph.Nodes)
+            foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))
             {
                 if (!initial.Contains(node))
                 {
@@ -150,9 +164,19 @@ namespace m68kback
             }
         }
 
+        private IList<CfgNode> _liveness;
+
         public void Main()
         {
-            Build(Liveness());
+            Color.Clear();
+            for (int i = 0; i < precolored.Count; i++)
+            {
+                Color[precolored[i]] = i;
+            }
+
+            _liveness = Liveness();
+            Build(_liveness);
+
             MakeInitial();
 
             CheckInvariants();
@@ -197,7 +221,7 @@ namespace m68kback
 
         Register GenerateRegLoad(int ix, IList<M68kInstruction> newCode, Register targetReg)
         {
-            var newTemp = new Register { Type = RegType.Data, Number = ix };
+            var newTemp = new Register { Type = regType, Number = ix };
 
             // Load from stack to new temporary
             newCode.Add(new M68kInstruction
@@ -256,7 +280,7 @@ namespace m68kback
                     Register newTemp;
                     if (reg2newtemp == null)
                     {
-                        newTemp = new Register {Type = RegType.Data, Number = ix};
+                        newTemp = new Register {Type = regType, Number = ix};
                         ix++;
                         newTemps.Add(newTemp.ToString());
                         reg2newtemp = newTemp;
@@ -275,7 +299,10 @@ namespace m68kback
                     Immediate = i.Immediate,
                     Offset = i.Offset,
                     Label = i.Label,
-                    TargetLabel = i.TargetLabel
+                    TargetLabel = i.TargetLabel,
+                    DefsUses = i.DefsUses,
+                    Comment = i.Comment,
+                    Variable = i.Variable
                 });
 
                 if (i.Register2 != null && spilledNodes.Contains(i.Register2.ToString()))
@@ -331,6 +358,7 @@ namespace m68kback
                     Color[n] = okColors.First();
                 }
             }
+
             foreach (var n in coalescedNodes)
             {
                 Color[n] = Color[GetAlias(n)];
@@ -339,7 +367,10 @@ namespace m68kback
 
         double SpillPriority(string node)
         {
-            return 1.0;
+            var usesAndDefs = _code.Count(i => i.Def(regType).Contains(node) || i.Use(regType).Contains(node));
+            var d = degree[node];
+
+            return usesAndDefs / (double)d;
         }
 
         private void SelectSpill()
@@ -355,10 +386,10 @@ namespace m68kback
             foreach (var m in NodeMoves(u))
             {
                 var x = m.Register1.ToString();
-                var y = m.Register1.ToString();
+                var y = m.Register2.ToString();
 
                 string v;
-                if (GetAlias(x) == GetAlias(y))
+                if (GetAlias(y) == GetAlias(u))
                 {
                     v = GetAlias(x);
                 }
@@ -435,8 +466,6 @@ namespace m68kback
 
             return newgraph;
         }
-
-        Dictionary<string,int> degree = new Dictionary<string, int>();
 
         private void MakeWorklist()
         {
@@ -679,10 +708,10 @@ namespace m68kback
         {
             worklistMoves.Clear();
 
-            _graph = InterferenceGraphGenerator.MakeGraph(nodes, regType);
+            _graph = InterferenceGraphGenerator.MakeGraph(nodes, regType, precolored);
             worklistMoves.AddRange(_graph.Moves);
 
-            foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))
+            foreach (var node in _graph.Nodes/*.Where(n => !precolored.Contains(n))*/)
             {
                 degree[node] = _graph.Graph.Count(e => e.Item1 == node || e.Item2 == node);
             }
