@@ -339,7 +339,7 @@ namespace m68kback
             while (selectStack.Count > 0)
             {
                 var n = selectStack.Pop();
-                var okColors = Enumerable.Range(0, K - 1).ToList();
+                var okColors = Enumerable.Range(0, K/* - 1*/).ToList();
                 foreach (var w in _graph.AdjListFor(n))
                 {
                     var cp = coloredNodes.Union(precolored);

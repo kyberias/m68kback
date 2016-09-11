@@ -46,23 +46,12 @@ namespace m68kback
                         Console.WriteLine(inst);
                     }*/
 
-                    /*func.Value.Instructions.Insert(1, new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.RegDef,
-                        DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
-                    });*/
-                    /*func.Value.Instructions.Insert(1, new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.RegUse,
-                        DefsUses = Enumerable.Range(2, 6).Select(r => "D" + r).ToList()
-                    });*/
-
                     // callee-saved: D2-D7
                     foreach (var d in Enumerable.Range(2, 6).Select(i => new Register {Number = i, Type = RegType.Data}))
                     {
                         var newtemp = func.Value.NewDataReg();
 
-                        func.Value.Instructions.Insert(/*func.Value.PrologueLen + */1, new M68kInstruction
+                        func.Value.Instructions.Insert(func.Value.PrologueLen + 1, new M68kInstruction
                         {
                             Opcode = M68kOpcode.Move,
                             Register1 = d,
@@ -86,7 +75,7 @@ namespace m68kback
                     {
                         var newtemp = func.Value.NewAddressReg();
 
-                        func.Value.Instructions.Insert(/*func.Value.PrologueLen + 1*/1, new M68kInstruction
+                        func.Value.Instructions.Insert(func.Value.PrologueLen + 1, new M68kInstruction
                         {
                             Opcode = M68kOpcode.Move,
                             Register1 = d,
@@ -104,6 +93,12 @@ namespace m68kback
                             AddressingMode2 = M68kAddressingMode.Register
                         });
                     }
+
+                    func.Value.Instructions.Insert(1, new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.RegDef,
+                        DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+                    });
 
                     /*func.Value.Instructions.Insert(func.Value.Instructions.Count-1, new M68kInstruction
                     {

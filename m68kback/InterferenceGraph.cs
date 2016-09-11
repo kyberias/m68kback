@@ -76,8 +76,11 @@ namespace m68kback
                     }
                 }
 
-                if (node.Instruction.Register1 != null && node.Instruction.Register2 != null 
-                    && node.Instruction.Register1.Type == regType && node.Instruction.Register2.Type == regType)
+                var inst = node.Instruction;
+
+                if (inst.Register1 != null && inst.Register2 != null 
+                    && inst.Register1.Type == regType && inst.Register2.Type == regType
+                    && inst.AddressingMode1 == M68kAddressingMode.Register && inst.AddressingMode2 == M68kAddressingMode.Register)
                 {
                     var a = node.Instruction.Register1.ToString();
                     var c = node.Instruction.Register2.ToString();

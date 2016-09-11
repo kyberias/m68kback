@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 namespace m68kback.test
@@ -8,81 +9,38 @@ namespace m68kback.test
     class GraphColoringTest
     {
         Register d0 = new Register { Type = RegType.Data, Number = 0 };
-        Register d1 = new Register { Type = RegType.Data, Number = 1 };
-        Register d2 = new Register { Type = RegType.Data, Number = 2 };
-        Register d3 = new Register { Type = RegType.Data, Number = 3 };
-        Register d4 = new Register { Type = RegType.Data, Number = 4 };
-        Register d5 = new Register { Type = RegType.Data, Number = 5 };
-        Register d6 = new Register { Type = RegType.Data, Number = 6 };
-        Register d7 = new Register { Type = RegType.Data, Number = 7 };
-        Register d8 = new Register { Type = RegType.Data, Number = 8 };
-        Register d9 = new Register { Type = RegType.Data, Number = 9 };
-        Register d10 = new Register { Type = RegType.Data, Number = 10 };
-        Register d11 = new Register { Type = RegType.Data, Number = 11 };
+
+        Register d12 = new Register { Type = RegType.Data, Number = 12 };
+        Register d13 = new Register { Type = RegType.Data, Number = 13 };
+        Register d14 = new Register { Type = RegType.Data, Number = 14 };
+        Register d15 = new Register { Type = RegType.Data, Number = 15 };
+        Register d16 = new Register { Type = RegType.Data, Number = 16 };
+        Register d17 = new Register { Type = RegType.Data, Number = 17 };
+        Register d18 = new Register { Type = RegType.Data, Number = 18 };
+        Register d19 = new Register { Type = RegType.Data, Number = 19 };
+        Register d20 = new Register { Type = RegType.Data, Number = 20 };
+        Register d21 = new Register { Type = RegType.Data, Number = 21 };
+        Register d22 = new Register { Type = RegType.Data, Number = 22 };
 
         [Test]
         public void Test()
         {
-            var b = d1;
-            var c = d2;
-            var d = d3;
-            var e = d4;
-            var f = d5;
-            var g = d6;
-            var h = d7;
-            var j = d9;
-            var k = d10;
-            var m = d11;
-            /*
-             g := mem[j+12]
-h := k - 1
-f := g * h
-e := mem[j+8]
-m := mem[j+16]
-b := mem[f]
-c := e + 8
-d := c
-k := m + 4
-j := b*/
+            var tempreg = d12;
 
             var instructions = new[]
             {
-                M68kInstruction.LoadFromMemory(j, g),
+                new M68kInstruction(M68kOpcode.Move, 42, tempreg),
+                new M68kInstruction(M68kOpcode.Move, tempreg, d0),
+                new M68kInstruction(M68kOpcode.Rts)
+            }.ToList();
 
-                new M68kInstruction( M68kOpcode.Move, k, d0),
-                new M68kInstruction( M68kOpcode.Sub, 1, d0),
-                new M68kInstruction( M68kOpcode.Move, d0, h),
+            instructions.Insert(0, new M68kInstruction
+            {
+                Opcode = M68kOpcode.RegDef,
+                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+            });
 
-                new M68kInstruction( M68kOpcode.Move, g, d0),
-                new M68kInstruction( M68kOpcode.Add, h, d0),
-                new M68kInstruction( M68kOpcode.Move, d0, f),
-
-                M68kInstruction.LoadFromMemory(j, e),
-                M68kInstruction.LoadFromMemory(j, m),
-                M68kInstruction.LoadFromMemory(f, b),
-
-                new M68kInstruction( M68kOpcode.Move, e, d0),
-                new M68kInstruction( M68kOpcode.Add, 8, d0),
-                new M68kInstruction( M68kOpcode.Move, d0, c),
-
-                new M68kInstruction( M68kOpcode.Move, c, d),
-
-                new M68kInstruction( M68kOpcode.Move, m, d0),
-                new M68kInstruction( M68kOpcode.Add, 4, d0),
-                new M68kInstruction( M68kOpcode.Move, d0, k),
-
-                new M68kInstruction( M68kOpcode.Move, b, j),
-
-                // Cause Live out: d k j
-
-                M68kInstruction.StoreToMemory(d, j),
-                M68kInstruction.StoreToMemory(k, j),
-                M68kInstruction.StoreToMemory(j, j), 
-
-                //new M68kInstruction(M68kOpcode.Rts)
-            };
-
-            var gc = new GraphColoring(instructions, 4);
+            var gc = new GraphColoring(instructions, 8);
 
             //var stack = gc.Simplify();
 
@@ -91,6 +49,8 @@ j := b*/
             gc.Main();
 
             gc.FinalRewrite();
+
+            var code = gc.Instructions;
         }
 
         [Test]

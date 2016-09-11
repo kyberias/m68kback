@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using NUnit.Framework;
 
@@ -35,7 +36,7 @@ namespace m68kback.test
 
             var la = new LivenessAnalysis(instructions);
 
-            var g = InterferenceGraphGenerator.MakeGraph(la.Nodes);
+            var g = InterferenceGraphGenerator.MakeGraph(la.Nodes, RegType.Data, "D0,D1,D2,D3,D4,D5,D6,D7".Split(',').ToList());
             var graph = g.Graph;
 
             Assert.IsTrue(graph.Contains(new Tuple<string, string>("D1", "D3")) || graph.Contains(new Tuple<string, string>("D3", "D1")));
@@ -106,7 +107,7 @@ j := b*/
 
             var la = new LivenessAnalysis(instructions);
 
-            var gr = InterferenceGraphGenerator.MakeGraph(la.Nodes);
+            var gr = InterferenceGraphGenerator.MakeGraph(la.Nodes, RegType.Data, "D0,D1,D2,D3,D4,D5,D6,D7".Split(',').ToList());
 
             AssertEdge(gr, j, f);
             AssertEdge(gr, j, e);
