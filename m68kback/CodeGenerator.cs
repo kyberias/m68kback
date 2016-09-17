@@ -33,7 +33,7 @@ namespace m68kback
 
         //public List<string> Functions { get; set; } = new List<string>();
 
-        public Dictionary<string,FunctionDef> Functions { get; set; } = new Dictionary<string, FunctionDef>();
+        public Dictionary<string, FunctionDef> Functions { get; set; } = new Dictionary<string, FunctionDef>();
 
         // Whether variable was generated as a result of GetElementPtr or Load expression
         // In that case the frame contains the pointer
@@ -74,6 +74,51 @@ namespace m68kback
                     Type = RegType.ConditionCode,
                     Number = regC++
                 };
+            }
+        }
+
+        private static void RemoveRedundantMoves(IList<M68kInstruction> instructions)
+        {
+            var redundantMoves = instructions.Where(i =>
+                i.Opcode == M68kOpcode.Move &&
+                i.AddressingMode1 == M68kAddressingMode.Register &&
+                i.AddressingMode2 == M68kAddressingMode.Register &&
+                i.FinalRegister1 == i.FinalRegister2).ToList();
+
+            foreach (var move in redundantMoves)
+            {
+                instructions.Remove(move);
+            }
+        }
+
+        private static void RemoveRedundantCCR(IList<M68kInstruction> instructions)
+        {
+            // TODO: Should check this properly: use correct pattern to recognize the instructions:
+            // - instruction that sets CCR (e.g. CMP)
+            // - move from CCR to CCR0
+            // - move from CCR0 to CCR
+            // - conditional branch
+            //
+            // => Can remove the middle moves. Otherwise no.
+            var redundantMoves = instructions.Where(i =>
+                i.Opcode == M68kOpcode.Move &&
+                i.AddressingMode1 == M68kAddressingMode.Register &&
+                i.AddressingMode2 == M68kAddressingMode.Register &&
+                (i.FinalRegister1 == M68kRegister.CCR || i.FinalRegister2 == M68kRegister.CCR)).ToList();
+
+            foreach (var move in redundantMoves)
+            {
+                instructions.Remove(move);
+            }
+        }
+
+        private static void RemoveInstructions(IList<M68kInstruction> instructions, params M68kOpcode[] opcodes)
+        {
+            var toRemove = instructions.Where(i => opcodes.Contains(i.Opcode)).ToList();
+
+            foreach (var move in toRemove)
+            {
+                instructions.Remove(move);
             }
         }
 
@@ -144,7 +189,7 @@ namespace m68kback
                     Opcode = M68kOpcode.Move,
                     AddressingMode1 = M68kAddressingMode.AddressWithOffset,
                     FinalRegister1 = M68kRegister.SP,
-                    Offset = parIx * 4,
+                    Offset = parIx * 4, // TODO: These offsets are incorrect and must be fixed!
                     AddressingMode2 = M68kAddressingMode.Register,
                     Register2 = parReg,
                 });
@@ -159,17 +204,65 @@ namespace m68kback
                 vars[parameter.Name] = parameter.Type;
             }
 
-            Emit(new M68kInstruction
+            var subSPi = new M68kInstruction
             {
                 Opcode = M68kOpcode.Sub,
                 AddressingMode1 = M68kAddressingMode.Immediate,
-                Immediate = frameOffset,
+                Immediate = frameOffset, // TODO: Offset not really known at this time.
                 AddressingMode2 = M68kAddressingMode.Register,
                 FinalRegister2 = M68kRegister.SP,
-            });
+            };
+
+            Instructions.Insert(1, subSPi);
 
             currentFunction.PrologueLen++;
 
+            var func = currentFunction;
+            // callee-saved: D2-D7
+
+            var calleeSavedTemporaries = new Dictionary<Register, Register>();
+
+            foreach (var d in Enumerable.Range(2, 6).Select(i => new Register { Number = i, Type = RegType.Data }))
+            {
+                var newtemp = func.NewDataReg();
+
+                func.Instructions.Insert(func.PrologueLen + 1, new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    Register1 = d,
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register2 = newtemp,
+                    AddressingMode2 = M68kAddressingMode.Register
+                });
+
+                calleeSavedTemporaries[d] = newtemp;
+            }
+
+            // callee-saved: A2-A6
+            foreach (var d in Enumerable.Range(2, 5).Select(i => new Register { Number = i, Type = RegType.Address }))
+            {
+                var newtemp = func.NewAddressReg();
+
+                func.Instructions.Insert(func.PrologueLen + 1, new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    Register1 = d,
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register2 = newtemp,
+                    AddressingMode2 = M68kAddressingMode.Register
+                });
+
+                calleeSavedTemporaries[d] = newtemp;
+            }
+
+            func.Instructions.Insert(1, new M68kInstruction
+            {
+                Opcode = M68kOpcode.RegDef,
+                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+            });
+
+            offsetsToFix.Clear();
+            // Actually generate code
             foreach (var s in el.Statements)
             {
                 if (s.Label != null)
@@ -180,10 +273,48 @@ namespace m68kback
             }
             functionIx++;
 
-            /*regD = 0;
-            regA = 0;
-            regC = 0;*/
             varRegs.Clear();
+
+            // Restore all callee saved
+
+            foreach (var cs in calleeSavedTemporaries)
+            {
+                func.Instructions.Insert(func.Instructions.Count - 2, new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    Register1 = cs.Value,
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register2 = cs.Key,
+                    AddressingMode2 = M68kAddressingMode.Register
+                });
+            }
+
+            var gcD = new GraphColoring(func.Instructions, spillStart: frameOffset);
+            gcD.Main();
+            gcD.FinalRewrite();
+            frameOffset += gcD.SpillCount * 4;
+
+            var gcA = new GraphColoring(gcD.Instructions, 7, RegType.Address, frameOffset);
+            gcA.Main();
+            gcA.FinalRewrite(RegType.Address);
+            frameOffset += gcA.SpillCount * 4;
+
+            var gcC = new GraphColoring(gcA.Instructions, 2, RegType.ConditionCode, frameOffset);
+            gcC.Main();
+            gcC.FinalRewrite(RegType.ConditionCode);
+            frameOffset += gcC.SpillCount * 4;
+
+            RemoveRedundantMoves(gcC.Instructions);
+            RemoveRedundantCCR(gcC.Instructions);
+            RemoveInstructions(gcC.Instructions, M68kOpcode.RegDef, M68kOpcode.RegUse);
+
+            func.Instructions = gcC.Instructions;
+
+            subSPi.Immediate = frameOffset;
+            foreach (var of in offsetsToFix)
+            {
+                of.Immediate = frameOffset;
+            }
 
             return null;
         }
@@ -354,7 +485,7 @@ namespace m68kback
             return currentFunction.NewConditionReg();
         }
 
-        Dictionary<string,Register> varRegs = new Dictionary<string, Register>();
+        Dictionary<string, Register> varRegs = new Dictionary<string, Register>();
 
         Register GetVarRegister(string varname)
         {
@@ -549,6 +680,8 @@ namespace m68kback
             throw new NotImplementedException();
         }
 
+        IList<M68kInstruction> offsetsToFix = new List<M68kInstruction>();
+
         public object Visit(RetStatement retStatement)
         {
             if (retStatement.Value != null)
@@ -568,14 +701,16 @@ namespace m68kback
                 }
             }
 
-            Emit(new M68kInstruction
+            var i = new M68kInstruction
             {
                 Opcode = M68kOpcode.Add,
                 Immediate = frameOffset,
                 AddressingMode1 = M68kAddressingMode.Immediate,
                 AddressingMode2 = M68kAddressingMode.Register,
                 FinalRegister2 = M68kRegister.SP
-            });
+            };
+            Emit(i);
+            offsetsToFix.Add(i);
 
             Emit(new M68kInstruction { Opcode = M68kOpcode.Rts});
             return null;
@@ -766,7 +901,7 @@ namespace m68kback
             return newReg;*/
         }
 
-        public Dictionary<string,Declaration> Globals = new Dictionary<string, Declaration>();
+        public Dictionary<string, Declaration> Globals = new Dictionary<string, Declaration>();
 
         public object Visit(Declaration declaration)
         {

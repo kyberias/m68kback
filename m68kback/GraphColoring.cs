@@ -14,9 +14,12 @@ namespace m68kback
 
         public IList<M68kInstruction> Instructions => _code;
 
+        private int spillStartInStack;
+
         private RegType regType;
-        public GraphColoring(IList<M68kInstruction> code, int k = 8, RegType regType = RegType.Data)
+        public GraphColoring(IList<M68kInstruction> code, int k = 8, RegType regType = RegType.Data, int spillStart = 0)
         {
+            spillStartInStack = spillStart;
             K = k;
             _code = code;
             this.regType = regType;
@@ -218,6 +221,17 @@ namespace m68kback
         }
 
         List<string> frameSpills = new List<string>();
+        public int SpillCount => frameSpills.Count;
+
+        int GetLocationForSpill(string reg)
+        {
+            if (frameSpills.Contains(reg))
+            {
+                return frameSpills.IndexOf(reg);
+            }
+            frameSpills.Add(reg);
+            return frameSpills.Count - 1;
+        }
 
         Register GenerateRegLoad(int ix, IList<M68kInstruction> newCode, Register targetReg)
         {
@@ -228,11 +242,11 @@ namespace m68kback
             {
                 FinalRegister1 = M68kRegister.SP,
                 AddressingMode1 = M68kAddressingMode.AddressWithOffset,
-                Offset = frameSpills.IndexOf(targetReg.ToString()) * 4,
+                Offset = GetLocationForSpill(targetReg.ToString()) * 4 + spillStartInStack,
                 Register2 = newTemp,
                 AddressingMode2 = M68kAddressingMode.Register,
                 Opcode = M68kOpcode.Move,
-                Comment = "Spilled reg load"
+                Comment = $"Spilled reg {targetReg} load"
             });
 
             return newTemp;
@@ -248,7 +262,7 @@ namespace m68kback
             foreach (var i in _code)
             {
                 bool doOriginal = true;
-                Register reg1newtemp = null;
+                Register reg1newtemp = null; 
                 Register reg2newtemp = null;
 
                 if (i.Register1 != null && spilledNodes.Contains(i.Register1.ToString()))
@@ -257,7 +271,7 @@ namespace m68kback
                     var newTemp = GenerateRegLoad(ix, newCode, i.Register1);
                     ix++;
                     newTemps.Add(newTemp.ToString());
-                    frameSpills.Add(i.Register1.ToString());
+                    //frameSpills.Add(i.Register1.ToString());
                     reg1newtemp = newTemp;
                 }
 
@@ -270,7 +284,7 @@ namespace m68kback
                     var newTemp = GenerateRegLoad(ix, newCode, i.Register2);
                     ix++;
                     newTemps.Add(newTemp.ToString());
-                    frameSpills.Add(i.Register2.ToString());
+                    //frameSpills.Add(i.Register2.ToString());
                     reg2newtemp = newTemp;
                 }
 
@@ -287,7 +301,12 @@ namespace m68kback
                     }
                 }
 
-                newCode.Add(new M68kInstruction
+                var r2 = i.Register2;
+                newCode.Add(i);
+                i.Register1 = reg1newtemp ?? i.Register1;
+                i.Register2 = reg2newtemp ?? i.Register2;
+
+                /*newCode.Add(new M68kInstruction
                 {
                     Opcode = i.Opcode,
                     Register1 = reg1newtemp ?? i.Register1,
@@ -303,9 +322,9 @@ namespace m68kback
                     DefsUses = i.DefsUses,
                     Comment = i.Comment,
                     Variable = i.Variable
-                });
+                });*/
 
-                if (i.Register2 != null && spilledNodes.Contains(i.Register2.ToString()))
+                if (r2 != null && spilledNodes.Contains(r2.ToString()))
                 {
                     // Def
                     // Save temporary to stack
@@ -316,10 +335,9 @@ namespace m68kback
                         Opcode = M68kOpcode.Move,
                         FinalRegister2 = M68kRegister.SP,
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
-                        Offset = frameSpills.Count * 4,
+                        Offset = GetLocationForSpill(i.Register2.ToString()) * 4 + spillStartInStack,
                         Comment = "Spilled reg Store"
                     });
-                    frameSpills.Add(i.Register2.ToString());
                 }
             }
 
