@@ -171,6 +171,8 @@ namespace m68kback
                 }
             }
 
+            var parLoadsThatMustBeFixed = new List<M68kInstruction>();
+
             int parIx = 1;
             foreach (var parameter in el.Parameters)
             {
@@ -184,15 +186,17 @@ namespace m68kback
                     parReg = NewDataReg();
                 }
 
-                Emit(new M68kInstruction
+                var i = new M68kInstruction
                 {
                     Opcode = M68kOpcode.Move,
                     AddressingMode1 = M68kAddressingMode.AddressWithOffset,
                     FinalRegister1 = M68kRegister.SP,
-                    Offset = parIx * 4, // TODO: These offsets are incorrect and must be fixed!
+                    Offset = parIx*4, // TODO: These offsets are incorrect and must be fixed!
                     AddressingMode2 = M68kAddressingMode.Register,
                     Register2 = parReg,
-                });
+                };
+                Emit(i);
+                parLoadsThatMustBeFixed.Add(i);
 
                 currentFunction.PrologueLen++;
 
@@ -218,41 +222,29 @@ namespace m68kback
             currentFunction.PrologueLen++;
 
             var func = currentFunction;
-            // callee-saved: D2-D7
 
             var calleeSavedTemporaries = new Dictionary<Register, Register>();
 
-            foreach (var d in Enumerable.Range(2, 6).Select(i => new Register { Number = i, Type = RegType.Data }))
+            // callee-saved: D2-D7
+            foreach (var d in Enumerable.Range(2, 6).Select(i => new Register {Number = i, Type = RegType.Data}))
             {
-                var newtemp = func.NewDataReg();
-
-                func.Instructions.Insert(func.PrologueLen + 1, new M68kInstruction
-                {
-                    Opcode = M68kOpcode.Move,
-                    Register1 = d,
-                    AddressingMode1 = M68kAddressingMode.Register,
-                    Register2 = newtemp,
-                    AddressingMode2 = M68kAddressingMode.Register
-                });
-
-                calleeSavedTemporaries[d] = newtemp;
+                calleeSavedTemporaries[d] = func.NewDataReg();
             }
-
             // callee-saved: A2-A6
             foreach (var d in Enumerable.Range(2, 5).Select(i => new Register { Number = i, Type = RegType.Address }))
             {
-                var newtemp = func.NewAddressReg();
-
+                calleeSavedTemporaries[d] = func.NewAddressReg();
+            }
+            foreach (var cs in calleeSavedTemporaries)
+            {
                 func.Instructions.Insert(func.PrologueLen + 1, new M68kInstruction
                 {
                     Opcode = M68kOpcode.Move,
-                    Register1 = d,
+                    Register1 = cs.Key,
                     AddressingMode1 = M68kAddressingMode.Register,
-                    Register2 = newtemp,
+                    Register2 = cs.Value,
                     AddressingMode2 = M68kAddressingMode.Register
                 });
-
-                calleeSavedTemporaries[d] = newtemp;
             }
 
             func.Instructions.Insert(1, new M68kInstruction
@@ -276,7 +268,6 @@ namespace m68kback
             varRegs.Clear();
 
             // Restore all callee saved
-
             foreach (var cs in calleeSavedTemporaries)
             {
                 func.Instructions.Insert(func.Instructions.Count - 2, new M68kInstruction
@@ -314,6 +305,10 @@ namespace m68kback
             foreach (var of in offsetsToFix)
             {
                 of.Immediate = frameOffset;
+            }
+            foreach (var of in parLoadsThatMustBeFixed)
+            {
+                of.Offset += frameOffset;
             }
 
             return null;

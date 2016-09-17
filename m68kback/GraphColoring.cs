@@ -335,8 +335,10 @@ namespace m68kback
                         Opcode = M68kOpcode.Move,
                         FinalRegister2 = M68kRegister.SP,
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
-                        Offset = GetLocationForSpill(i.Register2.ToString()) * 4 + spillStartInStack,
-                        Comment = "Spilled reg Store"
+                        //Offset = GetLocationForSpill(i.Register2.ToString()) * 4 + spillStartInStack,
+                        //Comment = $"Spilled reg {i.Register2} store"
+                        Offset = GetLocationForSpill(r2.ToString()) * 4 + spillStartInStack,
+                        Comment = $"Spilled reg {r2} store"
                     });
                 }
             }
