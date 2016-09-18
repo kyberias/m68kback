@@ -300,7 +300,10 @@ namespace m68kback
             {
                 foreach (var du in DefsUses)
                 {
-                    yield return du;
+                    if ((du[0] == 'D' && regType == RegType.Data) || (du[0] == 'A' && regType == RegType.Address))
+                    {
+                        yield return du;
+                    }
                 }
             }
 

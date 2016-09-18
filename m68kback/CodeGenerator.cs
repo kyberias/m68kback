@@ -250,7 +250,9 @@ namespace m68kback
             func.Instructions.Insert(1, new M68kInstruction
             {
                 Opcode = M68kOpcode.RegDef,
-                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r).ToList()
+                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r)
+                        .Union(Enumerable.Range(0,7).Select(r => "A" + r))
+                        .ToList()
             });
 
             offsetsToFix.Clear();
