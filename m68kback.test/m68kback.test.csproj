@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="GraphColoringTest.cs" />
     <Compile Include="InterferenceGraphTest.cs" />
+    <Compile Include="M68kInstructionTest.cs" />
     <Compile Include="ParserTest.cs" />
     <Compile Include="LivenessAnalysisTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
