@@ -2,7 +2,7 @@ AMIRUN = amirun
 SC = amirun sc:c/sc
 SLINK = amirun sc:c/slink
 
-all: test test2
+all: test2
 
 test2: test2.o
 	$(SLINK) from lib:c.o test2.o to test2 lib lib:sc.lib

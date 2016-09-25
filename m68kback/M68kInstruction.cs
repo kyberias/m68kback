@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -85,6 +86,19 @@ namespace m68kback
         public RegType Type { get; set; }
         public int Number { get; set; }
         public Token Condition { get; set; }
+
+        public M68kRegister ConvertToPhysicalRegister()
+        {
+            if (Type == RegType.Data && Number >= 0 && Number <= 7)
+            {
+                return M68kRegister.D0 + Number;
+            }
+            if (Type == RegType.Address && Number >= 0 && Number <= 7)
+            {
+                return M68kRegister.A0 + Number;
+            }
+            throw new NotSupportedException();
+        }
 
         public override string ToString()
         {
@@ -341,14 +355,14 @@ namespace m68kback
 
         string Size()
         {
+            if (IsBranch() || Opcode == M68kOpcode.Jsr)
+            {
+                return "";
+            }
+
             if (Width.HasValue)
             {
                 return "." + Width.ToString().Substring(0, 1);
-            }
-
-            if (IsBranch())
-            {
-                return "";
             }
 
             switch (Opcode)

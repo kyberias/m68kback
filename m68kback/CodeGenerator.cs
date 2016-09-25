@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace m68kback
 {
@@ -48,6 +50,9 @@ namespace m68kback
             public int regC { get; set; } = 0;
 
             public int PrologueLen { get; set; }
+
+            public Dictionary<string, int> VarsInStack { get; } = new Dictionary<string, int>();
+            public int FrameSize { get; set; }
 
             public Register NewDataReg()
             {
@@ -241,6 +246,7 @@ namespace m68kback
                 {
                     Opcode = M68kOpcode.Move,
                     Register1 = cs.Key,
+                    //FinalRegister1 = cs.Key.ConvertToPhysicalRegister(),
                     AddressingMode1 = M68kAddressingMode.Register,
                     Register2 = cs.Value,
                     AddressingMode2 = M68kAddressingMode.Register
@@ -281,6 +287,7 @@ namespace m68kback
                     Register1 = cs.Value,
                     AddressingMode1 = M68kAddressingMode.Register,
                     Register2 = cs.Key,
+                    //FinalRegister2 = cs.Key.ConvertToPhysicalRegister(),
                     AddressingMode2 = M68kAddressingMode.Register
                 });
             }
@@ -324,7 +331,6 @@ namespace m68kback
         public object Visit(AllocaExpression allocaExpression)
         {
             //throw new NotImplementedException();
-            //return NewDataReg();
             return null;
         }
 
@@ -333,20 +339,35 @@ namespace m68kback
             for (int i=callExpression.Parameters.Count-1; i >= 0; i--)
             {
                 var parExpr = callExpression.Parameters[i];
-                var parReg = (Register)parExpr.Visit(this);
+                var parReg = parExpr.Visit(this);
 
-                Emit(new M68kInstruction
+                if (parReg is Register)
                 {
-                    Opcode = M68kOpcode.Move,
-                    AddressingMode1 = M68kAddressingMode.Register,
-                    Register1 = parReg,
-                    AddressingMode2 = M68kAddressingMode.AddressWithPreDecrement,
-                    FinalRegister2 = M68kRegister.SP
-                });
-                frameTune += 4;
-            }
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register1 = (Register) parReg,
+                        AddressingMode2 = M68kAddressingMode.AddressWithPreDecrement,
+                        FinalRegister2 = M68kRegister.SP
+                    });
+                    frameTune += 4;
+                }
+                else
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.AddressWithOffset,
+                        FinalRegister1 = M68kRegister.SP,
+                        Offset = (int)parReg + frameTune,
+                        //Register1 = (Register)parReg,
+                        AddressingMode2 = M68kAddressingMode.AddressWithPreDecrement,
+                        FinalRegister2 = M68kRegister.SP
+                    });
 
-            // TODO: Save registers
+                }
+            }
 
             Emit(new M68kInstruction
             {
@@ -364,8 +385,6 @@ namespace m68kback
                 AddressingMode2 = M68kAddressingMode.Register,
                 Register2 = resultReg
             });
-
-            // TODO: Restore registers
 
             // Fix frame
             Emit(new M68kInstruction
@@ -492,7 +511,21 @@ namespace m68kback
 
         Register GetVarRegister(string varname)
         {
-            return varRegs[varname];
+            if (varRegs.ContainsKey(varname))
+            {
+                return varRegs[varname];
+            }
+            return null;
+        }
+
+        object GetVarRegisterOrStackOffset(string varname)
+        {
+            var r = GetVarRegister(varname);
+            if (r != null)
+            {
+                return r;
+            }
+            return currentFunction.VarsInStack[varname];
         }
 
         public object Visit(IntegerConstant integerConstant)
@@ -523,7 +556,36 @@ namespace m68kback
             {
                 if (getElementPtr.PtrType.IsArray)
                 {
+                    var arrPtrReg = GetVarRegisterOrStackOffset(getElementPtr.PtrVar);
+                    var indexExpr = getElementPtr.Indices[0];
+                    var indexInteger = (indexExpr as IntegerConstant);
+
+                    if (indexInteger != null && indexInteger.Constant == 0)
+                    {
+                        return arrPtrReg;
+                    }
+
                     throw new NotImplementedException();
+                    /*var newTempReg = NewAddressReg();
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register1 = arrPtrReg,
+                        AddressingMode2 = M68kAddressingMode.Register,
+                        Register2 = newTempReg,
+                        Comment = "GetElementPtr (array)"
+                    });
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Add,
+                        AddressingMode1 = M68kAddressingMode.Immediate,
+                        Immediate = getElementPtr.Indices[0].,
+                        AddressingMode2 = M68kAddressingMode.Register,
+                        Register2 = newTempReg,
+                        Comment = "GetElementPtr (array)"
+                    });*/
+
                     /*Emit(new M68kInstruction
                     {
                         Opcode = M68kOpcode.Move,
@@ -567,7 +629,7 @@ namespace m68kback
                 }
                 else
                 {
-                    var varReg = GetVarRegister(getElementPtr.PtrVar);
+                    var varReg = GetVarRegisterOrStackOffset(getElementPtr.PtrVar);
 
                     var indexExpr = getElementPtr.Indices[0];
                     var indexInteger = (indexExpr as IntegerConstant);
@@ -578,11 +640,12 @@ namespace m68kback
                     }
 
                     var newReg = NewAddressReg();
+
                     Emit(new M68kInstruction
                     {
                         Opcode = M68kOpcode.Move,
                         AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = varReg,
+                        Register1 = (Register)varReg,
                         AddressingMode2 = M68kAddressingMode.Register,
                         Register2 = newReg
                     });
@@ -592,19 +655,32 @@ namespace m68kback
                         var intconst = indexInteger;
                         var ix = getElementPtr.PtrType.IsPointer ? intconst.Constant*4 : intconst.Constant;
 
-                        Emit(new M68kInstruction
+                        if (newReg.Type == RegType.Data)
                         {
-                            Opcode = M68kOpcode.Adda,
-                            AddressingMode1 = M68kAddressingMode.Immediate,
-                            Immediate = ix,
-                            AddressingMode2 = M68kAddressingMode.Register,
-                            Register2 = varReg
-                        });
+                            Emit(new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Add,
+                                AddressingMode1 = M68kAddressingMode.Immediate,
+                                Immediate = ix,
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = newReg
+                            });
+                        }
+                        else
+                        {
+                            Emit(new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Adda,
+                                AddressingMode1 = M68kAddressingMode.Immediate,
+                                Immediate = ix,
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = newReg
+                            });
+                        }
                     }
                     else if (indexExpr is VariableReference)
                     {
                         var varref = (VariableReference) indexExpr;
-//                    var ix = getElementPtr.PtrType.IsPointer ? intconst.Constant * 4 : intconst.Constant;
                         var varreg = GetVarRegister(varref.Variable);
 
                         Emit(new M68kInstruction
@@ -670,6 +746,12 @@ namespace m68kback
                 Register2 = M68kRegister.D0,
                 Comment = "Variable reference"
             });*/
+
+            if (currentFunction.VarsInStack.ContainsKey(variableReference.Variable))
+            {
+                return currentFunction.VarsInStack[variableReference.Variable];
+            }
+
             return GetVarRegister(variableReference.Variable);
         }
 
@@ -850,62 +932,156 @@ namespace m68kback
 
         public object Visit(LoadExpression loadExpression)
         {
-            var reg = NewDataReg();
+            //var ptrReg = (Register)loadExpression.Value.Visit(this);
+            var offset = loadExpression.Value.Visit(this);
 
-            var ptrReg = (Register)loadExpression.Value.Visit(this);
+            var reg = loadExpression.Type.IsPointer ? NewAddressReg() : NewDataReg();
 
-            Emit(new M68kInstruction
+            if (offset is Register)
             {
-                Opcode = M68kOpcode.Move,
-                AddressingMode1 = M68kAddressingMode.Register,
-                Register1 = ptrReg,
-                AddressingMode2 = M68kAddressingMode.Register,
-                Width = TypeToWidth(loadExpression.Type),
-                Register2 = reg,
-                Comment = "Load"
-            });
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    AddressingMode1 = M68kAddressingMode.Address,
+                    Register1 = (Register)offset,
+                    AddressingMode2 = M68kAddressingMode.Register,
+                    Width = TypeToWidth(loadExpression.Type),
+                    Register2 = reg,
+                    Comment = "Load by register address"
+                });
+                return reg;
+            }
+            else
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    AddressingMode1 = M68kAddressingMode.AddressWithOffset,
+                    FinalRegister1 = M68kRegister.SP,
+                    AddressingMode2 = M68kAddressingMode.Register,
+                    Offset = (int)offset,
+                    Width = TypeToWidth(loadExpression.Type),
+                    Register2 = reg,
+                    Comment = "Load from stack"
+                });
+                return reg;
+            }
 
-            return reg;
+            /*if (ptrReg.Type == RegType.Data)
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register1 = ptrReg,
+                    AddressingMode2 = M68kAddressingMode.Register,
+                    Width = TypeToWidth(loadExpression.Type),
+                    Register2 = reg,
+                    Comment = "Load from Data reg"
+                });
+            }
+            else
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    AddressingMode1 = M68kAddressingMode.Address,
+                    Register1 = ptrReg,
+                    AddressingMode2 = M68kAddressingMode.Register,
+                    Width = TypeToWidth(loadExpression.Type),
+                    Register2 = reg,
+                    Comment = "Load from pointer"
+                });
+            }
+
+            return reg;*/
         }
 
         public object Visit(StoreStatement storeStatement)
         {
-            var reg = (Register)storeStatement.Value.Visit(this);
-
-            Emit(new M68kInstruction
+            var reg = storeStatement.Value.Visit(this);
+            if (reg is Register)
             {
-                Opcode = M68kOpcode.Move,
-                AddressingMode1 = M68kAddressingMode.Register,
-                Register1 = reg,
-                AddressingMode2 = M68kAddressingMode.Register,
-                Register2 = GetVarRegister(storeStatement.Variable),
-                Comment = "Store"
-            });
+                var varReg = GetVarRegister(storeStatement.Variable);
+
+                if (varReg != null)
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register1 = (Register) reg,
+                        AddressingMode2 = M68kAddressingMode.Address,
+                        Register2 = varReg,
+                        Comment = "Store to reg"
+                    });
+                }
+                else
+                {
+                    var offset = currentFunction.VarsInStack[storeStatement.Variable];
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register1 = (Register)reg,
+                        AddressingMode2 = M68kAddressingMode.AddressWithOffset,
+                        FinalRegister2 = M68kRegister.SP,
+                        Offset = offset,
+                        Comment = "Store to stack"
+                    });
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
 
             return null;
         }
 
         public object Visit(VariableAssignmentStatement variableAssignmentStatement)
         {
-            var valReg = (Register)variableAssignmentStatement.Expr.Visit(this);
-            varRegs[variableAssignmentStatement.Variable] = valReg;
-            return valReg;
-            /*var newReg = NewDataReg();
-            var valReg = (Register)variableAssignmentStatement.Expr.Visit(this);
-            // TODO: Couldn't we just use the valReg from the statement?
-            Emit(new M68kInstruction
+            if (variableAssignmentStatement.Expr is AllocaExpression)
             {
-                Opcode = M68kOpcode.Move,
-                Width = TypeToWidth(variableAssignmentStatement.Expr.Type),
-                Register1 = valReg,
-                AddressingMode1 = M68kAddressingMode.Register,
-                Register2 = newReg,
-                AddressingMode2 = M68kAddressingMode.Register,
-            });
+                var alloca = variableAssignmentStatement.Expr as AllocaExpression;
+                currentFunction.VarsInStack[variableAssignmentStatement.Variable] = currentFunction.FrameSize;
 
-            varRegs[variableAssignmentStatement.Variable] = newReg;
+                if (alloca.Type.IsArray)
+                {
+                    var elSize = alloca.Type.Type == Token.I8 ? 1 : 4;
+                    currentFunction.FrameSize = alloca.Type.ArrayX*elSize;
+                }
+                else
+                {
+                    // TODO: FIX!!!
+                    currentFunction.FrameSize = 4;
+                }
+                return null;
+            }
 
-            return newReg;*/
+            var valReg = variableAssignmentStatement.Expr.Visit(this);
+
+            Debug.Assert(valReg != null);
+
+            if (valReg is Register)
+            {
+                varRegs[variableAssignmentStatement.Variable] = (Register) valReg;
+                return valReg;
+            }
+            else
+            {
+                var newTemp = variableAssignmentStatement.Expr.Type.IsPointer ? NewAddressReg() : NewDataReg();
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Move,
+                    FinalRegister1 = M68kRegister.SP,
+                    AddressingMode1 = M68kAddressingMode.AddressWithOffset,
+                    Offset = (int)valReg,
+                    Register2 = newTemp
+                });
+                varRegs[variableAssignmentStatement.Variable] = newTemp;
+                return newTemp;
+            }
         }
 
         public Dictionary<string, Declaration> Globals = new Dictionary<string, Declaration>();
