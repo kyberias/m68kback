@@ -60,7 +60,6 @@ namespace m68kback
         A4,
         A5,
         A6,
-        A7,
         SP,
         CCR,
         CCR0,
@@ -252,11 +251,12 @@ namespace m68kback
 
             if (Opcode == M68kOpcode.Rts)
             {
-                // TODO: Only when the function returns a value!
-                // Maybe have the code generator MARK this by putting the register in D0 for RTS instruction
                 if (regType == RegType.Data)
                 {
-                    yield return "D0";
+                    if (FinalRegister1.HasValue)
+                    {
+                        yield return "D0";
+                    }
                     yield return "D2";
                     yield return "D3";
                     yield return "D4";

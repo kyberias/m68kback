@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="AstBase.cs" />
     <Compile Include="CodeGenerator.cs" />
+    <Compile Include="Emulator.cs" />
     <Compile Include="GraphColoring.cs" />
     <Compile Include="InterferenceGraph.cs" />
     <Compile Include="IVisitor.cs" />

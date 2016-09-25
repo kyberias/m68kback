@@ -374,6 +374,11 @@ namespace m68kback
                 }
                 else
                 {
+                    if (precolored.Contains(n))
+                    {
+                        Debug.Assert(okColors.First() == int.Parse(n.Substring(1)));
+                    }
+
                     coloredNodes.Add(n);
                     Color[n] = okColors.First();
                 }
@@ -528,7 +533,7 @@ namespace m68kback
 
         IEnumerable<string> Adjacent(string n)
         {
-            return _graph.AdjListFor(n).Except(selectStack.Union(coalescedNodes));
+            return _graph.AdjListFor(n).Except(selectStack.Union(coalescedNodes)).ToList();
         }
 
         void Simplify()
@@ -575,7 +580,7 @@ namespace m68kback
 
         IEnumerable<M68kInstruction> NodeMoves(string n)
         {
-            return MoveList(n).Intersect(activeMoves.Union(worklistMoves));
+            return MoveList(n).Intersect(activeMoves.Union(worklistMoves)).ToList();
         }
 
         bool MoveRelated(string n)
@@ -605,7 +610,7 @@ namespace m68kback
             }
         }
 
-        Dictionary<string,string> alias = new Dictionary<string, string>();
+        private readonly Dictionary<string,string> alias = new Dictionary<string, string>();
 
         string GetAlias(string n)
         {
@@ -673,26 +678,32 @@ namespace m68kback
 
             worklistMoves.Remove(m);
 
+            var vAdjacent = Adjacent(v);
             if (u == v)
             {
+                Console.WriteLine($"Coalesce: {u} == {v}");
                 coalescedMoves.Add(m);
                 AddWorkList(u);
             }
             else if (precolored.Contains(v) || _graph.IsEdgeBetween(u,v))
             {
+                Console.WriteLine($"Coalesce: {u}-{v} {_graph.IsEdgeBetween(u, v)} v precolored? {precolored.Contains(v)}");
                 constrainedMoves.Add(m);
                 AddWorkList(u);
                 AddWorkList(v);
             }
-            else if (precolored.Contains(u) && Adjacent(v).Any(t => OK(t, u)) && !precolored.Contains(u) &&
-                     Conservative(Adjacent(u).Union(Adjacent(v))))
+            else if (
+                (precolored.Contains(u) && Adjacent(v).All(t => OK(t, u))) || 
+                (!precolored.Contains(u) && Conservative(Adjacent(u).Union(Adjacent(v)))))
             {
+                Console.WriteLine($"Coalesce: {u} {v} Combine!");
                 coalescedMoves.Add(m);
                 Combine(u, v);
                 AddWorkList(u);
             }
             else
             {
+                Console.WriteLine($"Coalesce: {u} {v} ** NOT ** vadjacent: {string.Join(",",vAdjacent)}");
                 activeMoves.Add(m);
             }
         }
@@ -731,7 +742,8 @@ namespace m68kback
             _graph = InterferenceGraphGenerator.MakeGraph(nodes, regType, precolored);
             worklistMoves.AddRange(_graph.Moves);
 
-            foreach (var node in _graph.Nodes/*.Where(n => !precolored.Contains(n))*/)
+            foreach (var node in _graph.Nodes)
+            //foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))
             {
                 degree[node] = _graph.Graph.Count(e => e.Item1 == node || e.Item2 == node);
             }

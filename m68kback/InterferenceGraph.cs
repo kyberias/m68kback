@@ -33,8 +33,8 @@ namespace m68kback
 
         public IEnumerable<string> AdjListFor(string n)
         {
-            return Graph.Where(e => (e.Item1 == n || e.Item2 == n))
-                .Select(e => e.Item1 == n ? e.Item2 : e.Item1);
+            return Graph.Where(e => e.Item1 == n || e.Item2 == n)
+                .Select(e => e.Item1 == n ? e.Item2 : e.Item1).ToList();
         }
     }
 
@@ -45,6 +45,12 @@ namespace m68kback
             //var graph = new bool[nodes.Count, nodes.Count];
             var graph = new HashSet<Tuple<string, string>>();
             var g = new InterferenceGraph { Graph = graph };
+
+            // Print nodes
+            foreach (var node in nodes.Where(n => n != null))
+            {
+                Console.WriteLine($"{node.Instruction} def:{string.Join(",", node.Def)} in: {string.Join(",", node.In)} out: {string.Join(",", node.Out)}");
+            }
 
             int added = 0;
             foreach (var p1 in preColored)

@@ -1,0 +1,21 @@
+    regdef.l _,_ def:D0,D1,D2,D3,D4,D5,D6,D7 in:  out: D7,D6,D5,D4,D3,D2
+    sub.l #4,SP def: in: D7,D6,D5,D4,D3,D2 out: D7,D6,D5,D4,D3,D2
+    move.l 4(SP),D8_ def:D8 in: D7,D6,D5,D4,D3,D2 out: D7,D6,D5,D4,D3,D2,D8
+    move.l 8(SP),D9_ def:D9 in: D7,D6,D5,D4,D3,D2,D8 out: D7,D6,D5,D4,D3,D2,D8,D9
+    move.l D7_,D15_ def:D15 in: D7,D6,D5,D4,D3,D2,D8,D9 out: D6,D5,D4,D3,D2,D8,D9,D15
+    move.l D6_,D14_ def:D14 in: D6,D5,D4,D3,D2,D8,D9,D15 out: D5,D4,D3,D2,D8,D9,D14,D15
+    move.l D5_,D13_ def:D13 in: D5,D4,D3,D2,D8,D9,D14,D15 out: D4,D3,D2,D8,D9,D13,D14,D15
+    move.l D4_,D12_ def:D12 in: D4,D3,D2,D8,D9,D13,D14,D15 out: D3,D2,D8,D9,D12,D13,D14,D15
+    move.l D3_,D11_ def:D11 in: D3,D2,D8,D9,D12,D13,D14,D15 out: D2,D8,D9,D11,D12,D13,D14,D15
+    move.l D2_,D10_ def:D10 in: D2,D8,D9,D11,D12,D13,D14,D15 out: D8,D9,D10,D11,D12,D13,D14,D15
+    move.l D8_,D16_ def:D16 in: D8,D9,D10,D11,D12,D13,D14,D15 out: D9,D16,D10,D11,D12,D13,D14,D15
+    add.l D9_,D16_ def:D16 in: D9,D16,D10,D11,D12,D13,D14,D15 out: D16,D10,D11,D12,D13,D14,D15
+    move.l D16_,D0_ def:D0 in: D16,D10,D11,D12,D13,D14,D15 out: D10,D11,D12,D13,D14,D15,D0
+    move.l D10_,D2_ def:D2 in: D10,D11,D12,D13,D14,D15,D0 out: D11,D12,D13,D14,D15,D0,D2
+    move.l D11_,D3_ def:D3 in: D11,D12,D13,D14,D15,D0,D2 out: D12,D13,D14,D15,D0,D2,D3
+    move.l D12_,D4_ def:D4 in: D12,D13,D14,D15,D0,D2,D3 out: D13,D14,D15,D0,D2,D3,D4
+    move.l D13_,D5_ def:D5 in: D13,D14,D15,D0,D2,D3,D4 out: D14,D15,D0,D2,D3,D4,D5
+    move.l D14_,D6_ def:D6 in: D14,D15,D0,D2,D3,D4,D5 out: D15,D0,D2,D3,D4,D5,D6
+    move.l D15_,D7_ def:D7 in: D15,D0,D2,D3,D4,D5,D6 out: D0,D2,D3,D4,D5,D6,D7
+    add.l #4,SP def: in: D0,D2,D3,D4,D5,D6,D7 out: D0,D2,D3,D4,D5,D6,D7
+    rts  def: in: D0,D2,D3,D4,D5,D6,D7 out: 

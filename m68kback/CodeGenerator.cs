@@ -20,7 +20,7 @@ namespace m68kback
             return null;
         }
 
-        public List<M68kInstruction> Instructions { get; set; } = new List<M68kInstruction>();
+        public IList<M68kInstruction> Instructions { get; set; } = new List<M68kInstruction>();
 
         void Emit(M68kInstruction i)
         {
@@ -77,7 +77,7 @@ namespace m68kback
             }
         }
 
-        private static void RemoveRedundantMoves(IList<M68kInstruction> instructions)
+        public static void RemoveRedundantMoves(IList<M68kInstruction> instructions)
         {
             var redundantMoves = instructions.Where(i =>
                 i.Opcode == M68kOpcode.Move &&
@@ -250,9 +250,12 @@ namespace m68kback
             func.Instructions.Insert(1, new M68kInstruction
             {
                 Opcode = M68kOpcode.RegDef,
-                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r)
-                        .Union(Enumerable.Range(0,7).Select(r => "A" + r))
-                        .ToList()
+                DefsUses = Enumerable.Range(2, 6).Select(r => "D" + r)
+                                        .Union(Enumerable.Range(2,5).Select(r => "A" + r))
+                                        .ToList()
+                /*                DefsUses = Enumerable.Range(0, 8).Select(r => "D" + r)
+                                        .Union(Enumerable.Range(0,7).Select(r => "A" + r))
+                                        .ToList()*/
             });
 
             offsetsToFix.Clear();
@@ -313,13 +316,16 @@ namespace m68kback
                 of.Offset += frameOffset;
             }
 
+            Instructions = func.Instructions;
+
             return null;
         }
 
         public object Visit(AllocaExpression allocaExpression)
         {
             //throw new NotImplementedException();
-            return NewDataReg();
+            //return NewDataReg();
+            return null;
         }
 
         public object Visit(CallExpression callExpression)
@@ -709,7 +715,11 @@ namespace m68kback
             Emit(i);
             offsetsToFix.Add(i);
 
-            Emit(new M68kInstruction { Opcode = M68kOpcode.Rts});
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Rts,
+                FinalRegister1 = retStatement.Type.Type == Token.Void ? (M68kRegister?)null : M68kRegister.D0
+            });
             return null;
         }
 

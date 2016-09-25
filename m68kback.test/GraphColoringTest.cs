@@ -9,6 +9,12 @@ namespace m68kback.test
     class GraphColoringTest
     {
         Register d0 = new Register { Type = RegType.Data, Number = 0 };
+        Register d2 = new Register { Type = RegType.Data, Number = 2 };
+        Register d3 = new Register { Type = RegType.Data, Number = 3 };
+        Register d4 = new Register { Type = RegType.Data, Number = 4 };
+        Register d5 = new Register { Type = RegType.Data, Number = 5 };
+        Register d6 = new Register { Type = RegType.Data, Number = 6 };
+        Register d7 = new Register { Type = RegType.Data, Number = 7 };
 
         Register d12 = new Register { Type = RegType.Data, Number = 12 };
         Register d13 = new Register { Type = RegType.Data, Number = 13 };
@@ -25,13 +31,23 @@ namespace m68kback.test
         [Test]
         public void Test()
         {
-            var tempreg = d12;
-
             var instructions = new[]
             {
-                new M68kInstruction(M68kOpcode.Move, 42, tempreg),
-                new M68kInstruction(M68kOpcode.Move, tempreg, d0),
-                new M68kInstruction(M68kOpcode.Rts)
+                new M68kInstruction(M68kOpcode.Move, d2, d12),
+                new M68kInstruction(M68kOpcode.Move, d3, d13),
+/*                new M68kInstruction(M68kOpcode.Move, d4, d14),
+                new M68kInstruction(M68kOpcode.Move, d5, d15),
+                new M68kInstruction(M68kOpcode.Move, d6, d16),
+                new M68kInstruction(M68kOpcode.Move, d7, d17),*/
+                new M68kInstruction(M68kOpcode.Move, 42, d18),
+                new M68kInstruction(M68kOpcode.Move, d18, d0),
+                new M68kInstruction(M68kOpcode.Move, d12, d2),
+                new M68kInstruction(M68kOpcode.Move, d13, d3),
+/*                new M68kInstruction(M68kOpcode.Move, d14, d4),
+                new M68kInstruction(M68kOpcode.Move, d15, d5),
+                new M68kInstruction(M68kOpcode.Move, d16, d6),
+                new M68kInstruction(M68kOpcode.Move, d17, d7),*/
+                new M68kInstruction(M68kOpcode.Rts) { FinalRegister1 = M68kRegister.D0}
             }.ToList();
 
             instructions.Insert(0, new M68kInstruction
@@ -42,15 +58,39 @@ namespace m68kback.test
 
             var gc = new GraphColoring(instructions, 8);
 
+
             //var stack = gc.Simplify();
 
             //var newgraph = GraphColoring.Select(gc.Graph, stack);
 
             gc.Main();
 
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D0", "D2"));
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D0", "D3"));
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D0", "D13"));
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D0", "D12"));
+
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D2", "D3"));
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D2", "D13"));
+
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D3", "D12"));
+
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D13", "D12"));
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D13", "D18"));
+
+            Assert.IsTrue(gc.Graph.IsEdgeBetween("D12", "D18"));
+
+            Assert.IsFalse(gc.Graph.IsEdgeBetween("D2", "D12"));
+            Assert.IsFalse(gc.Graph.IsEdgeBetween("D3", "D13"));
+            Assert.IsFalse(gc.Graph.IsEdgeBetween("D0", "D18"));
+
             gc.FinalRewrite();
 
+            CodeGenerator.RemoveRedundantMoves(gc.Instructions);
+
             var code = gc.Instructions;
+
+            Assert.AreEqual(3, gc.Instructions.Count);
         }
 
         [Test]
