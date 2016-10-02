@@ -31,7 +31,7 @@ namespace m68kback
 
         public void RunFunction(string name, params object[] pars)
         {
-            var start = instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label == name);
+            var start = name != null ? instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label == name) : instructions.First();
             pc = instructions.IndexOf(start);
             Sp = (uint)memory.Length - 4;
 
@@ -72,6 +72,11 @@ namespace m68kback
 
         byte[] memory = new byte[4096];
 
+        public byte[] Memory
+        {
+            get { return memory; }
+        }
+
         uint Read32(uint addr)
         {
             return BitConverter.ToUInt32(memory, (int)addr);
@@ -111,9 +116,10 @@ namespace m68kback
                     throw new Exception("Maximum number of instructions.");
                 }
 
+                Console.WriteLine($"A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
+
                 var i = instructions[pc];
-                //Console.WriteLine(i);
-                //Console.WriteLine($"A0 = {Regs[(int)M68kRegister.A0]}");
+                Console.WriteLine(i);
 
                 switch (i.Opcode)
                 {
@@ -124,8 +130,8 @@ namespace m68kback
                         {
                             case M68Width.Long:
                                 {
-                                    var val1 = i.FinalRegister1.HasValue ? Regs[(int)i.FinalRegister1] : (uint)i.Immediate;
-                                    var val2 = Regs[(int)i.FinalRegister2];
+                                    var val1 = i.FinalRegister1.HasValue ? (int)Regs[(int)i.FinalRegister1] : i.Immediate;
+                                    var val2 = (int)Regs[(int)i.FinalRegister2];
                                     Z = val2 - val1 == 0;
                                     N = (val2 - val1) < 0;
                                 }
@@ -135,7 +141,7 @@ namespace m68kback
                                     var val1 = i.FinalRegister1.HasValue ? (byte)(Regs[(int)i.FinalRegister1] & 0xFF) : (byte)i.Immediate;
                                     var val2 = (byte)(Regs[(int)i.FinalRegister2] & 0xFF);
                                     Z = val2 - val1 == 0;
-                                    N = (val2 - val1) < 0;
+                                    N = ((int)val2 - (int)val1) < 0;
                                 }
                                 break;
                         }
@@ -162,25 +168,37 @@ namespace m68kback
                         {
                             case null:
                             case M68Width.Long:
+                            {
+                                uint val;
+                                switch (i.AddressingMode1)
                                 {
-                                    var val = i.AddressingMode1 == M68kAddressingMode.AddressWithOffset
-                                        ? Read32(Regs[(int) i.FinalRegister1.Value] + (uint) i.Offset.Value)
-                                        : Regs[(int) i.FinalRegister1];
+                                    case M68kAddressingMode.AddressWithOffset:
+                                        val = Read32(Regs[(int) i.FinalRegister1.Value] + (uint) i.Offset.Value);
+                                        break;
+                                    case M68kAddressingMode.Immediate:
+                                        val = (uint) i.Immediate;
+                                        break;
+                                    case M68kAddressingMode.Register:
+                                        val = Regs[(int)i.FinalRegister1];
+                                        break;
+                                    default:
+                                        throw new NotSupportedException();
+                                }
 
-                                    switch (i.AddressingMode2)
-                                    {
-                                        case M68kAddressingMode.Register:
-                                            Regs[(int) i.FinalRegister2] = val;
-                                            break;
-                                        case M68kAddressingMode.AddressWithOffset:
-                                            Write32(Regs[(uint) i.FinalRegister2.Value] + (uint) i.Offset.Value, val);
-                                            break;
-                                        case M68kAddressingMode.Address:
-                                            Write32(Regs[(uint)i.FinalRegister2.Value], val);
-                                            break;
-                                        default:
-                                            throw new NotSupportedException();
-                                    }
+                                switch (i.AddressingMode2)
+                                {
+                                    case M68kAddressingMode.Register:
+                                        Regs[(int) i.FinalRegister2] = val;
+                                        break;
+                                    case M68kAddressingMode.AddressWithOffset:
+                                        Write32(Regs[(uint) i.FinalRegister2.Value] + (uint) i.Offset.Value, val);
+                                        break;
+                                    case M68kAddressingMode.Address:
+                                        Write32(Regs[(uint)i.FinalRegister2.Value], val);
+                                        break;
+                                    default:
+                                        throw new NotSupportedException();
+                                }
                                 }
                                 break;
                             case M68Width.Byte:
@@ -207,6 +225,9 @@ namespace m68kback
                                         case M68kAddressingMode.AddressWithOffset:
                                             Write8(Regs[(uint)i.FinalRegister2.Value] + (uint)i.Offset, val);
                                             break;
+                                        case M68kAddressingMode.Address:
+                                            Write8(Regs[(uint)i.FinalRegister2.Value], val);
+                                            break;
                                         default:
                                             throw new NotSupportedException();
                                     }
@@ -215,36 +236,41 @@ namespace m68kback
                         }
                         break;
                     case M68kOpcode.Sub:
-                        Regs[(int) i.FinalRegister2] = Regs[(int) i.FinalRegister2] - 
-                            (i.AddressingMode1 == M68kAddressingMode.Immediate ? (uint)i.Immediate : Regs[(int)i.FinalRegister1.Value]);
+                    {
+                        var val1 = (i.AddressingMode1 == M68kAddressingMode.Immediate
+                            ?  i.Immediate
+                            : (int)Regs[(int) i.FinalRegister1.Value]);
+
+                        Regs[(int) i.FinalRegister2] = (uint)((int)Regs[(int) i.FinalRegister2] - val1);
+                        }
                         break;
                     case M68kOpcode.Add:
                     case M68kOpcode.Adda:
                         var valToAdd = i.AddressingMode1 == M68kAddressingMode.Immediate
-                            ? (uint) i.Immediate
-                            : Regs[(int) i.FinalRegister1];
+                            ? i.Immediate
+                            : (int)Regs[(int) i.FinalRegister1];
 
-                        Regs[(int)i.FinalRegister2] = Regs[(int)i.FinalRegister2] + valToAdd;
+                        Regs[(int)i.FinalRegister2] = (uint)((int)Regs[(int)i.FinalRegister2] + valToAdd);
                         break;
                     case M68kOpcode.Jmp:
-                        pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)));
+                        pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
                         break;
                     case M68kOpcode.Bne:
                         if (!Z)
                         {
-                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)));
+                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
                         }
                         break;
                     case M68kOpcode.Beq:
                         if (Z)
                         {
-                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)));
+                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
                         }
                         break;
                     case M68kOpcode.Bgt:
                         if ((N && V && !Z) || (!N && !V && !Z))
                         {
-                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)));
+                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
                         }
                         break;
                     default:

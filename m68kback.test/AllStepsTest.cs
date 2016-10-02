@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using NUnit.Framework;
 
 namespace m68kback.test
@@ -36,23 +37,21 @@ entry:
         [Test]
         public void PhiTest()
         {
-            var source = @"define i32 @main(i32 %par1, i32 %par2) #0 { 
+            var source = @"define i32 @main(i32 %par1) #0 { 
 entry: 
-    %ten = add i32 %par1, %par2
     br label %foo
 foo:
-    %u = phi i32 [%b, %foo], [%ten, %entry]
-    %x = phi i32 [%r, %foo], [0, %entry]
-    %r = add i32 %x, 1
-    %b = add i32 %u, 1
-    %i = icmp eq i32 %b, 20
+    %u = phi i32 [2, %foo], [1, %entry]
+    %x = phi i32 [%b, %foo], [%par1, %entry]
+    %b = add i32 %x, 0
+    %i = icmp eq i32 %u, 2
     br i1 %i, label %fooexit, label %foo
 fooexit:
-    %rr = add i32 %u, %r
-    ret i32 %rr 
+    %rr = add i32 %x, %u
+    ret i32 %rr
 }";
-            var emul = RunFunction(source, "@main", 5, 5);
-            Assert.AreEqual(30, emul.Regs[0]);
+            var emul = RunFunction(source, "@main", 42);
+            Assert.AreEqual(42 + 2, emul.Regs[0]);
         }
 
 
@@ -92,6 +91,41 @@ while.end:                                        ; preds = %while.cond
 ";
             var emul = RunFunction(source, "@len", "foobarfoobarfoobar");
             Assert.AreEqual(18, emul.Regs[0]);
+        }
+
+        [Test]
+        public void RetSecond()
+        {
+            var source = @"define i32 @store(i32 %first, i32 %par) #0 {
+entry:
+  ret i32 %par
+}";
+            var emul = RunFunction(source, "@store", 66, 21);
+            Assert.AreEqual(66, emul.Regs[0]);
+        }
+
+        [Test]
+        public void Store8()
+        {
+            var source = @"define i32 @store(i8* %ptr, i32 %par) #0 {
+entry:
+  store i8 42, i8* %ptr, align 1
+  ret i32 %par
+}";
+            var emul = RunFunction(source, "@store", 66, 100);
+            Assert.AreEqual(66, emul.Regs[0]);
+            Assert.AreEqual(42, emul.Memory[100]);
+        }
+
+        [Test]
+        public void Arithmetic()
+        {
+            int a = 10;
+            int b = -20;
+
+            uint c = (uint)(a + b);
+
+            Assert.AreEqual(-10, (int)c);
         }
 
         [Test]
@@ -149,8 +183,12 @@ for.end:                                          ; preds = %for.end.loopexit, %
   ret i8* %to
 }
 ";
-            var emul = RunFunction(source, "@reverse", "12345");
-            Assert.AreEqual(18, emul.Regs[0]);
+            var emul = RunFunction(source, "@reverse", 100, "12345");
+            Assert.AreEqual(100, emul.Regs[0]);
+
+            var result = Encoding.ASCII.GetString(emul.Memory, 100, 5);
+
+            Assert.AreEqual("54321", result);
         }
 
         Emulator RunFunction(string source, string func, params object[] pars)

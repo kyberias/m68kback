@@ -11,7 +11,37 @@ namespace m68kback.test
         Register d3 = new Register { Type = RegType.Data, Number = 3 };
 
         [Test]
-        public void Test()
+        public void PredSuccWithBranch()
+        {
+            var instructions = new[]
+            {
+                new M68kInstruction(M68kOpcode.Move, 4, d0),
+                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "end" },
+                new M68kInstruction(M68kOpcode.Label) { Label = "foo" },
+                new M68kInstruction(M68kOpcode.Move, 1, d0),
+                new M68kInstruction(M68kOpcode.Label) { Label = "end" },
+                new M68kInstruction(M68kOpcode.Move, 3, d0),
+                //new M68kInstruction(M68kOpcode.Rts) // This would introduce D2-D7
+                new M68kInstruction(M68kOpcode.Move)
+                {
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register1 = d0,
+                    AddressingMode2 = M68kAddressingMode.Address,
+                    FinalRegister2 = M68kRegister.SP
+                }
+            };
+
+            var la = new LivenessAnalysis(instructions);
+
+            Assert.IsTrue(la.Nodes[0].Succ.Contains(la.Nodes[1]));
+            Assert.IsTrue(la.Nodes[1].Pred.Contains(la.Nodes[0]));
+
+            Assert.IsFalse(la.Nodes[1].Succ.Contains(la.Nodes[3]));
+            Assert.IsFalse(la.Nodes[3].Pred.Contains(la.Nodes[1]));
+        }
+
+        [Test]
+        public void Liveness()
         {
             var instructions = new[]
             {
@@ -20,7 +50,12 @@ namespace m68kback.test
                 new M68kInstruction( M68kOpcode.Move, 1, d3),
                 new M68kInstruction( M68kOpcode.Move, d1, d2),
                 new M68kInstruction( M68kOpcode.Move, d2, d0),
-                new M68kInstruction(M68kOpcode.Rts)
+                //new M68kInstruction(M68kOpcode.Rts) // This would introduce D2-D7
+                new M68kInstruction(M68kOpcode.Move)
+                {
+                    AddressingMode1 = M68kAddressingMode.Register, Register1 = d0, AddressingMode2 = M68kAddressingMode.Address,
+                    FinalRegister2 = M68kRegister.SP
+                }
             };
 
             var la = new LivenessAnalysis(instructions);

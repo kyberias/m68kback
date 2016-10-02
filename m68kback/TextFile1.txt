@@ -1,21 +1,115 @@
-    regdef.l _,_ def:D0,D1,D2,D3,D4,D5,D6,D7 in:  out: D7,D6,D5,D4,D3,D2
-    sub.l #4,SP def: in: D7,D6,D5,D4,D3,D2 out: D7,D6,D5,D4,D3,D2
-    move.l 4(SP),D8_ def:D8 in: D7,D6,D5,D4,D3,D2 out: D7,D6,D5,D4,D3,D2,D8
-    move.l 8(SP),D9_ def:D9 in: D7,D6,D5,D4,D3,D2,D8 out: D7,D6,D5,D4,D3,D2,D8,D9
-    move.l D7_,D15_ def:D15 in: D7,D6,D5,D4,D3,D2,D8,D9 out: D6,D5,D4,D3,D2,D8,D9,D15
-    move.l D6_,D14_ def:D14 in: D6,D5,D4,D3,D2,D8,D9,D15 out: D5,D4,D3,D2,D8,D9,D14,D15
-    move.l D5_,D13_ def:D13 in: D5,D4,D3,D2,D8,D9,D14,D15 out: D4,D3,D2,D8,D9,D13,D14,D15
-    move.l D4_,D12_ def:D12 in: D4,D3,D2,D8,D9,D13,D14,D15 out: D3,D2,D8,D9,D12,D13,D14,D15
-    move.l D3_,D11_ def:D11 in: D3,D2,D8,D9,D12,D13,D14,D15 out: D2,D8,D9,D11,D12,D13,D14,D15
-    move.l D2_,D10_ def:D10 in: D2,D8,D9,D11,D12,D13,D14,D15 out: D8,D9,D10,D11,D12,D13,D14,D15
-    move.l D8_,D16_ def:D16 in: D8,D9,D10,D11,D12,D13,D14,D15 out: D9,D16,D10,D11,D12,D13,D14,D15
-    add.l D9_,D16_ def:D16 in: D9,D16,D10,D11,D12,D13,D14,D15 out: D16,D10,D11,D12,D13,D14,D15
-    move.l D16_,D0_ def:D0 in: D16,D10,D11,D12,D13,D14,D15 out: D10,D11,D12,D13,D14,D15,D0
-    move.l D10_,D2_ def:D2 in: D10,D11,D12,D13,D14,D15,D0 out: D11,D12,D13,D14,D15,D0,D2
-    move.l D11_,D3_ def:D3 in: D11,D12,D13,D14,D15,D0,D2 out: D12,D13,D14,D15,D0,D2,D3
-    move.l D12_,D4_ def:D4 in: D12,D13,D14,D15,D0,D2,D3 out: D13,D14,D15,D0,D2,D3,D4
-    move.l D13_,D5_ def:D5 in: D13,D14,D15,D0,D2,D3,D4 out: D14,D15,D0,D2,D3,D4,D5
-    move.l D14_,D6_ def:D6 in: D14,D15,D0,D2,D3,D4,D5 out: D15,D0,D2,D3,D4,D5,D6
-    move.l D15_,D7_ def:D7 in: D15,D0,D2,D3,D4,D5,D6 out: D0,D2,D3,D4,D5,D6,D7
-    add.l #4,SP def: in: D0,D2,D3,D4,D5,D6,D7 out: D0,D2,D3,D4,D5,D6,D7
-    rts  def: in: D0,D2,D3,D4,D5,D6,D7 out: 
+Before register allocation:
+_main:
+
+    regdef.l _,_
+    sub.l #16,SP
+    move.l 4(SP),D8_			%par = D8
+    move.l A6_,A11_
+    move.l A5_,A10_
+    move.l A4_,A9_
+    move.l A3_,A8_
+    move.l A2_,A7_
+    move.l D7_,D14_
+    move.l D6_,D13_
+    move.l D5_,D12_
+    move.l D4_,D11_
+    move.l D3_,D10_
+    move.l D2_,D9_
+entry0:
+
+    jmp foo0$1
+foo0:
+
+foo0$0:
+
+    regdef.l _,_ ; from Phi
+    move.l D17_,D16_ ; from Phi		
+    moveq #2,D15_ ; from Phi		
+    jmp foo0$end ; from Phi
+foo0$1:
+
+    move.l D8_,D16_ ; from Phi		%par -> D16 (5)
+    moveq #1,D15_ ; from Phi		#1	-> D15	
+    jmp foo0$end ; from Phi
+foo0$end:
+
+    move.l D16_,D17_				%par -> D17 (#5)
+    add.l #0,D17_					
+    cmp.l #2,D15_					if(D15 == #2) -> exit
+    move.l CCR,CCR0_
+    move.l CCR0_,CCR
+    beq fooexit0
+    jmp foo0$0						
+fooexit0:
+
+    move.l D16_,D0_					#2 -> D0
+    move.l D9_,D2_
+    move.l D10_,D3_
+    move.l D11_,D4_
+    move.l D12_,D5_
+    move.l D13_,D6_
+    move.l D14_,D7_
+    move.l A7_,A2_
+    move.l A8_,A3_
+    move.l A9_,A4_
+    move.l A10_,A5_
+    move.l A11_,A6_
+    add.l #16,SP
+    rts 
+A0: 0, A1: 0, D0: 0, D1: 0
+_main:
+
+A0: 0, A1: 0, D0: 0, D1: 0
+    sub.l #20,SP
+A0: 0, A1: 0, D0: 0, D1: 0
+    move.l 24(SP),D0
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l D0,16(SP) ; Spilled reg D8 store
+A0: 0, A1: 0, D0: 5, D1: 0
+entry0:
+
+A0: 0, A1: 0, D0: 5, D1: 0
+    jmp foo0$1
+A0: 0, A1: 0, D0: 5, D1: 0
+foo0$1:
+
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l 16(SP),D0 ; Spilled reg D8 load
+A0: 0, A1: 0, D0: 5, D1: 0
+    moveq #1,D1 ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 1
+    jmp foo0$end ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 1
+foo0$end:
+
+A0: 0, A1: 0, D0: 5, D1: 1
+    add.l #0,D0
+A0: 0, A1: 0, D0: 5, D1: 1
+    cmp.l #2,D1
+A0: 0, A1: 0, D0: 5, D1: 1
+    beq fooexit0
+A0: 0, A1: 0, D0: 5, D1: 1
+    jmp foo0$0
+A0: 0, A1: 0, D0: 5, D1: 1
+foo0$0:
+
+A0: 0, A1: 0, D0: 5, D1: 1
+    moveq #2,D1 ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 2
+    jmp foo0$end ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 2
+foo0$end:
+
+A0: 0, A1: 0, D0: 5, D1: 2
+    add.l #0,D0
+A0: 0, A1: 0, D0: 5, D1: 2
+    cmp.l #2,D1
+A0: 0, A1: 0, D0: 5, D1: 2
+    beq fooexit0
+A0: 0, A1: 0, D0: 5, D1: 2
+fooexit0:
+
+A0: 0, A1: 0, D0: 5, D1: 2
+    add.l #20,SP
+A0: 0, A1: 0, D0: 5, D1: 2
+    rts 

@@ -126,7 +126,7 @@ namespace m68kback
             }
         }
 
-        private static void RemoveInstructions(IList<M68kInstruction> instructions, params M68kOpcode[] opcodes)
+        public static void RemoveInstructions(IList<M68kInstruction> instructions, params M68kOpcode[] opcodes)
         {
             var toRemove = instructions.Where(i => opcodes.Contains(i.Opcode)).ToList();
 
@@ -302,10 +302,17 @@ namespace m68kback
             phiFixRegs.Clear();
             foreach (var ph in phiFixLabels)
             {
-                var ix = func.Instructions.IndexOf(func.Instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label.StartsWith(ph.BlockLabel.Substring(1))));
-                for(var i=ix;i<func.Instructions.Count;i++)
+                //var ix = func.Instructions.IndexOf(func.Instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label.StartsWith(ph.BlockLabel.Substring(1))));
+                var ix = func.Instructions.IndexOf(func.Instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label == ph.BlockLabel.Substring(1))) + 1;
+                for (var i=ix;i<func.Instructions.Count;i++)
                 {
                     var inst = func.Instructions[i];
+
+                    if (inst.Opcode == M68kOpcode.Label && !inst.LabelFromPhi)
+                    {
+                        break;
+                    }
+
                     if (inst.TargetLabel != null && inst.TargetLabel.Substring(1) == ph.OldLabel.Label)
                     {
                         inst.TargetLabel = "%" + ph.NewLabel.Label;
@@ -330,6 +337,12 @@ namespace m68kback
                 });
             }
 
+            Console.WriteLine("Before register allocation:");
+            foreach (var i in func.Instructions)
+            {
+                Console.WriteLine(i);
+            }
+
             var gcD = new GraphColoring(func.Instructions, spillStart: frameOffset);
             gcD.Main();
             gcD.FinalRewrite();
@@ -350,6 +363,13 @@ namespace m68kback
             RemoveInstructions(gcC.Instructions, M68kOpcode.RegDef, M68kOpcode.RegUse);
 
             func.Instructions = gcC.Instructions;
+
+            Console.WriteLine("========================================");
+            Console.WriteLine("Before register allocation:");
+            foreach (var i in func.Instructions)
+            {
+                Console.WriteLine(i);
+            }
 
             subSPi.Immediate = frameOffset;
             foreach (var of in offsetsToFix)
@@ -606,66 +626,6 @@ namespace m68kback
                     }
 
                     throw new NotImplementedException();
-                    /*var newTempReg = NewAddressReg();
-                    Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Move,
-                        AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = arrPtrReg,
-                        AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = newTempReg,
-                        Comment = "GetElementPtr (array)"
-                    });
-                    Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Add,
-                        AddressingMode1 = M68kAddressingMode.Immediate,
-                        Immediate = getElementPtr.Indices[0].,
-                        AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = newTempReg,
-                        Comment = "GetElementPtr (array)"
-                    });*/
-
-                    /*Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Move,
-                        AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = M68kRegister.SP,
-                        AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = M68kRegister.A0,
-                        Comment = "GetElementPtr (array)"
-                    });
-
-                    Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Adda,
-                        AddressingMode1 = M68kAddressingMode.Immediate,
-                        Immediate = FrameIx(getElementPtr.PtrVar),
-                        AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = M68kRegister.A0
-                    });
-
-
-                    var indexExpr = getElementPtr.Indices[0];
-
-                    if (indexExpr is IntegerConstant)
-                    {
-                        var intconst = (IntegerConstant) indexExpr;
-                        var ix = getElementPtr.PtrType.IsPointer ? intconst.Constant*4 : intconst.Constant;
-
-                        Emit(new M68kInstruction
-                        {
-                            Opcode = M68kOpcode.Adda,
-                            AddressingMode1 = M68kAddressingMode.Immediate,
-                            Immediate = ix,
-                            AddressingMode2 = M68kAddressingMode.Register,
-                            Register2 = M68kRegister.A0
-                        });
-                    }
-                    else
-                    {
-                        throw new NotSupportedException();
-                    }*/
                 }
                 else
                 {
@@ -687,7 +647,8 @@ namespace m68kback
                         AddressingMode1 = M68kAddressingMode.Register,
                         Register1 = (Register)varReg,
                         AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = newReg
+                        Register2 = newReg,
+                        Comment = "getelementptr"
                     });
 
                     if (indexInteger != null)
@@ -728,9 +689,9 @@ namespace m68kback
                             Opcode = M68kOpcode.Adda,
                             AddressingMode1 = M68kAddressingMode.Register,
                             Register1 = varreg,
-                            Offset = FrameIx(varref.Variable),
                             AddressingMode2 = M68kAddressingMode.Register,
-                            Register2 = newReg
+                            Register2 = newReg,
+                            Comment = "getelementptr"
                         });
 
                     }
@@ -1053,7 +1014,8 @@ namespace m68kback
                         Register1 = (Register) reg,
                         AddressingMode2 = M68kAddressingMode.Address,
                         Register2 = varReg,
-                        Comment = "Store to reg"
+                        Comment = "Store to reg",
+                        Width = storeStatement.Type.Type == Token.I8 ? M68Width.Byte : M68Width.Long
                     });
                 }
                 else
@@ -1190,7 +1152,7 @@ namespace m68kback
             {
                 lab = Instructions.Last(i => i.Opcode == M68kOpcode.Label);
                 var endLabelName = lab.Label + "." + "end";
-                endlabel = Emit(new M68kInstruction {Opcode = M68kOpcode.Label, Label = endLabelName},
+                endlabel = Emit(new M68kInstruction {Opcode = M68kOpcode.Label, Label = endLabelName, LabelFromPhi = true},
                     Instructions.IndexOf(lab) + 1);
             }
 
@@ -1205,18 +1167,18 @@ namespace m68kback
                 var newLabel = lab.Label + "." + phiFixLabels.Count;
                 if (lastFix != null)
                 {
-                    ix = Instructions.IndexOf(phiFixLabels.First(f => f.BlockLabel == phiBranch.Label).NewLabel) + 1;
+                    ix = Instructions.IndexOf(phiFixLabels.First(f => f.BlockLabel == phiBranch.Label + functionIx).NewLabel) + 1;
                 }
                
                 M68kInstruction newL;
 
                 if (lastFix == null)
                 {
-                    newL = Emit(new M68kInstruction {Opcode = M68kOpcode.Label, Label = newLabel}, ix++);
+                    newL = Emit(new M68kInstruction {Opcode = M68kOpcode.Label, Label = newLabel, LabelFromPhi = true }, ix++);
                 }
                 else
                 {
-                    newL = phiFixLabels.First(f => f.BlockLabel == phiBranch.Label).NewLabel;
+                    newL = phiFixLabels.First(f => f.BlockLabel == phiBranch.Label + functionIx).NewLabel;
                 }
 
                 string sourceVar = null;
@@ -1229,7 +1191,8 @@ namespace m68kback
                         AddressingMode1 = M68kAddressingMode.Immediate,
                         Immediate = ((IntegerConstant) phiBranch.Expr).Constant,
                         AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = tempReg
+                        Register2 = tempReg,
+                        Comment = "from Phi"
                     }, ix++);
                 }
                 else if (phiBranch.Expr is VariableReference)
@@ -1240,7 +1203,8 @@ namespace m68kback
                     {
                         var def = Emit(new M68kInstruction
                         {
-                            Opcode = M68kOpcode.RegDef
+                            Opcode = M68kOpcode.RegDef,
+                            Comment = "from Phi"
                         }, ix++);
                         sourceVar = ((VariableReference) phiBranch.Expr).Variable;
                         phiFixRegs[def] = sourceVar;
@@ -1252,7 +1216,8 @@ namespace m68kback
                         AddressingMode1 = M68kAddressingMode.Register,
                         Register1 = reg,
                         AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = tempReg
+                        Register2 = tempReg,
+                        Comment = "from Phi"
                     }, ix++);
                     phiFixRegs[move] = ((VariableReference)phiBranch.Expr).Variable;
                 }
@@ -1263,23 +1228,23 @@ namespace m68kback
 
                 if (lastFix == null)
                 {
-                    // Only the first PHI generates these.
+                    // Only the first PHI generates the jump.
                     Emit(new M68kInstruction
                     {
                         Opcode = M68kOpcode.Jmp,
-                        TargetLabel = "%" + endlabel.Label
+                        TargetLabel = "%" + endlabel.Label,
+                        Comment = "from Phi"
                     }, ix++);
-
-                    phiFixLabels.Add(new PhiLabelFix
+                }
+                phiFixLabels.Add(new PhiLabelFix
                     {
-                        BlockLabel = phiBranch.Label,
+                        BlockLabel = phiBranch.Label + functionIx,
                         OldLabel = lab,
                         NewLabel = newL,
                         EndLabel = endlabel,
                         TargetRegister = tempReg,
                         SourceVariable = sourceVar
                     });
-                }
             }
 
             return tempReg;

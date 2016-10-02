@@ -20,6 +20,16 @@ namespace m68kback.test
         Register d9 = new Register { Type = RegType.Data, Number = 9 };
         Register d10 = new Register { Type = RegType.Data, Number = 10 };
         Register d11 = new Register { Type = RegType.Data, Number = 11 };
+        Register d12 = new Register { Type = RegType.Data, Number = 12 };
+        Register d13 = new Register { Type = RegType.Data, Number = 13 };
+        Register d14 = new Register { Type = RegType.Data, Number = 14 };
+        Register d15 = new Register { Type = RegType.Data, Number = 15 };
+        Register d16 = new Register { Type = RegType.Data, Number = 16 };
+        Register d17 = new Register { Type = RegType.Data, Number = 17 };
+        Register d18 = new Register { Type = RegType.Data, Number = 18 };
+        Register d19 = new Register { Type = RegType.Data, Number = 19 };
+        Register d20 = new Register { Type = RegType.Data, Number = 20 };
+        Register d21 = new Register { Type = RegType.Data, Number = 21 };
 
         [Test]
         public void Test()
@@ -46,16 +56,16 @@ namespace m68kback.test
         [Test]
         public void Test2()
         {
-            var b = d1;
-            var c = d2;
-            var d = d3;
-            var e = d4;
-            var f = d5;
-            var g = d6;
-            var h = d7;
-            var j = d9;
-            var k = d10;
-            var m = d11;
+            var b = d11;
+            var c = d12;
+            var d = d13;
+            var e = d14;
+            var f = d15;
+            var g = d16;
+            var h = d17;
+            var j = d19;
+            var k = d20;
+            var m = d21;
             /*
              g := mem[j+12]
 h := k - 1

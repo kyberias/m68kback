@@ -560,7 +560,7 @@ namespace m68kback
             //Debug.Assert(!selectStack.Contains(n));
             if (selectStack.Contains(n))
             {
-                // TODO: Otherwise we seem to add duplicates to Stack!!
+                // TODO: Otherwise we seem to add duplicates to Stack and unnecessary (?) spills
                 return;
             }
 
