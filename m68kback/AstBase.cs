@@ -33,7 +33,8 @@ namespace m68kback
 
     public class ArithmeticExpression : Expression
     {
-        public Token Wrap { get; set; }
+        public bool NoUnsignedWrap { get; set; }
+        public bool NoSignedWrap { get; set; }
         public Token Operator { get; set; }
         public Expression Operand1 { get; set; }
         public Expression Operand2 { get; set; }
@@ -146,6 +147,21 @@ namespace m68kback
     public class LoadExpression : Expression
     {
         public Expression Value { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
+    public class PhiValue
+    {
+        public Expression Expr { get; set; }
+        public string Label { get; set; }
+    }
+
+    public class PhiExpression : Expression
+    {
+        public IList<PhiValue> Values { get; set; } = new List<PhiValue>();
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);

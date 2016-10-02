@@ -244,7 +244,7 @@ namespace m68kback
                 yield return Register1.ToString();
             }
 
-            if ((Opcode == M68kOpcode.Add || Opcode == M68kOpcode.Sub) && Register2 != null && Register2.Type == regType)
+            if ((Opcode == M68kOpcode.Add || Opcode == M68kOpcode.Sub || Opcode == M68kOpcode.Adda) && Register2 != null && Register2.Type == regType)
             {
                 yield return Register2.ToString();
             }

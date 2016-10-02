@@ -128,11 +128,10 @@ namespace m68kback
         [Conditional("DEBUG")]
         void CheckInvariants()
         {
-            return;
-            DegreeInvariant();
+            /*DegreeInvariant();
             SimplifyWorklistInvariant();
             FreezeWorklistInvariant();
-            SpillWorklistInvariant();
+            SpillWorklistInvariant();*/
         }
 
         public void FinalRewrite(RegType regType = RegType.Data)
@@ -278,7 +277,8 @@ namespace m68kback
                 bool isMoveRegReg = i.Opcode == M68kOpcode.Move && i.AddressingMode1 == M68kAddressingMode.Register &&
                                     i.AddressingMode2 == M68kAddressingMode.Register;
 
-                if (i.Register2 != null && spilledNodes.Contains(i.Register2.ToString()) && !isMoveRegReg)
+                if (i.Register2 != null && spilledNodes.Contains(i.Register2.ToString()) && 
+                    i.Use(regType).Contains(i.Register2.ToString()) && !isMoveRegReg)
                 {
                     // Use
                     var newTemp = GenerateRegLoad(ix, newCode, i.Register2);
@@ -356,6 +356,8 @@ namespace m68kback
 
         private void AssignColors()
         {
+            Debug.Assert(selectStack.Count == selectStack.Distinct().Count());
+
             while (selectStack.Count > 0)
             {
                 var n = selectStack.Pop();
@@ -402,7 +404,7 @@ namespace m68kback
         {
             var m = spillWorklist.OrderBy(SpillPriority).First();
             spillWorklist.Remove(m);
-            simplifyWorklist.Add(m);
+            AddToSimplifyWorkList(m);
             FreezeMoves(m);
         }
 
@@ -427,8 +429,20 @@ namespace m68kback
                 if (freezeWorklist.Contains(v) && !NodeMoves(v).Any())
                 {
                     freezeWorklist.Remove(v);
-                    simplifyWorklist.Add(v);
+                    AddToSimplifyWorkList(v);
                 }
+            }
+        }
+
+        void AddToSimplifyWorkList(string n)
+        {
+            if (!simplifyWorklist.Contains(n))
+            {
+                simplifyWorklist.Add(n);
+            }
+            else
+            {
+                Console.WriteLine("AddToSimplifyWorkList Warning");
             }
         }
 
@@ -436,7 +450,7 @@ namespace m68kback
         {
             var u = freezeWorklist.First();
             freezeWorklist.Remove(u);
-            simplifyWorklist.Add(u);
+            AddToSimplifyWorkList(u);
             FreezeMoves(u);
         }
 
@@ -494,6 +508,8 @@ namespace m68kback
 
         private void MakeWorklist()
         {
+            Debug.Assert(initial.Count == initial.Distinct().Count());
+
             foreach (var n in initial)
             {
                 if (degree[n] >= K)
@@ -506,7 +522,7 @@ namespace m68kback
                 }
                 else
                 {
-                    simplifyWorklist.Add(n);
+                    AddToSimplifyWorkList(n);
                 }
             }
             initial.Clear();
@@ -540,6 +556,14 @@ namespace m68kback
         {
             var n = simplifyWorklist.First();
             simplifyWorklist.Remove(n);
+
+            //Debug.Assert(!selectStack.Contains(n));
+            if (selectStack.Contains(n))
+            {
+                // TODO: Otherwise we seem to add duplicates to Stack!!
+                return;
+            }
+
             selectStack.Push(n);
             var adjacents = Adjacent(n).ToList();
 
@@ -605,7 +629,7 @@ namespace m68kback
                 }
                 else
                 {
-                    simplifyWorklist.Add(m);
+                    AddToSimplifyWorkList(m);
                 }
             }
         }
@@ -626,7 +650,7 @@ namespace m68kback
             if (!precolored.Contains(u) && !MoveRelated(u) && degree[u] < K)
             {
                 freezeWorklist.Remove(u);
-                simplifyWorklist.Add(u);
+                AddToSimplifyWorkList(u);
             }
         }
 
@@ -681,13 +705,11 @@ namespace m68kback
             var vAdjacent = Adjacent(v);
             if (u == v)
             {
-                Console.WriteLine($"Coalesce: {u} == {v}");
                 coalescedMoves.Add(m);
                 AddWorkList(u);
             }
             else if (precolored.Contains(v) || _graph.IsEdgeBetween(u,v))
             {
-                Console.WriteLine($"Coalesce: {u}-{v} {_graph.IsEdgeBetween(u, v)} v precolored? {precolored.Contains(v)}");
                 constrainedMoves.Add(m);
                 AddWorkList(u);
                 AddWorkList(v);
@@ -696,14 +718,12 @@ namespace m68kback
                 (precolored.Contains(u) && Adjacent(v).All(t => OK(t, u))) || 
                 (!precolored.Contains(u) && Conservative(Adjacent(u).Union(Adjacent(v)))))
             {
-                Console.WriteLine($"Coalesce: {u} {v} Combine!");
                 coalescedMoves.Add(m);
                 Combine(u, v);
                 AddWorkList(u);
             }
             else
             {
-                Console.WriteLine($"Coalesce: {u} {v} ** NOT ** vadjacent: {string.Join(",",vAdjacent)}");
                 activeMoves.Add(m);
             }
         }

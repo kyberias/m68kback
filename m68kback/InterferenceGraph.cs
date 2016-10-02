@@ -49,7 +49,7 @@ namespace m68kback
             // Print nodes
             foreach (var node in nodes.Where(n => n != null))
             {
-                Console.WriteLine($"{node.Instruction} def:{string.Join(",", node.Def)} in: {string.Join(",", node.In)} out: {string.Join(",", node.Out)}");
+//                Console.WriteLine($"{node.Instruction} def:{string.Join(",", node.Def)} in: {string.Join(",", node.In)} out: {string.Join(",", node.Out)}");
             }
 
             int added = 0;
