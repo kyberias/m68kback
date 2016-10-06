@@ -15,29 +15,54 @@ namespace m68kback.test
         {
             var instructions = new[]
             {
-                new M68kInstruction(M68kOpcode.Move, 4, d0),
-                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "end" },
-                new M68kInstruction(M68kOpcode.Label) { Label = "foo" },
-                new M68kInstruction(M68kOpcode.Move, 1, d0),
-                new M68kInstruction(M68kOpcode.Label) { Label = "end" },
-                new M68kInstruction(M68kOpcode.Move, 3, d0),
+                new M68kInstruction(M68kOpcode.Move, 4, d0),                    // 0
+                new M68kInstruction(M68kOpcode.Bgt) { TargetLabel = "end" },    // 1
+                new M68kInstruction(M68kOpcode.Label) { Label = "foo" },        // 2
+                new M68kInstruction(M68kOpcode.Move, 1, d0),                    // 3
+                new M68kInstruction(M68kOpcode.Label) { Label = "end" },        // 4
+                new M68kInstruction(M68kOpcode.Move, 3, d0),                    // 5
                 //new M68kInstruction(M68kOpcode.Rts) // This would introduce D2-D7
-                new M68kInstruction(M68kOpcode.Move)
+                new M68kInstruction(M68kOpcode.Move)                            // 6
                 {
                     AddressingMode1 = M68kAddressingMode.Register,
                     Register1 = d0,
                     AddressingMode2 = M68kAddressingMode.Address,
                     FinalRegister2 = M68kRegister.SP
-                }
+                },
+                new M68kInstruction(M68kOpcode.Jmp) {TargetLabel = "foo"},       // 7
+                new M68kInstruction(M68kOpcode.Move, 3, d0),                    // 8
             };
+
+             //TODO: Conditional branches have 2 successors!!!
 
             var la = new LivenessAnalysis(instructions);
 
-            Assert.IsTrue(la.Nodes[0].Succ.Contains(la.Nodes[1]));
-            Assert.IsTrue(la.Nodes[1].Pred.Contains(la.Nodes[0]));
+            CollectionAssert.AreEquivalent(la.Nodes[0].Pred, new CfgNode[] { });
+            CollectionAssert.AreEquivalent(la.Nodes[0].Succ, new[] { la.Nodes[1]});
 
-            Assert.IsFalse(la.Nodes[1].Succ.Contains(la.Nodes[3]));
-            Assert.IsFalse(la.Nodes[3].Pred.Contains(la.Nodes[1]));
+            CollectionAssert.AreEquivalent(la.Nodes[1].Pred, new[] { la.Nodes[0] });
+            CollectionAssert.AreEquivalent(la.Nodes[1].Succ, new[] { la.Nodes[2], la.Nodes[4] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[2].Pred, new[] { la.Nodes[1], la.Nodes[7] });
+            CollectionAssert.AreEquivalent(la.Nodes[2].Succ, new[] { la.Nodes[3] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[3].Pred, new[] { la.Nodes[2] });
+            CollectionAssert.AreEquivalent(la.Nodes[3].Succ, new[] { la.Nodes[4] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[4].Pred, new[] { la.Nodes[1], la.Nodes[3] });
+            CollectionAssert.AreEquivalent(la.Nodes[4].Succ, new[] { la.Nodes[5] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[5].Pred, new[] { la.Nodes[4] });
+            CollectionAssert.AreEquivalent(la.Nodes[5].Succ, new[] { la.Nodes[6] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[6].Pred, new[] { la.Nodes[5] });
+            CollectionAssert.AreEquivalent(la.Nodes[6].Succ, new[] { la.Nodes[7] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[7].Pred, new[] { la.Nodes[6] });
+            CollectionAssert.AreEquivalent(la.Nodes[7].Succ, new[] { la.Nodes[2] });
+
+            CollectionAssert.AreEquivalent(la.Nodes[8].Pred, new CfgNode[] { });
+            CollectionAssert.AreEquivalent(la.Nodes[8].Succ, new CfgNode[] { });
         }
 
         [Test]

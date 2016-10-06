@@ -228,7 +228,17 @@ namespace m68kback
             }
         }
 
-        public bool IsBranch()
+        public bool IsJump()
+        {
+            switch (Opcode)
+            {
+                case M68kOpcode.Jmp:
+                    return true;
+            }
+            return false;
+        }
+
+        public bool IsConditionalBranch()
         {
             switch (Opcode)
             {
@@ -236,11 +246,14 @@ namespace m68kback
                 case M68kOpcode.Bgt:
                 case M68kOpcode.Blt:
                 case M68kOpcode.Bne:
-                case M68kOpcode.Jmp:
-                //case M68kOpcode.Jsr:
                     return true;
             }
             return false;
+        }
+
+        public bool IsBranch()
+        {
+            return IsJump() || IsConditionalBranch();
         }
 
         public IEnumerable<string> Use(RegType regType)

@@ -22,10 +22,10 @@ namespace m68kback
             CfgNode prev = null;
 
             var labels = new Dictionary<string,int>();
-            var currLabels = new List<string>();
+            //var currLabels = new List<string>();
             var defs = new List<string>();
 
-            for (int i = 0; i < code.Count; i++)
+            /*for (int i = 0; i < code.Count; i++)
             {
                 if (code[i].Opcode == M68kOpcode.Label)
                 {
@@ -39,17 +39,20 @@ namespace m68kback
                     }
                     currLabels.Clear();
                 }
-            }
+            }*/
 
             var nodes = new List<CfgNode>();
 
+            //M68kInstruction prevLab = null;
+
             for (int i = 0; i < code.Count; i++)
             {
-                if (code[i].Opcode == M68kOpcode.Label)
+                /*if (code[i].Opcode == M68kOpcode.Label)
                 {
+                    prevLab = code[i];
                     nodes.Add(null);
                     continue;
-                }
+                }*/
 
                 var node = new CfgNode();
                 nodes.Add(node);
@@ -76,7 +79,10 @@ namespace m68kback
                     node.Def.Add(def);
                 }
 
-                if (prev != null)
+                if (prev != null && 
+                    (!prev.Instruction.IsBranch() || 
+                    (prev.Instruction.IsBranch() && prev.Instruction.TargetLabel == node.Instruction.Label)
+                    || prev.Instruction.IsConditionalBranch()))
                 {
                     prev.Succ.Add(node);
                     node.Pred.Add(prev);
@@ -94,12 +100,15 @@ namespace m68kback
 
             for (int i = 0; i < code.Count; i++)
             {
-                if (nodes[i] != null && nodes[i].Instruction.IsBranch())
+                if (nodes[i].Instruction.IsBranch())
                 {
-                    if (labels.ContainsKey(code[i].TargetLabel.Replace("%", "")))
+                    foreach (var node in nodes.Where(n => n.Instruction.Opcode == M68kOpcode.Label))
                     {
-                        var label = labels[code[i].TargetLabel.Replace("%", "")];
-                        nodes[label].Pred.Add(nodes[i]);
+                        if (node.Instruction.Label == nodes[i].Instruction.TargetLabel.Replace("%",""))
+                        {
+                            node.Pred.Add(nodes[i]);
+                            nodes[i].Succ.Add(node);
+                        }
                     }
                 }
             }

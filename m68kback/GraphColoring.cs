@@ -356,7 +356,7 @@ namespace m68kback
 
         private void AssignColors()
         {
-            Debug.Assert(selectStack.Count == selectStack.Distinct().Count());
+            //Debug.Assert(selectStack.Count == selectStack.Distinct().Count());
 
             while (selectStack.Count > 0)
             {
