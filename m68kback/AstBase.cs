@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace m68kback
@@ -94,6 +95,22 @@ namespace m68kback
         public bool IsArray { get; set; }
         public int ArrayX { get; set; }
         public int PointerDepth { get; set; }
+
+        public int ElementWidth
+        {
+            get
+            {
+                switch (this.Type)
+                {
+                    case Token.I32:
+                        return 4;
+                    case Token.I8:
+                        return 1;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
 
         public override object Visit(IVisitor visitor)
         {

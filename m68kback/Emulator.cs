@@ -18,13 +18,39 @@ namespace m68kback
 
             foreach (var g in globals)
             {
-                globalAddress[g.Key] = globalUsed;
+                if (g.Value.Value != null)
+                {
+                    globalAddress[g.Key] = globalUsed;
 
-                var bytes = Encoding.ASCII.GetBytes(g.Value.Value);
-                Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
+                    var bytes = Encoding.ASCII.GetBytes(g.Value.Value);
+                    Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
 
-                globalUsed += (uint) g.Value.Value.Length;
+                    globalUsed += (uint) g.Value.Value.Length;
+                }
             }
+        }
+
+        public uint AllocGlobal(uint data)
+        {
+            var addr = globalUsed;
+
+            var bytes = BitConverter.GetBytes(data);
+
+            Array.Copy(bytes, 0, memory, addr, 4);
+            globalUsed += 4;
+
+            return addr;
+        }
+
+        public uint AllocGlobal(string data)
+        {
+            var addr = globalUsed;
+
+            var bytes = Encoding.ASCII.GetBytes(data);
+            Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
+            globalUsed += (uint)bytes.Length;
+
+            return addr;
         }
 
         private int pc;
@@ -41,6 +67,11 @@ namespace m68kback
                 {
                     Sp -= 4;
                     Write32(Sp, (uint)(int) par);
+                }
+                else if (par is uint)
+                {
+                    Sp -= 4;
+                    Write32(Sp, (uint)par);
                 }
                 else if (par is string)
                 {
@@ -103,6 +134,15 @@ namespace m68kback
         private bool V;
         private bool C;
 
+        string NullTerminatedToString(byte[] arr, int start)
+        {
+            var sb = new StringBuilder();
+            int i = start;
+            for (; arr[i] != 0; i++) ;
+
+            return Encoding.ASCII.GetString(arr, start, i - start);
+        }
+
         void Run()
         {
             int maxI = 1000;
@@ -147,10 +187,33 @@ namespace m68kback
                         }
                         break;
                     case M68kOpcode.Rts:
-                        if (Read32(Sp) == uint.MaxValue)
                         {
-                            Sp+=4;
-                            return;
+                            var addr = Read32(Sp);
+                            Sp += 4;
+                            if (addr == uint.MaxValue)
+                            {
+                                return;
+                            }
+                            pc = (int)addr;
+                        }
+                        break;
+                    case M68kOpcode.Jsr:
+                        {
+                            var entry = instructions.FirstOrDefault(ins => ins.Label == i.TargetLabel);
+                            if (entry != null)
+                            {
+                                Sp -= 4;
+                                Write32(Sp, (uint) pc);
+                                pc = instructions.IndexOf(entry) - 1;
+                            }
+                            else
+                            {
+                                if (i.TargetLabel == "@printf")
+                                {
+                                    var strPtr = memory[Sp + 4];
+                                    Console.WriteLine(NullTerminatedToString(memory, strPtr));
+                                }
+                            }
                         }
                         break;
                     case M68kOpcode.Lea:
@@ -172,6 +235,9 @@ namespace m68kback
                                 uint val;
                                 switch (i.AddressingMode1)
                                 {
+                                    case M68kAddressingMode.Address:
+                                        val = Read32(Regs[(int)i.FinalRegister1.Value]);
+                                        break;
                                     case M68kAddressingMode.AddressWithOffset:
                                         val = Read32(Regs[(int) i.FinalRegister1.Value] + (uint) i.Offset.Value);
                                         break;
@@ -194,6 +260,10 @@ namespace m68kback
                                         Write32(Regs[(uint) i.FinalRegister2.Value] + (uint) i.Offset.Value, val);
                                         break;
                                     case M68kAddressingMode.Address:
+                                        Write32(Regs[(uint)i.FinalRegister2.Value], val);
+                                        break;
+                                    case M68kAddressingMode.AddressWithPreDecrement:
+                                        Regs[(uint) i.FinalRegister2.Value] -= (uint)i.WidthInBytes;
                                         Write32(Regs[(uint)i.FinalRegister2.Value], val);
                                         break;
                                     default:
@@ -271,6 +341,12 @@ namespace m68kback
                         if ((N && V && !Z) || (!N && !V && !Z))
                         {
                             pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
+                        }
+                        break;
+                    case M68kOpcode.Blt:
+                        if ((N && !V) || (!N && V))
+                        {
+                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1))) - 1;
                         }
                         break;
                     default:

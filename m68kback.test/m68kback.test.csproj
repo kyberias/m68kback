@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="TestFiles\test2.ll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\m68kback\m68kback.csproj">

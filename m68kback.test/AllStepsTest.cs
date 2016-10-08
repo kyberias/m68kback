@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Text;
 using NUnit.Framework;
 
@@ -89,8 +90,8 @@ while.end:                                        ; preds = %while.cond
   ret i32 %4
 }
 ";
-            var emul = RunFunction(source, "@len", "foobarfoobarfoobar");
-            Assert.AreEqual(18, emul.Regs[0]);
+            var emul = RunFunction(source, "@len", "foobarfoobarfoobar1");
+            Assert.AreEqual(19, emul.Regs[0]);
         }
 
         [Test]
@@ -191,13 +192,46 @@ for.end:                                          ; preds = %for.end.loopexit, %
             Assert.AreEqual("54321", result);
         }
 
-        Emulator RunFunction(string source, string func, params object[] pars)
+        [Test]
+        public void ReversePrg()
+        {
+            var prg = GetFileFromResource("test2.ll");
+
+            var emul = BuildEmulator(prg);
+            var par0 = emul.AllocGlobal("program");
+            var par1 = emul.AllocGlobal("reverse");
+
+            var arrStart = emul.AllocGlobal(par0);
+            emul.AllocGlobal(par1);
+
+            emul.RunFunction("@main", arrStart, 2);
+        }
+
+        string GetFileFromResource(string filename)
+        {
+            using (
+                var stream =
+                    Assembly.GetExecutingAssembly().GetManifestResourceStream("m68kback.test.TestFiles." + filename))
+            {
+                using (var reader = new StreamReader(stream, Encoding.ASCII))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+
+        Emulator BuildEmulator(string source)
         {
             var prg = Parse(source);
             var codeGenerator = new CodeGenerator();
             codeGenerator.Visit(prg);
 
-            var emul = new Emulator(codeGenerator.Instructions, codeGenerator.Globals);
+            return new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals);
+        }
+
+        Emulator RunFunction(string source, string func, params object[] pars)
+        {
+            var emul = BuildEmulator(source);
             emul.RunFunction(func, pars);
             return emul;
         }

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
 
 namespace m68kback
 {
     public class CodeGenerator : IVisitor
     {
+        public List<M68kInstruction> AllInstructions { get; } = new List<M68kInstruction>();
+
         public object Visit(Program el)
         {
             foreach (var d in el.Declarations)
@@ -19,6 +19,7 @@ namespace m68kback
             foreach (var f in el.Functions)
             {
                 f.Visit(this);
+                AllInstructions.AddRange(Instructions);
             }
             return null;
         }
@@ -41,8 +42,6 @@ namespace m68kback
         private Dictionary<string, int> frame;
         private Dictionary<string, TypeDeclaration> vars;
         private int frameOffset;
-
-        //public List<string> Functions { get; set; } = new List<string>();
 
         public Dictionary<string, FunctionDef> Functions { get; set; } = new Dictionary<string, FunctionDef>();
 
@@ -164,23 +163,26 @@ namespace m68kback
 
                 frameStored[va.Variable] = va.Expr is GetElementPtr || va.Expr is LoadExpression;
 
-                if (va.Expr.Type.IsPointer)
+                if (va.Expr is AllocaExpression)
                 {
-                    frameOffset += 4;
-                }
-                else 
-                {
-                    switch (va.Expr.Type.Type)
+                    if (va.Expr.Type.IsPointer)
                     {
-                        case Token.I8:
-                        case Token.I32:
-                            frameOffset += 4* (va.Expr.Type.IsArray ? va.Expr.Type.ArrayX : 1);
-                            break;
-                        /*case Token.I8:
-                            frameOffset += 1 * (va.Expr.Type.IsArray ? va.Expr.Type.ArrayX : 1);
-                            break;*/
-                        default:
-                            throw new NotSupportedException();
+                        frameOffset += 4;
+                    }
+                    else
+                    {
+                        switch (va.Expr.Type.Type)
+                        {
+                            case Token.I8:
+                            case Token.I32:
+                                frameOffset +=  va.Expr.Type.ElementWidth * (va.Expr.Type.IsArray ? va.Expr.Type.ArrayX : 1);
+                                break;
+                            //case Token.I8:
+                            //  frameOffset += 1 * (va.Expr.Type.IsArray ? va.Expr.Type.ArrayX : 1);
+                            //break;
+                            default:
+                                throw new NotSupportedException();
+                        }
                     }
                 }
             }
@@ -251,7 +253,7 @@ namespace m68kback
             }
             foreach (var cs in calleeSavedTemporaries)
             {
-                func.Instructions.Insert(func.PrologueLen + 1, new M68kInstruction
+                func.Instructions.Insert(/*func.PrologueLen +*/ 2, new M68kInstruction
                 {
                     Opcode = M68kOpcode.Move,
                     Register1 = cs.Key,
@@ -361,11 +363,11 @@ namespace m68kback
                 });
             }
 
-            Console.WriteLine("Before register allocation:");
+            /*Console.WriteLine("Before register allocation:");
             foreach (var i in func.Instructions)
             {
                 Console.WriteLine(i);
-            }
+            }*/
 
             var gcD = new GraphColoring(func.Instructions, spillStart: frameOffset);
             gcD.Main();
@@ -388,13 +390,6 @@ namespace m68kback
 
             func.Instructions = gcC.Instructions;
 
-            Console.WriteLine("========================================");
-            Console.WriteLine("Before register allocation:");
-            foreach (var i in func.Instructions)
-            {
-                Console.WriteLine(i);
-            }
-
             subSPi.Immediate = frameOffset;
             foreach (var of in offsetsToFix)
             {
@@ -406,6 +401,13 @@ namespace m68kback
             }
 
             Instructions = func.Instructions;
+
+            /*Console.WriteLine("========================================");
+            Console.WriteLine("AFTER register allocation and fixes:");
+            foreach (var i in func.Instructions)
+            {
+                Console.WriteLine(i);
+            }*/
 
             return null;
         }
@@ -1053,7 +1055,7 @@ namespace m68kback
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
                         FinalRegister2 = M68kRegister.SP,
                         Offset = offset,
-                        Comment = "Store to stack"
+                        Comment = $"Store {storeStatement.Variable} to stack"
                     });
                 }
             }
@@ -1075,12 +1077,12 @@ namespace m68kback
                 if (alloca.Type.IsArray)
                 {
                     var elSize = alloca.Type.Type == Token.I8 ? 1 : 4;
-                    currentFunction.FrameSize = alloca.Type.ArrayX*elSize;
+                    currentFunction.FrameSize += alloca.Type.ArrayX*elSize;
                 }
                 else
                 {
                     // TODO: FIX!!!
-                    currentFunction.FrameSize = 4;
+                    currentFunction.FrameSize += 4;
                 }
                 return null;
             }
@@ -1096,17 +1098,32 @@ namespace m68kback
             }
             else
             {
-                var newTemp = variableAssignmentStatement.Expr.Type.IsPointer ? NewAddressReg() : NewDataReg();
-                Emit(new M68kInstruction
+                if (variableAssignmentStatement.Expr.Type.IsPointer)
                 {
-                    Opcode = M68kOpcode.Move,
-                    FinalRegister1 = M68kRegister.SP,
-                    AddressingMode1 = M68kAddressingMode.AddressWithOffset,
-                    Offset = (int)valReg,
-                    Register2 = newTemp
-                });
-                varRegs[variableAssignmentStatement.Variable] = newTemp;
-                return newTemp;
+                    var newTemp = NewAddressReg();
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        FinalRegister1 = M68kRegister.SP,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Offset = (int) valReg,
+                        Register2 = newTemp
+                    });
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Adda,
+                        AddressingMode1 = M68kAddressingMode.Immediate,
+                        Immediate = (int) valReg,
+                        Register2 = newTemp
+                    });
+
+                    varRegs[variableAssignmentStatement.Variable] = newTemp;
+                    return newTemp;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
         }
 

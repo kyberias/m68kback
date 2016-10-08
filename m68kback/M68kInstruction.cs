@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 
 namespace m68kback
@@ -124,6 +125,25 @@ namespace m68kback
         public string Label { get; set; }
         public M68kOpcode Opcode { get; set; }
         public M68Width? Width { get; set; }
+
+        public int WidthInBytes
+        {
+            get
+            {
+                switch (Width)
+                {
+                    case M68Width.Byte:
+                        return 1;
+                    case M68Width.Word:
+                        return 2;
+                    case M68Width.Long:
+                        return 4;
+                    default:
+                        return 4;
+                }
+            }
+        }
+
         //public M68kRegister? Register1 { get; set; }
         //public M68kRegister? Register2 { get; set; }
         public Register Register1 { get; set; }

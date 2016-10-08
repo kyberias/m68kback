@@ -215,6 +215,15 @@ namespace m68kback
                                 {
                                     Console.WriteLine(mVal);
                                 }
+
+                                if (tokenType == Token.GlobalIdentifier || tokenType == Token.LocalIdentifier)
+                                {
+                                    if (mVal[1] == '"')
+                                    {
+                                        mVal = mVal[0] +  mVal.Substring(2, mVal.Length - 3);
+                                    }
+                                }
+
                                 yield return new TokenElement(tokenType, mVal);
                             }
                             break;
