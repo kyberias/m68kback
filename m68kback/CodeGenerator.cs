@@ -274,6 +274,7 @@ namespace m68kback
             });
 
             offsetsToFix.Clear();
+
             // Actually generate code
             foreach (var s in el.Statements)
             {
@@ -299,6 +300,7 @@ namespace m68kback
                     ph.Key.Register1 = reg;
                 }
             }
+
             phiFixRegs.Clear();
             foreach (var ph in phiFixLabels)
             {
@@ -315,6 +317,28 @@ namespace m68kback
 
                     if (inst.TargetLabel != null && inst.TargetLabel.Substring(1) == ph.OldLabel.Label)
                     {
+                        // Insert a move from the variable referenced by the Phi instruction to the Phi target.
+
+                        foreach (
+                            var ph2 in
+                                phiFixLabels.Where(
+                                    p =>
+                                        p.BlockLabel == ph.BlockLabel &&
+                                        inst.TargetLabel.Substring(1) == p.OldLabel.Label && p.SourceVariable != null))
+                        {
+                            var move = new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Move,
+                                AddressingMode1 = M68kAddressingMode.Register,
+                                Register1 = GetVarRegister(ph2.SourceVariable),
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = ph2.TargetRegister
+                            };
+
+                            func.Instructions.Insert(i, move);
+                            i++;
+                        }
+
                         inst.TargetLabel = "%" + ph.NewLabel.Label;
                     }
                 }
@@ -1197,8 +1221,10 @@ namespace m68kback
                 }
                 else if (phiBranch.Expr is VariableReference)
                 {
+                    // We will handle this later by inserting a move before each branch!
                     var varref = phiBranch.Expr as VariableReference;
-                    var reg = GetVarRegister(varref.Variable);
+                    sourceVar = varref.Variable;
+                    /*var reg = GetVarRegister(varref.Variable);
                     if(reg == null)
                     {
                         var def = Emit(new M68kInstruction
@@ -1219,7 +1245,7 @@ namespace m68kback
                         Register2 = tempReg,
                         Comment = "from Phi"
                     }, ix++);
-                    phiFixRegs[move] = ((VariableReference)phiBranch.Expr).Variable;
+                    phiFixRegs[move] = ((VariableReference)phiBranch.Expr).Variable;*/
                 }
                 else
                 {

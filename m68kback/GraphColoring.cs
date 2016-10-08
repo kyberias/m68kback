@@ -78,6 +78,8 @@ namespace m68kback
             
         }
 
+        List<string> allNodes = new List<string>();
+
         void MakeInitial()
         {
             foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))
@@ -87,6 +89,24 @@ namespace m68kback
                     initial.Add(node);
                 }
             }
+
+            allNodes.Clear();
+            allNodes.AddRange(initial);
+        }
+
+        void MutuallyDisjointInvariant()
+        {
+            var all =
+                precolored.Union(
+                    initial.Union(
+                        simplifyWorklist.Union(
+                            freezeWorklist.Union(
+                                spillWorklist.Union(
+                                    spilledNodes.Union(
+                                        coalescedNodes.Union(
+                                            coloredNodes.Union(selectStack)))))))).ToList();
+
+            Debug.Assert(all.Count == all.Distinct().Count());
         }
 
         void DegreeInvariant()
@@ -101,10 +121,13 @@ namespace m68kback
 
         void SimplifyWorklistInvariant()
         {
-            foreach (var u in simplifyWorklist)
+            foreach (var u in allNodes)
             {
-                Debug.Assert(degree[u] < K);
-                Debug.Assert(!MoveList(u).Intersect(activeMoves.Union(worklistMoves)).Any());
+                if (!spilledNodes.Contains(u) && simplifyWorklist.Contains(u))
+                {
+                    Debug.Assert(degree[u] < K);
+                    Debug.Assert(!MoveList(u).Intersect(activeMoves.Union(worklistMoves)).Any());
+                }
             }
         }
 
@@ -128,10 +151,11 @@ namespace m68kback
         [Conditional("DEBUG")]
         void CheckInvariants()
         {
+            MutuallyDisjointInvariant();
             /*DegreeInvariant();
-            SimplifyWorklistInvariant();
-            FreezeWorklistInvariant();
-            SpillWorklistInvariant();*/
+            SimplifyWorklistInvariant();*/
+            //FreezeWorklistInvariant();
+            //SpillWorklistInvariant();
         }
 
         public void FinalRewrite(RegType regType = RegType.Data)
@@ -202,7 +226,7 @@ namespace m68kback
                 {
                     SelectSpill();
                 }
-                //CheckInvariants();
+                CheckInvariants();
             } while (simplifyWorklist.Count > 0 || worklistMoves.Count > 0 || freezeWorklist.Count > 0 || spillWorklist.Count > 0);
 
             AssignColors();
@@ -402,7 +426,8 @@ namespace m68kback
 
         private void SelectSpill()
         {
-            var m = spillWorklist.OrderBy(SpillPriority).First();
+            var ordered = spillWorklist.OrderBy(SpillPriority).ToList();
+            var m = ordered.First();
             spillWorklist.Remove(m);
             AddToSimplifyWorkList(m);
             FreezeMoves(m);
@@ -434,8 +459,15 @@ namespace m68kback
             }
         }
 
+        void AssertMyTypeOfRef(string n)
+        {
+            Debug.Assert((regType == RegType.Data && n[0] == 'D') || (regType == RegType.Address && n[0] == 'A') || (regType == RegType.ConditionCode && n.StartsWith("CCR")));
+        }
+
         void AddToSimplifyWorkList(string n)
         {
+            AssertMyTypeOfRef(n);
+
             if (!simplifyWorklist.Contains(n))
             {
                 simplifyWorklist.Add(n);
@@ -510,10 +542,15 @@ namespace m68kback
         {
             Debug.Assert(initial.Count == initial.Distinct().Count());
 
-            foreach (var n in initial)
+            var toProcess = initial.ToList();
+
+            foreach (var n in toProcess)
             {
+                initial.Remove(n);
+
                 if (degree[n] >= K)
                 {
+                    AssertMyTypeOfRef(n);
                     spillWorklist.Add(n);
                 }
                 else if (MoveRelated(n))
@@ -525,7 +562,6 @@ namespace m68kback
                     AddToSimplifyWorkList(n);
                 }
             }
-            initial.Clear();
         }
 
         void AddEdge(string u, string v)
@@ -561,7 +597,7 @@ namespace m68kback
             if (selectStack.Contains(n))
             {
                 // TODO: Otherwise we seem to add duplicates to Stack and unnecessary (?) spills
-                return;
+                //return;
             }
 
             selectStack.Push(n);
@@ -602,7 +638,7 @@ namespace m68kback
             }
         }
 
-        IEnumerable<M68kInstruction> NodeMoves(string n)
+        IList<M68kInstruction> NodeMoves(string n)
         {
             return MoveList(n).Intersect(activeMoves.Union(worklistMoves)).ToList();
         }
@@ -682,8 +718,11 @@ namespace m68kback
         {
             var m = worklistMoves.First();
             var x = m.Register1.ToString();
+            AssertMyTypeOfRef(x);
+
             x = GetAlias(x);
             var y = m.Register2.ToString();
+            AssertMyTypeOfRef(y);
             y = GetAlias(y);
 
             string u;
@@ -751,6 +790,7 @@ namespace m68kback
             if (degree[u] >= K && freezeWorklist.Contains(u))
             {
                 freezeWorklist.Remove(u);
+                AssertMyTypeOfRef(u);
                 spillWorklist.Add(u);
             }
         }
@@ -760,13 +800,28 @@ namespace m68kback
             worklistMoves.Clear();
 
             _graph = InterferenceGraphGenerator.MakeGraph(nodes, regType, precolored);
-            worklistMoves.AddRange(_graph.Moves);
+            foreach (var move in _graph.Moves)
+            {
+                worklistMoves.Add(move);
+                var ml = MoveList(move.Register1.ToString());
+                if (!ml.Contains(move))
+                {
+                    ml.Add(move);
+                }
+                ml = MoveList(move.Register2.ToString());
+                if (!ml.Contains(move))
+                {
+                    ml.Add(move);
+                }
+            }
 
             foreach (var node in _graph.Nodes)
             //foreach (var node in _graph.Nodes.Where(n => !precolored.Contains(n)))
             {
                 degree[node] = _graph.Graph.Count(e => e.Item1 == node || e.Item2 == node);
             }
+
+            // TODO: Build the movelist!
         }
 
         public Stack<string> Simplify(int K = 8)

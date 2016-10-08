@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace m68kback.test
 {
@@ -9,6 +10,80 @@ namespace m68kback.test
         Register d1 = new Register { Type = RegType.Data, Number = 1 };
         Register d2 = new Register { Type = RegType.Data, Number = 2 };
         Register d3 = new Register { Type = RegType.Data, Number = 3 };
+
+        [Test]
+        public void BranchesTest()
+        {
+            var d20 = new Register {Type = RegType.Data, Number = 20};
+            var d21 = new Register { Type = RegType.Data, Number = 21 };
+            var d22 = new Register { Type = RegType.Data, Number = 22 };
+            var d23 = new Register { Type = RegType.Data, Number = 23 };
+            var d24 = new Register { Type = RegType.Data, Number = 24 };
+            var d25 = new Register { Type = RegType.Data, Number = 25 };
+
+            var a7 = new Register { Type = RegType.Address, Number = 7 };
+            var a8 = new Register { Type = RegType.Address, Number = 7 };
+            var a15 = new Register { Type = RegType.Address, Number = 15 };
+            var a16 = new Register { Type = RegType.Address, Number = 15 };
+
+            var instructions = new[]
+            {
+                new M68kInstruction(M68kOpcode.Move, d20, d21),
+                new M68kInstruction(M68kOpcode.Add, -1, d21),
+                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "for$body0$7"},
+                new M68kInstruction(M68kOpcode.Label) {Label = "for$body0"},
+                new M68kInstruction(M68kOpcode.Label) {Label = "for$body0$7"},
+                new M68kInstruction(M68kOpcode.MoveQ, 0, d22),
+                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "for$body0$end"},
+                new M68kInstruction(M68kOpcode.Label) {Label = "for$body0$8"},
+                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "for$body0$end"},
+                new M68kInstruction(M68kOpcode.Label) {Label = "for$body0$end"},
+                new M68kInstruction(M68kOpcode.MoveQ, d21, d23),
+                new M68kInstruction(M68kOpcode.Sub, d22, d23),
+                new M68kInstruction(M68kOpcode.Move, a7, a15),
+                new M68kInstruction(M68kOpcode.Adda, d23, a15),
+                new M68kInstruction(M68kOpcode.Move, a15, d24),
+                new M68kInstruction(M68kOpcode.Move, a8, a16),
+
+                new M68kInstruction(M68kOpcode.Adda, d22, a16),
+                new M68kInstruction(M68kOpcode.Move, d24, a16),
+                new M68kInstruction(M68kOpcode.Move, d22, d25),
+                new M68kInstruction(M68kOpcode.Adda, 1, d25),
+                new M68kInstruction(M68kOpcode.Cmp, d20, d25),
+                new M68kInstruction(M68kOpcode.Beq) { TargetLabel = "for$end$loopexit0"},
+                new M68kInstruction(M68kOpcode.Move, d25, d22),
+                new M68kInstruction(M68kOpcode.Jmp) { TargetLabel = "for$body0$8"},
+                new M68kInstruction(M68kOpcode.Label) {Label = "for$end$loopexit0"},
+            };
+
+            var la = new LivenessAnalysis(instructions);
+
+            var gr = InterferenceGraphGenerator.MakeGraph(la.Nodes, RegType.Data, new List<string>());
+
+            Assert.IsTrue(gr.IsEdgeBetween("D21", "D20"));
+            Assert.IsTrue(gr.IsEdgeBetween("D21", "D22"));
+            Assert.IsTrue(gr.IsEdgeBetween("D21", "D23"));
+            Assert.IsTrue(gr.IsEdgeBetween("D21", "D24"));
+            Assert.IsTrue(gr.IsEdgeBetween("D21", "D25"));
+
+            Assert.IsFalse(gr.IsEdgeBetween("D23", "D24"));
+            Assert.IsFalse(gr.IsEdgeBetween("D23", "D25"));
+            Assert.IsFalse(gr.IsEdgeBetween("D24", "D25"));
+
+            Assert.IsTrue(gr.IsEdgeBetween("D22", "D20"));
+            Assert.IsTrue(gr.IsEdgeBetween("D22", "D23"));
+            Assert.IsTrue(gr.IsEdgeBetween("D22", "D24"));
+            Assert.IsFalse(gr.IsEdgeBetween("D22", "D25"));
+
+            /*
+                add.l #1,D25_
+                cmp.l D20_,D25_
+                beq for$end$loopexit0
+                move.l D25_,D22_
+                jmp for$body0$8
+            for$end$loopexit0:
+             */
+        }
 
         [Test]
         public void PredSuccWithBranch()

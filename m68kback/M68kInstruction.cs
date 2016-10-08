@@ -266,6 +266,16 @@ namespace m68kback
                 }
             }
 
+            if (Opcode == M68kOpcode.Cmp)
+            {
+                if (Register1 != null)
+                {
+                    yield return Register1.ToString();
+                }
+                yield return Register2.ToString();
+                yield break;
+            }
+
             if (Register1 != null && Register1.Type == regType)
             {
                 yield return Register1.ToString();
@@ -346,6 +356,11 @@ namespace m68kback
                         yield return du;
                     }
                 }
+            }
+
+            if (Opcode == M68kOpcode.Cmp)
+            {
+                yield break;
             }
 
             if (Register2 != null && AddressingMode2 == M68kAddressingMode.Register && Register2.Type == regType)

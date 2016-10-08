@@ -22,6 +22,22 @@ namespace m68kback.test
         }
 
         [Test]
+        public void CmpUse()
+        {
+            var cmp = new M68kInstruction(M68kOpcode.Cmp, new Register { Type = RegType.Data, Number = 1}, new Register { Type = RegType.Data, Number = 2 });
+
+            CollectionAssert.AreEquivalent(new[] {"D1", "D2"}, cmp.Use(RegType.Data));
+        }
+
+        [Test]
+        public void CmpDef()
+        {
+            var cmp = new M68kInstruction(M68kOpcode.Cmp, new Register { Type = RegType.Data, Number = 1 }, new Register { Type = RegType.Data, Number = 2 });
+
+            CollectionAssert.IsEmpty(cmp.Def(RegType.Data));
+        }
+
+        [Test]
         public void DefWhenAddressRegsUsed()
         {
             var i = new M68kInstruction

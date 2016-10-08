@@ -40,6 +40,11 @@ namespace m68kback
 
     public class InterferenceGraphGenerator
     {
+        static bool IsRegType(RegType regType, string regName)
+        {
+            return (regType == RegType.Data && regName[0] == 'D') || (regType == RegType.Address && regName[0] == 'A') || (regType == RegType.ConditionCode && regName.StartsWith("CCR"));
+        }
+
         public static InterferenceGraph MakeGraph(IList<CfgNode> nodes, RegType regType, IList<string> preColored)
         {
             //var graph = new bool[nodes.Count, nodes.Count];
@@ -68,9 +73,9 @@ namespace m68kback
 
             foreach (var node in nodes.Where(n => n != null))
             {
-                foreach (var def in node.Def)
+                foreach (var def in node.Def.Where(dn => IsRegType(regType, dn)))
                 {
-                    foreach (var o in node.Out)
+                    foreach (var o in node.Out.Where(dn => IsRegType(regType, dn)))
                     {
                         if (o != def && !graph.Contains(new Tuple<string, string>(def,o)) && !graph.Contains(new Tuple<string, string>(o, def)))
                         {
@@ -98,15 +103,15 @@ namespace m68kback
                         g.Moves.Add(node.Instruction);
                     }
 
-                    foreach (var b in node.Out)
+                    foreach (var b in node.Out.Where(dn => IsRegType(regType, dn)))
                     {
                         if (b != c && !graph.Contains(new Tuple<string, string>(a,b)) && !graph.Contains(new Tuple<string, string>(b,a)))
                         {
                             graph.Add(new Tuple<string, string>(a, b));
                         }
                         g.Nodes.Add(b);
-                        g.Nodes.Add(c);
                     }
+                    g.Nodes.Add(c);
                 }
             }
 
