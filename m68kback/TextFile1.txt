@@ -1,0 +1,115 @@
+Before register allocation:
+_main:
+
+    regdef.l _,_
+    sub.l #16,SP
+    move.l 4(SP),D8_			%par = D8
+    move.l A6_,A11_
+    move.l A5_,A10_
+    move.l A4_,A9_
+    move.l A3_,A8_
+    move.l A2_,A7_
+    move.l D7_,D14_
+    move.l D6_,D13_
+    move.l D5_,D12_
+    move.l D4_,D11_
+    move.l D3_,D10_
+    move.l D2_,D9_
+entry0:
+
+    jmp foo0$1
+foo0:
+
+foo0$0:
+
+    regdef.l _,_ ; from Phi
+    move.l D17_,D16_ ; from Phi		
+    moveq #2,D15_ ; from Phi		
+    jmp foo0$end ; from Phi
+foo0$1:
+
+    move.l D8_,D16_ ; from Phi		%par -> D16 (5)
+    moveq #1,D15_ ; from Phi		#1	-> D15	
+    jmp foo0$end ; from Phi
+foo0$end:
+
+    move.l D16_,D17_				%par -> D17 (#5)
+    add.l #0,D17_					
+    cmp.l #2,D15_					if(D15 == #2) -> exit
+    move.l CCR,CCR0_
+    move.l CCR0_,CCR
+    beq fooexit0
+    jmp foo0$0						
+fooexit0:
+
+    move.l D16_,D0_					#2 -> D0
+    move.l D9_,D2_
+    move.l D10_,D3_
+    move.l D11_,D4_
+    move.l D12_,D5_
+    move.l D13_,D6_
+    move.l D14_,D7_
+    move.l A7_,A2_
+    move.l A8_,A3_
+    move.l A9_,A4_
+    move.l A10_,A5_
+    move.l A11_,A6_
+    add.l #16,SP
+    rts 
+A0: 0, A1: 0, D0: 0, D1: 0
+_main:
+
+A0: 0, A1: 0, D0: 0, D1: 0
+    sub.l #20,SP
+A0: 0, A1: 0, D0: 0, D1: 0
+    move.l 24(SP),D0
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l D0,16(SP) ; Spilled reg D8 store
+A0: 0, A1: 0, D0: 5, D1: 0
+entry0:
+
+A0: 0, A1: 0, D0: 5, D1: 0
+    jmp foo0$1
+A0: 0, A1: 0, D0: 5, D1: 0
+foo0$1:
+
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l 16(SP),D0 ; Spilled reg D8 load
+A0: 0, A1: 0, D0: 5, D1: 0
+    moveq #1,D1 ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 1
+    jmp foo0$end ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 1
+foo0$end:
+
+A0: 0, A1: 0, D0: 5, D1: 1
+    add.l #0,D0
+A0: 0, A1: 0, D0: 5, D1: 1
+    cmp.l #2,D1
+A0: 0, A1: 0, D0: 5, D1: 1
+    beq fooexit0
+A0: 0, A1: 0, D0: 5, D1: 1
+    jmp foo0$0
+A0: 0, A1: 0, D0: 5, D1: 1
+foo0$0:
+
+A0: 0, A1: 0, D0: 5, D1: 1
+    moveq #2,D1 ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 2
+    jmp foo0$end ; from Phi
+A0: 0, A1: 0, D0: 5, D1: 2
+foo0$end:
+
+A0: 0, A1: 0, D0: 5, D1: 2
+    add.l #0,D0
+A0: 0, A1: 0, D0: 5, D1: 2
+    cmp.l #2,D1
+A0: 0, A1: 0, D0: 5, D1: 2
+    beq fooexit0
+A0: 0, A1: 0, D0: 5, D1: 2
+fooexit0:
+
+A0: 0, A1: 0, D0: 5, D1: 2
+    add.l #20,SP
+A0: 0, A1: 0, D0: 5, D1: 2
+    rts 

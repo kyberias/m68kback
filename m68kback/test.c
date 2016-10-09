@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#pragma libcall SysBase FreeMem d2 0902
+//#pragma libcall SysBase FreeMem d2 0902
 
 //__attribute__((amiga("foobar")))
 int main(int argc, char** argv)
@@ -36,4 +36,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-

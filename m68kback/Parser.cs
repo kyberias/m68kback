@@ -112,6 +112,10 @@ namespace m68kback
                 {
                     var par = new FunctionParameter();
                     par.Type = ParseType();
+
+                    AcceptElementIfNext(Token.NoCapture);
+                    AcceptElementIfNext(Token.ReadOnly);
+
                     par.Name = AcceptElement(Token.LocalIdentifier).Data;
                     func.Parameters.Add(par);
 
@@ -150,6 +154,7 @@ namespace m68kback
             var el = PeekElement();
             switch (el.Type)
             {
+                case Token.I64:
                 case Token.I32:
                 case Token.I8:
                 case Token.I1:
@@ -225,6 +230,15 @@ namespace m68kback
                 AcceptElement(Token.IntegerLiteral);
             }
 
+            if (PeekElement().Type == Token.Comma)
+            {
+                AcceptElement(Token.Comma);
+                AcceptElement(Token.Exclamation);
+                AcceptElement(Token.Symbol);
+                AcceptElement(Token.Exclamation);
+                AcceptElement(Token.IntegerLiteral);
+            }
+
             return expr;
         }
 
@@ -243,6 +257,15 @@ namespace m68kback
             {
                 AcceptElement(Token.Comma);
                 AcceptElement(Token.Align);
+                AcceptElement(Token.IntegerLiteral);
+            }
+
+            if (PeekElement().Type == Token.Comma)
+            {
+                AcceptElement(Token.Comma);
+                AcceptElement(Token.Exclamation);
+                AcceptElement(Token.Symbol);
+                AcceptElement(Token.Exclamation);
                 AcceptElement(Token.IntegerLiteral);
             }
 
@@ -294,6 +317,8 @@ namespace m68kback
         {
             var expr = new CallExpression();
             expr.Parameters = new List<Expression>();
+
+            AcceptElementIfNext(Token.Tail);
             AcceptElement(Token.Call);
 
             expr.Type = ParseType();
@@ -329,6 +354,11 @@ namespace m68kback
                 }
             }
             AcceptElement(Token.ParenClose);
+
+            if (AcceptElementIfNext(Token.Hash))
+            {
+                AcceptElement(Token.IntegerLiteral);
+            }
             return expr;
         }
 
@@ -372,9 +402,13 @@ namespace m68kback
             var expr = new ArithmeticExpression();
             expr.Operator = AcceptElement(Token.Mul, Token.Add, Token.Sub, Token.Srem).Type;
 
-            if (PeekElement().Type == Token.Nsw)
+            if (AcceptElementIfNext(Token.Nuw))
             {
-                expr.Wrap = AcceptElement(Token.Nsw).Type;
+                expr.NoUnsignedWrap = true;
+            }
+            if (AcceptElementIfNext(Token.Nsw))
+            {
+                expr.NoSignedWrap = true;
             }
 
             expr.Type = ParseType();
@@ -384,12 +418,40 @@ namespace m68kback
             return expr;
         }
 
+        PhiExpression ParsePhi()
+        {
+            var phi = new PhiExpression();
+            AcceptElement(Token.Phi);
+            phi.Type = ParseType();
+
+
+            while (true)
+            {
+                AcceptElement(Token.BracketOpen);
+
+                var expr = ParseExpression();
+                AcceptElement(Token.Comma);
+                var label = AcceptElement(Token.LocalIdentifier);
+
+                phi.Values.Add( new PhiValue { Expr = expr, Label = label.Data});
+
+                AcceptElement(Token.BracketClose);
+
+                if (!AcceptElementIfNext(Token.Comma))
+                {
+                    break;
+                }
+            }
+            return phi;
+        }
+
         Expression ParseExpression()
         {
             switch (PeekElement().Type)
             {
                 case Token.Alloca:
                     return ParseAllocaExpression();
+                case Token.Tail:
                 case Token.Call:
                     return ParseCallExpression();
                 case Token.Icmp:
@@ -403,6 +465,8 @@ namespace m68kback
                     return ParseGetElementPtr();
                 case Token.Load:
                     return ParseLoadExpression();
+                case Token.Phi:
+                    return ParsePhi();
             }
 
             //var type = ParseType();
@@ -502,7 +566,8 @@ namespace m68kback
             }
 
             Statement stmt;
-            switch (PeekElement().Type)
+            var next = PeekElement().Type;
+            switch (next)
             {
                 case Token.LocalIdentifier:
                     stmt = ParseAssignmentStatement();
@@ -516,6 +581,7 @@ namespace m68kback
                 case Token.Br:
                     stmt = ParseBrInstruction();
                     break;
+                case Token.Tail:
                 case Token.Call:
                     stmt = new ExpressionStatement
                     {
@@ -523,7 +589,7 @@ namespace m68kback
                     };
                     break;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException(next.ToString());
             }
 
             stmt.Label = label;
@@ -578,8 +644,10 @@ namespace m68kback
                 {
                     if (PeekElement().Type != Token.ParenClose)
                     {
-
                         ParseType();
+                        AcceptElementIfNext(Token.NoCapture);
+                        AcceptElementIfNext(Token.ReadOnly);
+
                         while (AcceptElementIfNext(Token.Comma))
                         {
                             if (AcceptElementIfNext(Token.Ellipsis))
@@ -587,6 +655,8 @@ namespace m68kback
                                 break;
                             }
                             ParseType();
+                            AcceptElementIfNext(Token.NoCapture);
+                            AcceptElementIfNext(Token.ReadOnly);
                         }
                     }
                 }
@@ -654,7 +724,7 @@ namespace m68kback
                         Column = el.Column,
                         Line = el.Line
                     });*/
-                    cursor++;
+                    //cursor++;
                     //return new TokenElement(type, el.Data);
                 }
             }

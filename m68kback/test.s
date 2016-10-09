@@ -1,79 +1,136 @@
-	.text
-	.def	 @feat.00;
-	.scl	3;
-	.type	0;
-	.endef
-	.globl	@feat.00
-@feat.00 = 1
-	.def	 _main;
-	.scl	2;
-	.type	32;
-	.endef
-	.globl	_main
-	.align	16, 0x90
-_main:                                  # @main
-# BB#0:                                 # %entry
-	pushl	%ebp
-	movl	%esp, %ebp
-	subl	$16, %esp
-	movl	$0, -4(%ebp)
-	movl	$2, -8(%ebp)
-LBB0_1:                                 # %for.cond
-                                        # =>This Loop Header: Depth=1
-                                        #     Child Loop BB0_3 Depth 2
-	cmpl	$1000, -8(%ebp)         # imm = 0x3E8
-	jge	LBB0_12
-# BB#2:                                 # %for.body
-                                        #   in Loop: Header=BB0_1 Depth=1
-	movl	-8(%ebp), %eax
-	subl	$1, %eax
-	movl	%eax, -12(%ebp)
-LBB0_3:                                 # %for.cond.1
-                                        #   Parent Loop BB0_1 Depth=1
-                                        # =>  This Inner Loop Header: Depth=2
-	cmpl	$1, -12(%ebp)
-	jle	LBB0_8
-# BB#4:                                 # %for.body.3
-                                        #   in Loop: Header=BB0_3 Depth=2
-	movl	-8(%ebp), %eax
-	cltd
-	idivl	-12(%ebp)
-	cmpl	$0, %edx
-	jne	LBB0_6
-# BB#5:                                 # %if.then
-                                        #   in Loop: Header=BB0_1 Depth=1
-	jmp	LBB0_8
-LBB0_6:                                 # %if.end
-                                        #   in Loop: Header=BB0_3 Depth=2
-	jmp	LBB0_7
-LBB0_7:                                 # %for.inc
-                                        #   in Loop: Header=BB0_3 Depth=2
-	movl	-12(%ebp), %eax
-	addl	$-1, %eax
-	movl	%eax, -12(%ebp)
-	jmp	LBB0_3
-LBB0_8:                                 # %for.end
-                                        #   in Loop: Header=BB0_1 Depth=1
-	cmpl	$1, -12(%ebp)
-	je	LBB0_10
-# BB#9:                                 # %if.then.6
-                                        #   in Loop: Header=BB0_1 Depth=1
-	movl	-8(%ebp), %eax
-	movl	%eax, (%esp)
-	calll	_print
-LBB0_10:                                # %if.end.7
-                                        #   in Loop: Header=BB0_1 Depth=1
-	jmp	LBB0_11
-LBB0_11:                                # %for.inc.8
-                                        #   in Loop: Header=BB0_1 Depth=1
-	movl	-8(%ebp), %eax
-	addl	$1, %eax
-	movl	%eax, -8(%ebp)
-	jmp	LBB0_1
-LBB0_12:                                # %for.end.9
-	xorl	%eax, %eax
-	addl	$16, %esp
-	popl	%ebp
-	retl
+    xref _printf
+    xref _atoi
+    xdef _main
+        section text,code
+_main:
 
+    sub.l #12,SP
+    move.l D7,0(SP) ; Spilled reg D14 store
+    move.l D6,4(SP) ; Spilled reg D13 store
+    move.l D5,8(SP) ; Spilled reg D12 store
+    move.l 16(SP),D0
+    move.l 20(SP),A0
+entry0:
 
+    cmp.l #2,D0
+    blt if$then0
+    jmp if$end0
+if$then0:
+
+    move.l D0,-(SP)
+    lea.l __01$$_C__09NKIIDDPL_argc$3$5$$CFd$6$$AA_,A0
+    move.l A0,-(SP)
+    jsr _printf
+    adda.l #8,SP
+    jmp cleanup0$5
+if$end0:
+
+    adda.l #4,A0
+    move.l (A0),A0 ; Load by register address
+    move.l A0,-(SP)
+    jsr _atoi
+    move.l D0,D6
+    adda.l #4,SP
+    move.l D6,-(SP)
+    lea.l __01$$_C__07PIJPKGHP_max$5$$CFd$6$$AA_,A0
+    move.l A0,-(SP)
+    jsr _printf
+    adda.l #8,SP
+    cmp.l #2,D6
+    bgt for$cond$4$preheader$preheader0
+    jmp cleanup0$6
+for$cond$4$preheader$preheader0:
+
+    jmp for$cond$4$preheader0$1
+for$cond$4$preheader0:
+
+for$cond$4$preheader0$0:
+
+    jmp for$cond$4$preheader0$end ; from Phi
+for$cond$4$preheader0$1:
+
+    moveq #2,D5 ; from Phi
+    jmp for$cond$4$preheader0$end ; from Phi
+for$cond$4$preheader0$end:
+
+    move.l D5,D0
+    jmp for$cond$40$3
+for$cond$40:
+
+for$cond$40$2:
+
+    jmp for$cond$40$end ; from Phi
+for$cond$40$3:
+
+    jmp for$cond$40$end ; from Phi
+for$cond$40$end:
+
+    add.l #-1,D0
+    cmp.l #1,D0
+    bgt for$body$60
+    jmp for$end0$4
+for$body$60:
+
+    move.l D5,D1
+    divs.w D0,D1
+    moveq #16,D7
+    lsr.l D7,D1
+    cmp.l #0,D1
+    beq for$inc$14$loopexit0
+    jmp for$cond$40$2
+for$end0:
+
+for$end0$4:
+
+    jmp for$end0$end ; from Phi
+for$end0$end:
+
+    cmp.l #1,D0
+    beq if$then$110
+    jmp for$inc$140
+if$then$110:
+
+    move.l D5,-(SP)
+    lea.l __01$$_C__05MAEKFANH_$$CL$5$$CFd$6$$AA_,A0
+    move.l A0,-(SP)
+    jsr _printf
+    adda.l #8,SP
+    jmp for$inc$140
+for$inc$14$loopexit0:
+
+    jmp for$inc$140
+for$inc$140:
+
+    add.l #1,D5
+    cmp.l D6,D5
+    beq cleanup$loopexit0
+    jmp for$cond$4$preheader0$0
+cleanup$loopexit0:
+
+    jmp cleanup0$7
+cleanup0:
+
+cleanup0$5:
+
+    moveq #-1,D0 ; from Phi
+    jmp cleanup0$end ; from Phi
+cleanup0$6:
+
+    moveq #0,D0 ; from Phi
+    jmp cleanup0$end ; from Phi
+cleanup0$7:
+
+    moveq #0,D0 ; from Phi
+    jmp cleanup0$end ; from Phi
+cleanup0$end:
+
+    move.l 8(SP),D5 ; Spilled reg D12 load
+    move.l 4(SP),D6 ; Spilled reg D13 load
+    move.l 0(SP),D7 ; Spilled reg D14 load
+    add.l #12,SP
+    rts 
+         section __MERGED,DATA
+__01$$_C__09NKIIDDPL_argc$3$5$$CFd$6$$AA_    dc.b 99,34,97,114,103,99,58,32,37,100,10,0,34
+__01$$_C__07PIJPKGHP_max$5$$CFd$6$$AA_    dc.b 99,34,109,97,120,32,37,100,10,0,34
+__01$$_C__05MAEKFANH_$$CL$5$$CFd$6$$AA_    dc.b 99,34,43,32,37,100,10,0,34
+         end

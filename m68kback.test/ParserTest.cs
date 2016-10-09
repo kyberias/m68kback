@@ -107,7 +107,8 @@ namespace m68kback.test
         [TestCase("define i32 @main() #0 { eka: %retval = alloca i32, align 4 for.cond: ret i32 42 }", 1, "for.cond")]
         public void StatementCanHaveLabels(string prg, int labelindex, string label)
         {
-            Assert.AreEqual(label, Parse(prg).Functions[0].Statements[labelindex].Label);
+            var program = Parse(prg);
+            Assert.AreEqual(label, program.Functions[0].Statements[labelindex].Label);
         }
 
         public Stream StreamFromString(string s)

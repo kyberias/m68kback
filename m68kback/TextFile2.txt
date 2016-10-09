@@ -1,0 +1,102 @@
+main:
+	...
+	br loop
+
+loop:
+	%a = phi [1, %main], [2, %end]
+	%b = phi [3, %main], [4, %end]
+
+	...
+
+end:
+	...
+	br loop
+
+
+	===============================
+
+AFTER FIRST PHI code gen:
+
+loop:
+loop.1:
+	MOVE #1,D0
+	JMP loop.end
+loop.2:
+	MOVE #2,D0
+	JMP loop.end
+loop.end:
+
+FixLabels:
+-> main, loop, loop.1
+-> end, loop, loop.2
+	
+
+	=============================== 	%b = phi [3, %main], [4, %end]
+
+AFTER SECOND PHI code gen:
+
+loop:
+loop.1:
+	MOVE #1,%a
+loop.2:
+	MOVE #2,%a
+
+
+FixLabels:
+-> main, loop, loop.1
+-> end, loop, loop.2
+
+
+while.body.preheader:                             ; preds = %entry
+  br label %while.body.1
+
+
+while.body:
+while.body.0:
+	MOVE %inc, %l.05
+	JMP	while.body
+while.body.1:
+	MOVE #0, %l.05
+	JMP	while.body
+
+  %l.05 = phi i32 [ %inc, %while.body ], [ 0, %while.body.preheader ]
+  %str.addr.04 = phi i8* [ %incdec.ptr, %while.body ], [ %str, %while.body.preheader ]
+
+  %incdec.ptr = getelementptr inbounds i8, i8* %str.addr.04, i32 1
+  %inc = add nuw nsw i32 %l.05, 1
+  %1 = load i8, i8* %incdec.ptr, align 1, !tbaa !1
+  %tobool = icmp eq i8 %1, 0
+  br i1 %tobool, label %while.end.loopexit, label %while.body.0
+
+
+
+  If prev instruction is label => we're first phi in this block
+	
+  If prev instruction is not a label...
+	there must have been at least one phi before us.
+	---find the label by taking the last label and getting the original label from that.
+
+
+  
+
+  while.body.preheader:                             ; preds = %entry
+  br label %while.body.1
+
+
+while.body:
+while.body.0:
+	MOVE %inc, %l.05
+	JMP	while.body.x
+while.body.1:
+	MOVE #0, %l.05
+	JMP	while.body.x
+while.body.x
+
+  %l.05 = phi i32 [ %inc, %while.body ], [ 0, %while.body.preheader ]
+  %str.addr.04 = phi i8* [ %incdec.ptr, %while.body ], [ %str, %while.body.preheader ]
+
+  %incdec.ptr = getelementptr inbounds i8, i8* %str.addr.04, i32 1
+  %inc = add nuw nsw i32 %l.05, 1
+  %1 = load i8, i8* %incdec.ptr, align 1, !tbaa !1
+  %tobool = icmp eq i8 %1, 0
+  br i1 %tobool, label %while.end.loopexit, label %while.body.0

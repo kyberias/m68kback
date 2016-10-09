@@ -45,7 +45,11 @@
   <ItemGroup>
     <Compile Include="AstBase.cs" />
     <Compile Include="CodeGenerator.cs" />
+    <Compile Include="Emulator.cs" />
+    <Compile Include="GraphColoring.cs" />
+    <Compile Include="InterferenceGraph.cs" />
     <Compile Include="IVisitor.cs" />
+    <Compile Include="LivenessAnalysis.cs" />
     <Compile Include="M68kInstruction.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="M68kBackend.cs" />

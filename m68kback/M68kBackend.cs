@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,16 +32,19 @@ namespace m68kback
                     }
                 }
 
-                foreach (var func in codeGenerator.Functions)
+                foreach (var func in codeGenerator.Functions.Keys)
                 {
                     Console.WriteLine("    xdef " + func.Replace("@", "_"));
                 }
 
                 Console.WriteLine("        section text,code");
 
-                foreach (var inst in codeGenerator.Instructions)
+                foreach (var func in codeGenerator.Functions)
                 {
-                    Console.WriteLine(inst);
+                    foreach (var inst in func.Value.Instructions)
+                    {
+                        Console.WriteLine(inst);
+                    }
                 }
 
                 Console.WriteLine("         section __MERGED,DATA");
