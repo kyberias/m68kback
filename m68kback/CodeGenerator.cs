@@ -363,11 +363,13 @@ namespace m68kback
                 });
             }
 
-            /*Console.WriteLine("Before register allocation:");
+#if PRINTCODE
+            Console.WriteLine("Before register allocation:");
             foreach (var i in func.Instructions)
             {
                 Console.WriteLine(i);
-            }*/
+            }
+#endif
 
             var gcD = new GraphColoring(func.Instructions, spillStart: frameOffset);
             gcD.Main();
@@ -401,14 +403,14 @@ namespace m68kback
             }
 
             Instructions = func.Instructions;
-
-            /*Console.WriteLine("========================================");
+#if PRINTCODE
+            Console.WriteLine("========================================");
             Console.WriteLine("AFTER register allocation and fixes:");
             foreach (var i in func.Instructions)
             {
                 Console.WriteLine(i);
-            }*/
-
+            }
+#endif
             return null;
         }
 

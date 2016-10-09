@@ -286,7 +286,7 @@ namespace m68kback
                 }
             }
 
-            if (Opcode == M68kOpcode.Cmp)
+            if (Opcode == M68kOpcode.Cmp || Opcode == M68kOpcode.Lsr)
             {
                 if (Register1 != null)
                 {

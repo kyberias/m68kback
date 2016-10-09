@@ -2,7 +2,7 @@ AMIRUN = amirun
 SC = amirun sc:c/sc
 SLINK = amirun sc:c/slink
 
-all: test2
+all: test2 test
 
 test2: test2.o
 	$(SLINK) from lib:c.o test2.o to test2 lib lib:sc.lib
@@ -27,7 +27,7 @@ test.s: test.ll
 	bin\debug\m68kback test.ll >test.s
 
 test.ll: test.c
-	clang -S -emit-llvm test.c
+	clang -S -O4 -emit-llvm test.c
 
 cpptest: cpptest.o
 	$(SLINK) from lib:c.o cpptest.o to cpptest lib lib:sc.lib

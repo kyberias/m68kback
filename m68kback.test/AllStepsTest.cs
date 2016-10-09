@@ -207,6 +207,21 @@ for.end:                                          ; preds = %for.end.loopexit, %
             emul.RunFunction("@main", arrStart, 2);
         }
 
+        [Test]
+        public void PrimesPrg()
+        {
+            var prg = GetFileFromResource("primes.ll");
+
+            var emul = BuildEmulator(prg);
+            var par0 = emul.AllocGlobal("program");
+            var par1 = emul.AllocGlobal("42");
+
+            var arrStart = emul.AllocGlobal(par0);
+            emul.AllocGlobal(par1);
+
+            emul.RunFunction("@main", arrStart, 2);
+        }
+
         string GetFileFromResource(string filename)
         {
             using (

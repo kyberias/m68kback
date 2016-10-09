@@ -48,5 +48,21 @@ namespace m68kback.test
 
             CollectionAssert.AreEqual(new[] { "A1" }, i.Def(RegType.Address));
         }
+
+        [Test]
+        public void LsrDef()
+        {
+            var cmp = new M68kInstruction(M68kOpcode.Lsr, new Register { Type = RegType.Data, Number = 1 }, new Register { Type = RegType.Data, Number = 2 });
+
+            CollectionAssert.AreEqual(new[] { "D2" }, cmp.Def(RegType.Data));
+        }
+
+        [Test]
+        public void LsrUse()
+        {
+            var cmp = new M68kInstruction(M68kOpcode.Lsr, new Register { Type = RegType.Data, Number = 1 }, new Register { Type = RegType.Data, Number = 2 });
+
+            CollectionAssert.AreEquivalent(new[] { "D1", "D2" }, cmp.Use(RegType.Data));
+        }
     }
 }
