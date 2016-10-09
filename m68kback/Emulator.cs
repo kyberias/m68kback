@@ -1,19 +1,22 @@
-﻿using System;
+﻿//#define PRINTSTATES
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace m68kback
 {
-    public class Emulator
+    public class Emulator : IStackAccess
     {
         private IList<M68kInstruction> instructions;
 
         uint globalUsed = 0;
         Dictionary<string, uint> globalAddress = new Dictionary<string, uint>();
+        private IPrintf printf;
 
-        public Emulator(IList<M68kInstruction> insts, Dictionary<string, Declaration> globals)
+        public Emulator(IList<M68kInstruction> insts, Dictionary<string, Declaration> globals, IPrintf printf)
         {
+            this.printf = printf;
             instructions = insts;
 
             foreach (var g in globals)
@@ -26,6 +29,9 @@ namespace m68kback
                     Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
 
                     globalUsed += (uint) g.Value.Value.Length;
+
+                    // align to 4 bytes
+                    globalUsed = (globalUsed + 3)/4 * 4;
                 }
             }
         }
@@ -81,8 +87,13 @@ namespace m68kback
 
                     var bytes = Encoding.ASCII.GetBytes(str);
                     Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
-                    memory[bytes.Length] = 0;
-                    globalUsed += (uint)bytes.Length + 1;
+                    memory[globalUsed + bytes.Length] = 0;
+
+                    var len = bytes.Length + 1;
+
+                    globalUsed += (uint)len;
+                    // align to 4 bytes
+                    globalUsed = (globalUsed + 3) / 4 * 4;
                 }
             }
 
@@ -99,7 +110,6 @@ namespace m68kback
         }
 
         public uint[] Regs { get; } = new uint[16];
-        private uint ccr;
 
         byte[] memory = new byte[4096];
 
@@ -136,7 +146,6 @@ namespace m68kback
 
         string NullTerminatedToString(byte[] arr, int start)
         {
-            var sb = new StringBuilder();
             int i = start;
             for (; arr[i] != 0; i++) ;
 
@@ -156,11 +165,13 @@ namespace m68kback
                     throw new Exception("Maximum number of instructions.");
                 }
 
+#if PRINTSTATES
                 Console.WriteLine($"A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
-
+#endif
                 var i = instructions[pc];
+#if PRINTSTATES
                 Console.WriteLine(i);
-
+#endif
                 switch (i.Opcode)
                 {
                     case M68kOpcode.Label:
@@ -211,7 +222,7 @@ namespace m68kback
                                 if (i.TargetLabel == "@printf")
                                 {
                                     var strPtr = memory[Sp + 4];
-                                    Console.WriteLine(NullTerminatedToString(memory, strPtr));
+                                    Regs[0] = printf.printf(NullTerminatedToString(memory, strPtr), this);
                                 }
                             }
                         }
@@ -355,6 +366,17 @@ namespace m68kback
 
                 pc++;
             }
+        }
+
+        public string GetString(int ix)
+        {
+            var strPtr = memory[Sp + 4 + ix * 4];
+            return NullTerminatedToString(memory, strPtr);
+        }
+
+        public uint GetUint(int ix)
+        {
+            return Read32(Sp + 4 + (uint)ix * 4);
         }
     }
 }

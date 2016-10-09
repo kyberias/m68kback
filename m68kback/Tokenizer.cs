@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -95,8 +96,6 @@ namespace m68kback
 
     public class Tokenizer
     {
-        private int line = 0;
-
         Dictionary<string,Token> keywords = new Dictionary<string, Token>
         {
             { "target", Token.Target },
@@ -181,6 +180,51 @@ namespace m68kback
             return new Regex(sb.ToString(), RegexOptions.Multiline);
         }
 
+        public static string Unescape(string s)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            bool backSlash = false;
+            string digits = "";
+
+            foreach (char c in s)
+            {
+                if (c == '\\')
+                {
+                    if (backSlash)
+                    {
+                        backSlash = false;
+                        sb.Append('\\');
+                        continue;
+                    }
+
+                    backSlash = true;
+                    digits = "";
+                    continue;
+                }
+
+                if (backSlash)
+                {
+                    if (char.IsLetterOrDigit(c))
+                    {
+                        digits += c;
+                    }
+
+                    if (digits.Length == 2)
+                    {
+                        var val = Convert.ToByte(digits, 16);
+                        sb.Append(Convert.ToChar(val));
+                        backSlash = false;
+                    }
+                    continue;
+                }
+
+                sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+
         public IEnumerable<TokenElement> Lex(Stream stream)
         {
             var regex = CreateRegex();
@@ -214,6 +258,15 @@ namespace m68kback
                                 if (tokenType == Token.Unknown)
                                 {
                                     Console.WriteLine(mVal);
+                                }
+
+                                if (tokenType == Token.StringLiteral)
+                                {
+                                    if (mVal.StartsWith("c\""))
+                                    {
+                                        mVal = mVal.Substring(2, mVal.Length - 3);
+                                    }
+                                    mVal = Unescape(mVal);
                                 }
 
                                 if (tokenType == Token.GlobalIdentifier || tokenType == Token.LocalIdentifier)

@@ -50,12 +50,18 @@ foobar";
             }, elements.Select(t => t.Type));
         }
 
+        [TestCase("len, str=%08X\\0A\\00", ExpectedResult = "len, str=%08X\x0A\x00")]
+        public string Unescape(string source)
+        {
+            return Tokenizer.Unescape(source);
+        }
+
         [Test]
         public void StringLiterals()
         {
             var source = @"""\01??_C@_0BC@GHOHLIIH@reverse?0?5to?$DN?$CF08X?6?$AA@"" = 1 $""\01??_C@_0P@IEEEKLOJ@len?0?5str?$DN?$CF08X?6?$AA@"" c""len, str=%08X\0A\00""";
             var tokenizer = new Tokenizer();
-            var elements = tokenizer.Lex(StreamFromString(source));
+            var elements = tokenizer.Lex(StreamFromString(source)).ToList();
 
             CollectionAssert.AreEqual(new[]
             {
@@ -66,6 +72,9 @@ foobar";
                 Token.StringLiteral,
                 Token.StringLiteral,
             }, elements.Select(t => t.Type));
+
+            Assert.AreEqual("\"\x01??_C@_0BC@GHOHLIIH@reverse?0?5to?$DN?$CF08X?6?$AA@\"", elements.First().Data);
+            Assert.AreEqual("len, str=%08X\x0A\x00", elements.Last().Data);
         }
 
         [Test]

@@ -284,7 +284,6 @@ namespace m68kback
 
             foreach (var i in _code)
             {
-                bool doOriginal = true;
                 Register reg1newtemp = null; 
                 Register reg2newtemp = null;
 

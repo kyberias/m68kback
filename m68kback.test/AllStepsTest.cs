@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using NUnit.Framework;
@@ -67,8 +68,6 @@ entry:
   %l = alloca i32, align 4
   store i8* %str, i8** %str.addr, align 4
   store i32 0, i32* %l, align 4
-  %0 = load i8*, i8** %str.addr, align 4
-;  %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @""\01??_C@_0P@IEEEKLOJ@len?0?5str?$DN?$CF08X?6?$AA@"", i32 0, i32 0), i8* %0)
   br label %while.cond
 
 while.cond:                                       ; preds = %while.body, %entry
@@ -205,6 +204,8 @@ for.end:                                          ; preds = %for.end.loopexit, %
             emul.AllocGlobal(par1);
 
             emul.RunFunction("@main", arrStart, 2);
+
+            Assert.Contains("reverse is: esrever\n", printf.PrintedStrings.ToList());
         }
 
         [Test]
@@ -235,13 +236,16 @@ for.end:                                          ; preds = %for.end.loopexit, %
             }
         }
 
+        private PrintfImpl printf;
+
         Emulator BuildEmulator(string source)
         {
             var prg = Parse(source);
             var codeGenerator = new CodeGenerator();
             codeGenerator.Visit(prg);
 
-            return new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals);
+            printf = new PrintfImpl();
+            return new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals, printf);
         }
 
         Emulator RunFunction(string source, string func, params object[] pars)

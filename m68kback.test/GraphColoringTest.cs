@@ -154,7 +154,7 @@ namespace m68kback.test
             CodeGenerator.RemoveRedundantMoves(gc.Instructions);
             CodeGenerator.RemoveInstructions(gc.Instructions, M68kOpcode.RegDef);
 
-            var emul = new Emulator(gc.Instructions, new Dictionary<string, Declaration>());
+            var emul = new Emulator(gc.Instructions, new Dictionary<string, Declaration>(), null);
             emul.RunFunction(null);
 
             Assert.AreEqual(14, emul.Regs[0]);

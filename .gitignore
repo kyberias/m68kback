@@ -4,3 +4,5 @@ obj/
 *.pdf
 .suo
 *.db
+*.o
+*.run
