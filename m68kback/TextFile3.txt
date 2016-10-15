@@ -1,113 +1,15 @@
+  Expected: collection containing "Foobar 100 200 300"
+  But was:  < "Testing 100 200 300", "oobar 100 200 300" >
+
+at NUnit.Framework.CollectionAssert.Contains(IEnumerable collection, Object actual)
+at m68kback.test.AllStepsTest.StructsPrg() in C:\Projects\misc\m68kback\m68kback.test\AllStepsTest.cs:line 241
+
+
 Before register allocation:
-_len:
+_str_copy:
 
     regdef.l _,_
     sub.l #8,SP
-    move.l A6_,A12_
-    move.l A5_,A11_
-    move.l A4_,A10_
-    move.l A3_,A9_
-    move.l A2_,A8_
-    move.l D7_,D13_
-    move.l D6_,D12_
-    move.l D5_,D11_
-    move.l D4_,D10_
-    move.l D3_,D9_
-    move.l D2_,D8_
-    move.l 4(SP),A7_
-entry0:
-
-    move.l A7_,0(SP) ; Store %str.addr to stack
-    moveq #0,D14_
-    move.l D14_,4(SP) ; Store %l to stack
-    move.l 0(SP),A13_ ; Load from stack
-    move.l A13_,-(SP)
-    lea.l __01$$_C__0P_IEEEKLOJ_len$0$5str$$DN$$CF08X$6$$AA_,A14_
-    move.l A14_,-(SP)
-    jsr _printf
-    move.l D0_,D15_
-    adda.l #8,SP
-    jmp while$cond0
-while$cond0:
-
-    move.l 0(SP),A15_ ; Load from stack
-    move.l A15_,A16_ ; getelementptr
-    adda.l #1,A16_
-    move.l A16_,0(SP) ; Store %str.addr to stack
-    move.b (A15_),D16_ ; Load by register address
-    cmp.b #0,D16_
-    move.b CCR,CCR0_
-    move.l CCR0_,CCR
-    bne while$body0
-    jmp while$end0
-while$body0:
-
-    move.l 4(SP),D17_ ; Load from stack
-    move.l D17_,D18_
-    add.l #1,D18_
-    move.l D18_,4(SP) ; Store %l to stack
-    jmp while$cond0
-while$end0:
-
-    move.l 4(SP),D19_ ; Load from stack
-    move.l D19_,D0_
-    move.l D8_,D2_
-    move.l D9_,D3_
-    move.l D10_,D4_
-    move.l D11_,D5_
-    move.l D12_,D6_
-    move.l D13_,D7_
-    move.l A8_,A2_
-    move.l A9_,A3_
-    move.l A10_,A4_
-    move.l A11_,A5_
-    move.l A12_,A6_
-    add.l #8,SP
-    rts 
-========================================
-AFTER register allocation and fixes:
-_len:
-
-    sub.l #8,SP
-    move.l 12(SP),A0
-entry0:
-
-    move.l A0,0(SP) ; Store %str.addr to stack
-    moveq #0,D0
-    move.l D0,4(SP) ; Store %l to stack
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0P_IEEEKLOJ_len$0$5str$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    jmp while$cond0
-while$cond0:
-
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,A1 ; getelementptr
-    adda.l #1,A1
-    move.l A1,0(SP) ; Store %str.addr to stack
-    move.b (A0),D0 ; Load by register address
-    cmp.b #0,D0
-    bne while$body0
-    jmp while$end0
-while$body0:
-
-    move.l 4(SP),D0 ; Load from stack
-    add.l #1,D0
-    move.l D0,4(SP) ; Store %l to stack
-    jmp while$cond0
-while$end0:
-
-    move.l 4(SP),D0 ; Load from stack
-    add.l #8,SP
-    rts 
-Before register allocation:
-_reverse:
-
-    regdef.l _,_
-    sub.l #16,SP
     move.l A6_,A13_
     move.l A5_,A12_
     move.l A4_,A11_
@@ -121,129 +23,35 @@ _reverse:
     move.l D2_,D8_
     move.l 4(SP),A7_
     move.l 8(SP),A8_
-entry1:
+entry0:
 
-    move.l A8_,0(SP) ; Store %to.addr to stack
-    move.l A7_,4(SP) ; Store %from.addr to stack
+    move.l A8_,0(SP) ; Store %source.addr to stack
+    move.l A7_,4(SP) ; Store %dest.addr to stack
+    jmp while$cond0
+while$cond0:
+
     move.l 0(SP),A14_ ; Load from stack
-    move.l A14_,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A15_
-    move.l A15_,-(SP)
-    jsr _printf
-    move.l D0_,D14_
-    adda.l #8,SP
-    move.l 4(SP),A16_ ; Load from stack
-    move.l A16_,-(SP)
-    lea.l __01$$_C__0BE_IGNBHOIO_reverse$0$5from$$DN$$CF08X$6$$AA_,A17_
-    move.l A17_,-(SP)
-    jsr _printf
-    move.l D0_,D15_
-    adda.l #8,SP
-    move.l 4(SP),A18_ ; Load from stack
-    move.l A18_,-(SP)
-    lea.l __01$$_C__0BE_HAKBDHCG_reverse$0$5from$$DN$8$$CFs$8$6$$AA_,A19_
-    move.l A19_,-(SP)
-    jsr _printf
-    move.l D0_,D16_
-    adda.l #8,SP
-    move.l 4(SP),A20_ ; Load from stack
-    move.l A20_,-(SP)
-    jsr _len
-    move.l D0_,D17_
-    adda.l #4,SP
-    move.l D17_,8(SP) ; Store %l to stack
-    move.l 8(SP),D18_ ; Load from stack
-    move.l D18_,-(SP)
-    lea.l __01$$_C__07IJNMEDPD_l$5$$DN$5$$CFd$6$$AA_,A21_
-    move.l A21_,-(SP)
-    jsr _printf
-    move.l D0_,D19_
-    adda.l #8,SP
-    moveq #0,D20_
-    move.l D20_,12(SP) ; Store %i to stack
-    jmp for$cond1
-for$cond1:
-
-    move.l 12(SP),D21_ ; Load from stack
-    move.l 8(SP),D22_ ; Load from stack
-    cmp.l D22_,D21_
-    move.l CCR,CCR0_
+    move.l A14_,A15_
+    adda.l #1,A15_
+    move.l A15_,0(SP) ; Store %source.addr to stack
+    move.b (A14_),D14_ ; Load by register address
+    cmp.b #0,D14_
+    move.b CCR,CCR0_
     move.l CCR0_,CCR
-    blt for$body1
-    jmp for$end1
-for$body1:
+    bne while$body0
+    jmp while$end0
+while$body0:
 
-    move.l 0(SP),A22_ ; Load from stack
-    move.l A22_,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A23_
-    move.l A23_,-(SP)
-    jsr _printf
-    move.l D0_,D23_
-    adda.l #8,SP
-    move.l 8(SP),D24_ ; Load from stack
-    move.l 12(SP),D25_ ; Load from stack
-    move.l D24_,D26_
-    sub.l D25_,D26_
-    move.l D26_,D27_
-    sub.l #1,D27_
-    move.l 4(SP),A24_ ; Load from stack
-    move.l A24_,A25_ ; getelementptr
-    adda.l D27_,A25_ ; getelementptr
-    move.b (A25_),D28_ ; Load by register address
-    move.l 12(SP),D29_ ; Load from stack
-    move.l 0(SP),A26_ ; Load from stack
-    move.l A26_,A27_ ; getelementptr
-    adda.l D29_,A27_ ; getelementptr
-    move.b D28_,(A27_) ; Store to reg
-    move.l 0(SP),A28_ ; Load from stack
-    move.l A28_,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A29_
-    move.l A29_,-(SP)
-    jsr _printf
-    move.l D0_,D30_
-    adda.l #8,SP
-    jmp for$inc1
-for$inc1:
+    move.l 0(SP),A16_ ; Load from stack
+    move.b (A16_),D15_ ; Load by register address
+    move.l 4(SP),A17_ ; Load from stack
+    move.l A17_,A18_
+    adda.l #1,A18_
+    move.l A18_,4(SP) ; Store %dest.addr to stack
+    move.b D15_,(A17_) ; Store to reg
+    jmp while$cond0
+while$end0:
 
-    move.l 12(SP),D31_ ; Load from stack
-    move.l D31_,D32_
-    add.l #1,D32_
-    move.l D32_,12(SP) ; Store %i to stack
-    jmp for$cond1
-for$end1:
-
-    move.l 0(SP),A30_ ; Load from stack
-    move.l A30_,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A31_
-    move.l A31_,-(SP)
-    jsr _printf
-    move.l D0_,D33_
-    adda.l #8,SP
-    move.l 12(SP),D34_ ; Load from stack
-    move.l 0(SP),A32_ ; Load from stack
-    move.l A32_,A33_ ; getelementptr
-    adda.l D34_,A33_ ; getelementptr
-    moveq #0,D35_
-    move.b D35_,(A33_) ; Store to reg
-    move.l 0(SP),A34_ ; Load from stack
-    move.l A34_,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A35_
-    move.l A35_,-(SP)
-    jsr _printf
-    move.l D0_,D36_
-    adda.l #8,SP
-    move.l 12(SP),D37_ ; Load from stack
-    move.l 0(SP),A36_ ; Load from stack
-    move.l A36_,A37_ ; getelementptr
-    adda.l D37_,A37_ ; getelementptr
-    move.l A37_,-(SP)
-    lea.l __01$$_C__0BG_BJGBGJBA_reverse$0$5to$5end$$DN$$CF08X$6$$AA_,A38_
-    move.l A38_,-(SP)
-    jsr _printf
-    move.l D0_,D38_
-    adda.l #8,SP
-    move.l 0(SP),A39_ ; Load from stack
-    move.l A39_,D0_
     move.l D8_,D2_
     move.l D9_,D3_
     move.l D10_,D4_
@@ -255,126 +63,49 @@ for$end1:
     move.l A11_,A4_
     move.l A12_,A5_
     move.l A13_,A6_
-    add.l #16,SP
+    add.l #8,SP
     rts 
 ========================================
 AFTER register allocation and fixes:
-_reverse:
+_str_copy:
 
-    sub.l #16,SP
-    move.l 20(SP),A1
-    move.l 24(SP),A0
-entry1:
+    sub.l #8,SP
+    move.l 12(SP),A1
+    move.l 16(SP),A0
+entry0:
 
-    move.l A0,0(SP) ; Store %to.addr to stack
-    move.l A1,4(SP) ; Store %from.addr to stack
+    move.l A0,0(SP) ; Store %source.addr to stack
+    move.l A1,4(SP) ; Store %dest.addr to stack
+    jmp while$cond0
+while$cond0:
+
     move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
+    move.l A0,A1
+    adda.l #1,A1
+    move.l A1,0(SP) ; Store %source.addr to stack
+    move.b (A0),D0 ; Load by register address
+    cmp.b #0,D0
+    bne while$body0
+    jmp while$end0
+while$body0:
+
+    move.l 0(SP),A0 ; Load from stack
+    move.b (A0),D0 ; Load by register address
     move.l 4(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BE_IGNBHOIO_reverse$0$5from$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 4(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BE_HAKBDHCG_reverse$0$5from$$DN$8$$CFs$8$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 4(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    jsr _len
-    adda.l #4,SP
-    move.l D0,8(SP) ; Store %l to stack
-    move.l 8(SP),D0 ; Load from stack
-    move.l D0,-(SP)
-    lea.l __01$$_C__07IJNMEDPD_l$5$$DN$5$$CFd$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    moveq #0,D0
-    move.l D0,12(SP) ; Store %i to stack
-    jmp for$cond1
-for$cond1:
-
-    move.l 12(SP),D1 ; Load from stack
-    move.l 8(SP),D0 ; Load from stack
-    cmp.l D0,D1
-    blt for$body1
-    jmp for$end1
-for$body1:
-
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 8(SP),D0 ; Load from stack
-    move.l 12(SP),D1 ; Load from stack
-    sub.l D1,D0
-    sub.l #1,D0
-    move.l 4(SP),A0 ; Load from stack
-    adda.l D0,A0 ; getelementptr
-    move.b (A0),D1 ; Load by register address
-    move.l 12(SP),D0 ; Load from stack
-    move.l 0(SP),A0 ; Load from stack
-    adda.l D0,A0 ; getelementptr
-    move.b D1,(A0) ; Store to reg
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    jmp for$inc1
-for$inc1:
-
-    move.l 12(SP),D0 ; Load from stack
-    add.l #1,D0
-    move.l D0,12(SP) ; Store %i to stack
-    jmp for$cond1
-for$end1:
-
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 12(SP),D0 ; Load from stack
-    move.l 0(SP),A0 ; Load from stack
-    adda.l D0,A0 ; getelementptr
-    moveq #0,D0
+    move.l A0,A1
+    adda.l #1,A1
+    move.l A1,4(SP) ; Store %dest.addr to stack
     move.b D0,(A0) ; Store to reg
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 12(SP),D0 ; Load from stack
-    move.l 0(SP),A0 ; Load from stack
-    adda.l D0,A0 ; getelementptr
-    move.l A0,-(SP)
-    lea.l __01$$_C__0BG_BJGBGJBA_reverse$0$5to$5end$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,D0
-    add.l #16,SP
+    jmp while$cond0
+while$end0:
+
+    add.l #8,SP
     rts 
 Before register allocation:
 _main:
 
     regdef.l _,_
-    sub.l #116,SP
+    sub.l #128,SP
     move.l A6_,A12_
     move.l A5_,A11_
     move.l A4_,A10_
@@ -388,85 +119,111 @@ _main:
     move.l D2_,D9_
     move.l 4(SP),D8_
     move.l 8(SP),A7_
-entry2:
+entry1:
 
     moveq #0,D15_
     move.l D15_,0(SP) ; Store %retval to stack
     move.l A7_,4(SP) ; Store %argv.addr to stack
     move.l D8_,8(SP) ; Store %argc.addr to stack
-    move.l 8(SP),D16_ ; Load from stack
-    cmp.l #2,D16_
-    move.l CCR,CCR0_
-    move.l CCR0_,CCR
-    blt if$then2
-    jmp if$end2
-if$then2:
-
-    move.l 8(SP),D17_ ; Load from stack
-    move.l D17_,-(SP)
-    lea.l __01$$_C__09NKIIDDPL_argc$3$5$$CFd$6$$AA_,A13_
-    move.l A13_,-(SP)
-    jsr _printf
-    move.l D0_,D18_
-    adda.l #8,SP
-    moveq #-1,D19_
-    move.l D19_,0(SP) ; Store %retval to stack
-    jmp return2
-if$end2:
-
-    move.l 4(SP),A14_ ; Load from stack
-    move.l A14_,A15_ ; getelementptr
-    adda.l #4,A15_
-    move.l (A15_),A16_ ; Load by register address
-    move.l A16_,-(SP)
-    jsr _len
-    move.l D0_,D20_
-    adda.l #4,SP
-    move.l D20_,-(SP)
-    lea.l __01$$_C__0M_JBPHDKJA_len$5is$3$5$$CFd$6$$AA_,A17_
-    move.l A17_,-(SP)
-    jsr _printf
-    move.l D0_,D21_
-    adda.l #8,SP
-    move.l 12(SP),A18_
-    move.l A18_,-(SP)
-    lea.l __01$$_C__09PHPMMDDP_buf$$DN$$CF08X$6$$AA_,A19_
-    move.l A19_,-(SP)
-    jsr _printf
-    move.l D0_,D22_
-    adda.l #8,SP
-    move.l 12(SP),A20_
-    move.l 4(SP),A21_ ; Load from stack
-    move.l A21_,A22_ ; getelementptr
-    adda.l #4,A22_
-    move.l (A22_),A23_ ; Load by register address
+    move.l SP,A13_
+    adda.l #12,A13_
+    adda.l #0,A13_
+    adda.l #0,A13_
+    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A14_
+    move.l A14_,(A13_) ; Store to reg
+    move.l SP,A15_
+    adda.l #12,A15_
+    adda.l #0,A15_
+    adda.l #104,A15_
+    moveq #100,D16_
+    move.l D16_,(A15_) ; Store to reg
+    move.l SP,A16_
+    adda.l #12,A16_
+    adda.l #0,A16_
+    adda.l #108,A16_
+    moveq #200,D17_
+    move.l D17_,(A16_) ; Store to reg
+    move.l SP,A17_
+    adda.l #12,A17_
+    adda.l #0,A17_
+    adda.l #112,A17_
+    moveq #300,D18_
+    move.l D18_,(A17_) ; Store to reg
+    move.l SP,A18_
+    adda.l #12,A18_
+    adda.l #0,A18_
+    adda.l #4,A18_
+    move.l A18_,A19_
+    adda.l #0,A19_
+    adda.l #0,A19_
+    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A20_
     move.l A20_,-(SP)
-    move.l A23_,-(SP)
-    jsr _reverse
-    move.l D0_,D23_
+    move.l A19_,-(SP)
+    jsr _str_copy
+    move.l D0_,D19_
     adda.l #8,SP
-    move.l D23_,112(SP) ; Store %r to stack
-    move.l 112(SP),A24_ ; Load from stack
-    move.l A24_,-(SP)
-    lea.l __01$$_C__0BC_HAPMGLEP_reverse$5is$3$5$$CF08X$6$$AA_,A25_
+    move.l SP,A21_
+    adda.l #12,A21_
+    adda.l #0,A21_
+    adda.l #112,A21_
+    move.l (A21_),D20_ ; Load by register address
+    move.l SP,A22_
+    adda.l #12,A22_
+    adda.l #0,A22_
+    adda.l #108,A22_
+    move.l (A22_),D21_ ; Load by register address
+    move.l SP,A23_
+    adda.l #12,A23_
+    adda.l #0,A23_
+    adda.l #104,A23_
+    move.l (A23_),D22_ ; Load by register address
+    move.l SP,A24_
+    adda.l #12,A24_
+    adda.l #0,A24_
+    adda.l #0,A24_
+    move.l (A24_),A25_ ; Load by register address
+    move.l D20_,-(SP)
+    move.l D21_,-(SP)
+    move.l D22_,-(SP)
     move.l A25_,-(SP)
-    jsr _printf
-    move.l D0_,D24_
-    adda.l #8,SP
-    move.l 112(SP),A26_ ; Load from stack
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A26_
     move.l A26_,-(SP)
-    lea.l __01$$_C__0BC_IGIMCCOH_reverse$5is$3$5$8$$CFs$8$6$$AA_,A27_
-    move.l A27_,-(SP)
     jsr _printf
-    move.l D0_,D25_
-    adda.l #8,SP
-    moveq #0,D26_
-    move.l D26_,0(SP) ; Store %retval to stack
-    jmp return2
-return2:
-
-    move.l 0(SP),D27_ ; Load from stack
-    move.l D27_,D0_
+    move.l D0_,D23_
+    adda.l #20,SP
+    move.l SP,A27_
+    adda.l #12,A27_
+    adda.l #0,A27_
+    adda.l #112,A27_
+    move.l (A27_),D24_ ; Load by register address
+    move.l SP,A28_
+    adda.l #12,A28_
+    adda.l #0,A28_
+    adda.l #108,A28_
+    move.l (A28_),D25_ ; Load by register address
+    move.l SP,A29_
+    adda.l #12,A29_
+    adda.l #0,A29_
+    adda.l #104,A29_
+    move.l (A29_),D26_ ; Load by register address
+    move.l SP,A30_
+    adda.l #12,A30_
+    adda.l #0,A30_
+    adda.l #4,A30_
+    move.l A30_,A31_
+    adda.l #0,A31_
+    adda.l #0,A31_
+    move.l D24_,-(SP)
+    move.l D25_,-(SP)
+    move.l D26_,-(SP)
+    move.l A31_,-(SP)
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A32_
+    move.l A32_,-(SP)
+    jsr _printf
+    move.l D0_,D27_
+    adda.l #20,SP
+    moveq #0,D28_
+    move.l D28_,D0_
     move.l D9_,D2_
     move.l D10_,D3_
     move.l D11_,D4_
@@ -478,1534 +235,591 @@ return2:
     move.l A10_,A4_
     move.l A11_,A5_
     move.l A12_,A6_
-    add.l #116,SP
+    add.l #128,SP
     rts 
 ========================================
 AFTER register allocation and fixes:
 _main:
 
-    sub.l #116,SP
-    move.l 120(SP),D1
-    move.l 124(SP),A0
-entry2:
+    sub.l #132,SP
+    move.l D7,128(SP) ; Spilled reg D14 store
+    move.l 136(SP),D0
+    move.l 140(SP),A0
+entry1:
 
-    moveq #0,D0
-    move.l D0,0(SP) ; Store %retval to stack
+    moveq #0,D1
+    move.l D1,0(SP) ; Store %retval to stack
     move.l A0,4(SP) ; Store %argv.addr to stack
-    move.l D1,8(SP) ; Store %argc.addr to stack
-    move.l 8(SP),D0 ; Load from stack
-    cmp.l #2,D0
-    blt if$then2
-    jmp if$end2
-if$then2:
-
-    move.l 8(SP),D0 ; Load from stack
-    move.l D0,-(SP)
-    lea.l __01$$_C__09NKIIDDPL_argc$3$5$$CFd$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    moveq #-1,D0
-    move.l D0,0(SP) ; Store %retval to stack
-    jmp return2
-if$end2:
-
-    move.l 4(SP),A0 ; Load from stack
+    move.l D0,8(SP) ; Store %argc.addr to stack
+    move.l SP,A1
+    adda.l #12,A1
+    adda.l #0,A1
+    adda.l #0,A1
+    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A0
+    move.l A0,(A1) ; Store to reg
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #104,A0
+    moveq #100,D0
+    move.l D0,(A0) ; Store to reg
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #108,A0
+    moveq #200,D0
+    move.l D0,(A0) ; Store to reg
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #112,A0
+    moveq #300,D0
+    move.l D0,(A0) ; Store to reg
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
     adda.l #4,A0
-    move.l (A0),A0 ; Load by register address
-    move.l A0,-(SP)
-    jsr _len
-    adda.l #4,SP
-    move.l D0,-(SP)
-    lea.l __01$$_C__0M_JBPHDKJA_len$5is$3$5$$CFd$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 12(SP),A0
-    move.l A0,-(SP)
-    lea.l __01$$_C__09PHPMMDDP_buf$$DN$$CF08X$6$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #8,SP
-    move.l 12(SP),A1
-    move.l 4(SP),A0 ; Load from stack
-    adda.l #4,A0
-    move.l (A0),A0 ; Load by register address
+    adda.l #0,A0
+    adda.l #0,A0
+    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A1
     move.l A1,-(SP)
     move.l A0,-(SP)
-    jsr _reverse
+    jsr _str_copy
     adda.l #8,SP
-    move.l D0,112(SP) ; Store %r to stack
-    move.l 112(SP),A0 ; Load from stack
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #112,A0
+    move.l (A0),D0 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #108,A0
+    move.l (A0),D1 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #104,A0
+    move.l (A0),D7 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #0,A0
+    move.l (A0),A0 ; Load by register address
+    move.l D0,-(SP)
+    move.l D1,-(SP)
+    move.l D7,-(SP)
     move.l A0,-(SP)
-    lea.l __01$$_C__0BC_HAPMGLEP_reverse$5is$3$5$$CF08X$6$$AA_,A0
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
     move.l A0,-(SP)
     jsr _printf
-    adda.l #8,SP
-    move.l 112(SP),A0 ; Load from stack
+    adda.l #20,SP
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #112,A0
+    move.l (A0),D0 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #108,A0
+    move.l (A0),D1 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #104,A0
+    move.l (A0),D7 ; Load by register address
+    move.l SP,A0
+    adda.l #12,A0
+    adda.l #0,A0
+    adda.l #4,A0
+    adda.l #0,A0
+    adda.l #0,A0
+    move.l D0,-(SP)
+    move.l D1,-(SP)
+    move.l D7,-(SP)
     move.l A0,-(SP)
-    lea.l __01$$_C__0BC_IGIMCCOH_reverse$5is$3$5$8$$CFs$8$6$$AA_,A0
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
     move.l A0,-(SP)
     jsr _printf
-    adda.l #8,SP
+    adda.l #20,SP
     moveq #0,D0
-    move.l D0,0(SP) ; Store %retval to stack
-    jmp return2
-return2:
-
-    move.l 0(SP),D0 ; Load from stack
-    add.l #116,SP
+    move.l 128(SP),D7 ; Spilled reg D14 load
+    add.l #132,SP
     rts 
 A0: 0, A1: 0, D0: 0, D1: 0
 _main:
 
 A0: 0, A1: 0, D0: 0, D1: 0
-    sub.l #116,SP
+    sub.l #132,SP
 A0: 0, A1: 0, D0: 0, D1: 0
-    move.l 120(SP),D1
-A0: 0, A1: 0, D0: 0, D1: 2
-    move.l 124(SP),A0
-A0: 262, A1: 0, D0: 0, D1: 2
-entry2:
-
-A0: 262, A1: 0, D0: 0, D1: 2
-    moveq #0,D0
-A0: 262, A1: 0, D0: 0, D1: 2
-    move.l D0,0(SP) ; Store %retval to stack
-A0: 262, A1: 0, D0: 0, D1: 2
-    move.l A0,4(SP) ; Store %argv.addr to stack
-A0: 262, A1: 0, D0: 0, D1: 2
-    move.l D1,8(SP) ; Store %argc.addr to stack
-A0: 262, A1: 0, D0: 0, D1: 2
-    move.l 8(SP),D0 ; Load from stack
-A0: 262, A1: 0, D0: 2, D1: 2
-    cmp.l #2,D0
-A0: 262, A1: 0, D0: 2, D1: 2
-    blt if$then2
-A0: 262, A1: 0, D0: 2, D1: 2
-    jmp if$end2
-A0: 262, A1: 0, D0: 2, D1: 2
-if$end2:
-
-A0: 262, A1: 0, D0: 2, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 262, A1: 0, D0: 2, D1: 2
-    adda.l #4,A0
-A0: 266, A1: 0, D0: 2, D1: 2
-    move.l (A0),A0 ; Load by register address
-A0: 255, A1: 0, D0: 2, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 0, D0: 2, D1: 2
-    jsr _len
-A0: 255, A1: 0, D0: 2, D1: 2
-_len:
-
-A0: 255, A1: 0, D0: 2, D1: 2
-    sub.l #8,SP
-A0: 255, A1: 0, D0: 2, D1: 2
-    move.l 12(SP),A0
-A0: 255, A1: 0, D0: 2, D1: 2
-entry0:
-
-A0: 255, A1: 0, D0: 2, D1: 2
-    move.l A0,0(SP) ; Store %str.addr to stack
-A0: 255, A1: 0, D0: 2, D1: 2
-    moveq #0,D0
-A0: 255, A1: 0, D0: 0, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 255, A1: 0, D0: 0, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 255, A1: 0, D0: 0, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 0, D0: 0, D1: 2
-    lea.l __01$$_C__0P_IEEEKLOJ_len$0$5str$$DN$$CF08X$6$$AA_,A0
-A0: 0, A1: 0, D0: 0, D1: 2
-    move.l A0,-(SP)
-A0: 0, A1: 0, D0: 0, D1: 2
-    jsr _printf
-reverse?
-A0: 0, A1: 0, D0: 0, D1: 2
-    adda.l #8,SP
-A0: 0, A1: 0, D0: 0, D1: 2
-    jmp while$cond0
-A0: 0, A1: 0, D0: 0, D1: 2
-while$cond0:
-
-A0: 0, A1: 0, D0: 0, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 255, A1: 0, D0: 0, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 255, A1: 255, D0: 0, D1: 2
-    adda.l #1,A1
-A0: 255, A1: 256, D0: 0, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 255, A1: 256, D0: 0, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 255, A1: 256, D0: 114, D1: 2
-    cmp.b #0,D0
-A0: 255, A1: 256, D0: 114, D1: 2
-    bne while$body0
-A0: 255, A1: 256, D0: 114, D1: 2
-while$body0:
-
-A0: 255, A1: 256, D0: 114, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 255, A1: 256, D0: 0, D1: 2
-    add.l #1,D0
-A0: 255, A1: 256, D0: 1, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 255, A1: 256, D0: 1, D1: 2
-    jmp while$cond0
-A0: 255, A1: 256, D0: 1, D1: 2
-while$cond0:
-
-A0: 255, A1: 256, D0: 1, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 256, A1: 256, D0: 1, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 256, A1: 256, D0: 1, D1: 2
-    adda.l #1,A1
-A0: 256, A1: 257, D0: 1, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 256, A1: 257, D0: 1, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 256, A1: 257, D0: 101, D1: 2
-    cmp.b #0,D0
-A0: 256, A1: 257, D0: 101, D1: 2
-    bne while$body0
-A0: 256, A1: 257, D0: 101, D1: 2
-while$body0:
-
-A0: 256, A1: 257, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 256, A1: 257, D0: 1, D1: 2
-    add.l #1,D0
-A0: 256, A1: 257, D0: 2, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 256, A1: 257, D0: 2, D1: 2
-    jmp while$cond0
-A0: 256, A1: 257, D0: 2, D1: 2
-while$cond0:
-
-A0: 256, A1: 257, D0: 2, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 257, A1: 257, D0: 2, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 257, A1: 257, D0: 2, D1: 2
-    adda.l #1,A1
-A0: 257, A1: 258, D0: 2, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 257, A1: 258, D0: 2, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 257, A1: 258, D0: 118, D1: 2
-    cmp.b #0,D0
-A0: 257, A1: 258, D0: 118, D1: 2
-    bne while$body0
-A0: 257, A1: 258, D0: 118, D1: 2
-while$body0:
-
-A0: 257, A1: 258, D0: 118, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 257, A1: 258, D0: 2, D1: 2
-    add.l #1,D0
-A0: 257, A1: 258, D0: 3, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 257, A1: 258, D0: 3, D1: 2
-    jmp while$cond0
-A0: 257, A1: 258, D0: 3, D1: 2
-while$cond0:
-
-A0: 257, A1: 258, D0: 3, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 258, A1: 258, D0: 3, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 258, A1: 258, D0: 3, D1: 2
-    adda.l #1,A1
-A0: 258, A1: 259, D0: 3, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 258, A1: 259, D0: 3, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 258, A1: 259, D0: 101, D1: 2
-    cmp.b #0,D0
-A0: 258, A1: 259, D0: 101, D1: 2
-    bne while$body0
-A0: 258, A1: 259, D0: 101, D1: 2
-while$body0:
-
-A0: 258, A1: 259, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 258, A1: 259, D0: 3, D1: 2
-    add.l #1,D0
-A0: 258, A1: 259, D0: 4, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 258, A1: 259, D0: 4, D1: 2
-    jmp while$cond0
-A0: 258, A1: 259, D0: 4, D1: 2
-while$cond0:
-
-A0: 258, A1: 259, D0: 4, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 259, A1: 259, D0: 4, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 259, A1: 259, D0: 4, D1: 2
-    adda.l #1,A1
-A0: 259, A1: 260, D0: 4, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 259, A1: 260, D0: 4, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 259, A1: 260, D0: 114, D1: 2
-    cmp.b #0,D0
-A0: 259, A1: 260, D0: 114, D1: 2
-    bne while$body0
-A0: 259, A1: 260, D0: 114, D1: 2
-while$body0:
-
-A0: 259, A1: 260, D0: 114, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 259, A1: 260, D0: 4, D1: 2
-    add.l #1,D0
-A0: 259, A1: 260, D0: 5, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 259, A1: 260, D0: 5, D1: 2
-    jmp while$cond0
-A0: 259, A1: 260, D0: 5, D1: 2
-while$cond0:
-
-A0: 259, A1: 260, D0: 5, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 260, A1: 260, D0: 5, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 260, A1: 260, D0: 5, D1: 2
-    adda.l #1,A1
-A0: 260, A1: 261, D0: 5, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 260, A1: 261, D0: 5, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 260, A1: 261, D0: 115, D1: 2
-    cmp.b #0,D0
-A0: 260, A1: 261, D0: 115, D1: 2
-    bne while$body0
-A0: 260, A1: 261, D0: 115, D1: 2
-while$body0:
-
-A0: 260, A1: 261, D0: 115, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 260, A1: 261, D0: 5, D1: 2
-    add.l #1,D0
-A0: 260, A1: 261, D0: 6, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 260, A1: 261, D0: 6, D1: 2
-    jmp while$cond0
-A0: 260, A1: 261, D0: 6, D1: 2
-while$cond0:
-
-A0: 260, A1: 261, D0: 6, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 261, A1: 261, D0: 6, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 261, A1: 261, D0: 6, D1: 2
-    adda.l #1,A1
-A0: 261, A1: 262, D0: 6, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 261, A1: 262, D0: 6, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 261, A1: 262, D0: 101, D1: 2
-    cmp.b #0,D0
-A0: 261, A1: 262, D0: 101, D1: 2
-    bne while$body0
-A0: 261, A1: 262, D0: 101, D1: 2
-while$body0:
-
-A0: 261, A1: 262, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 261, A1: 262, D0: 6, D1: 2
-    add.l #1,D0
-A0: 261, A1: 262, D0: 7, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 261, A1: 262, D0: 7, D1: 2
-    jmp while$cond0
-A0: 261, A1: 262, D0: 7, D1: 2
-while$cond0:
-
-A0: 261, A1: 262, D0: 7, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 262, A1: 262, D0: 7, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 262, A1: 262, D0: 7, D1: 2
-    adda.l #1,A1
-A0: 262, A1: 263, D0: 7, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 262, A1: 263, D0: 7, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 262, A1: 263, D0: 248, D1: 2
-    cmp.b #0,D0
-A0: 262, A1: 263, D0: 248, D1: 2
-    bne while$body0
-A0: 262, A1: 263, D0: 248, D1: 2
-while$body0:
-
-A0: 262, A1: 263, D0: 248, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 262, A1: 263, D0: 7, D1: 2
-    add.l #1,D0
-A0: 262, A1: 263, D0: 8, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 262, A1: 263, D0: 8, D1: 2
-    jmp while$cond0
-A0: 262, A1: 263, D0: 8, D1: 2
-while$cond0:
-
-A0: 262, A1: 263, D0: 8, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 263, A1: 263, D0: 8, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 263, A1: 263, D0: 8, D1: 2
-    adda.l #1,A1
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 263, A1: 264, D0: 0, D1: 2
-    cmp.b #0,D0
-A0: 263, A1: 264, D0: 0, D1: 2
-    bne while$body0
-A0: 263, A1: 264, D0: 0, D1: 2
-    jmp while$end0
-A0: 263, A1: 264, D0: 0, D1: 2
-while$end0:
-
-A0: 263, A1: 264, D0: 0, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 263, A1: 264, D0: 8, D1: 2
-    add.l #8,SP
-A0: 263, A1: 264, D0: 8, D1: 2
-    rts 
-A0: 263, A1: 264, D0: 8, D1: 2
-    adda.l #4,SP
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.l D0,-(SP)
-A0: 263, A1: 264, D0: 8, D1: 2
-    lea.l __01$$_C__0M_JBPHDKJA_len$5is$3$5$$CFd$6$$AA_,A0
-A0: 162, A1: 264, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 162, A1: 264, D0: 8, D1: 2
-    jsr _printf
-tr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 162, A1: 264, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 162, A1: 264, D0: 8, D1: 2
-    move.l 12(SP),A0
-A0: 0, A1: 264, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 2
-    lea.l __01$$_C__09PHPMMDDP_buf$$DN$$CF08X$6$$AA_,A0
-A0: 181, A1: 264, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 181, A1: 264, D0: 8, D1: 2
-    jsr _printf
-c"len, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 181, A1: 264, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 181, A1: 264, D0: 8, D1: 2
-    move.l 12(SP),A1
-A0: 181, A1: 0, D0: 8, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 262, A1: 0, D0: 8, D1: 2
-    adda.l #4,A0
-A0: 266, A1: 0, D0: 8, D1: 2
-    move.l (A0),A0 ; Load by register address
-A0: 255, A1: 0, D0: 8, D1: 2
-    move.l A1,-(SP)
-A0: 255, A1: 0, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 0, D0: 8, D1: 2
-    jsr _reverse
-A0: 255, A1: 0, D0: 8, D1: 2
-_reverse:
-
-A0: 255, A1: 0, D0: 8, D1: 2
-    sub.l #16,SP
-A0: 255, A1: 0, D0: 8, D1: 2
-    move.l 20(SP),A1
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l 24(SP),A0
-A0: 0, A1: 255, D0: 8, D1: 2
+    move.l D7,128(SP) ; Spilled reg D14 store
+A0: 0, A1: 0, D0: 0, D1: 0
+    move.l 136(SP),D0
+A0: 0, A1: 0, D0: 2, D1: 0
+    move.l 140(SP),A0
+A0: 37, A1: 0, D0: 2, D1: 0
 entry1:
 
-A0: 0, A1: 255, D0: 8, D1: 2
-    move.l A0,0(SP) ; Store %to.addr to stack
-A0: 0, A1: 255, D0: 8, D1: 2
-    move.l A1,4(SP) ; Store %from.addr to stack
-A0: 0, A1: 255, D0: 8, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 255, D0: 8, D1: 2
+A0: 37, A1: 0, D0: 2, D1: 0
+    moveq #0,D1
+A0: 37, A1: 0, D0: 2, D1: 0
+    move.l D1,0(SP) ; Store %retval to stack
+A0: 37, A1: 0, D0: 2, D1: 0
+    move.l A0,4(SP) ; Store %argv.addr to stack
+A0: 37, A1: 0, D0: 2, D1: 0
+    move.l D0,8(SP) ; Store %argc.addr to stack
+A0: 37, A1: 0, D0: 2, D1: 0
+    move.l SP,A1
+A0: 37, A1: 3948, D0: 2, D1: 0
+    adda.l #12,A1
+A0: 37, A1: 3960, D0: 2, D1: 0
+    adda.l #0,A1
+A0: 37, A1: 3960, D0: 2, D1: 0
+    adda.l #0,A1
+A0: 37, A1: 3960, D0: 2, D1: 0
+    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A0
+A0: 0, A1: 3960, D0: 2, D1: 0
+    move.l A0,(A1) ; Store to reg
+A0: 0, A1: 3960, D0: 2, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 3960, D0: 2, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 3960, D0: 2, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 3960, D0: 2, D1: 0
+    adda.l #104,A0
+A0: 4064, A1: 3960, D0: 2, D1: 0
+    moveq #100,D0
+A0: 4064, A1: 3960, D0: 100, D1: 0
+    move.l D0,(A0) ; Store to reg
+A0: 4064, A1: 3960, D0: 100, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 3960, D0: 100, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 3960, D0: 100, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 3960, D0: 100, D1: 0
+    adda.l #108,A0
+A0: 4068, A1: 3960, D0: 100, D1: 0
+    moveq #200,D0
+A0: 4068, A1: 3960, D0: 200, D1: 0
+    move.l D0,(A0) ; Store to reg
+A0: 4068, A1: 3960, D0: 200, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 3960, D0: 200, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 3960, D0: 200, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 3960, D0: 200, D1: 0
+    adda.l #112,A0
+A0: 4072, A1: 3960, D0: 200, D1: 0
+    moveq #300,D0
+A0: 4072, A1: 3960, D0: 300, D1: 0
+    move.l D0,(A0) ; Store to reg
+A0: 4072, A1: 3960, D0: 300, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 3960, D0: 300, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 3960, D0: 300, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 3960, D0: 300, D1: 0
+    adda.l #4,A0
+A0: 3964, A1: 3960, D0: 300, D1: 0
+    adda.l #0,A0
+A0: 3964, A1: 3960, D0: 300, D1: 0
+    adda.l #0,A0
+A0: 3964, A1: 3960, D0: 300, D1: 0
+    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A1
+A0: 3964, A1: 8, D0: 300, D1: 0
+    move.l A1,-(SP)
+A0: 3964, A1: 8, D0: 300, D1: 0
     move.l A0,-(SP)
-A0: 0, A1: 255, D0: 8, D1: 2
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 22, A1: 255, D0: 8, D1: 2
-    jsr _printf
-c"len, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 255, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 22, A1: 255, D0: 8, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 255, D0: 8, D1: 2
-    lea.l __01$$_C__0BE_IGNBHOIO_reverse$0$5from$$DN$$CF08X$6$$AA_,A0
-A0: 47, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 47, A1: 255, D0: 8, D1: 2
-    jsr _printf
-reverse?
-A0: 47, A1: 255, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 47, A1: 255, D0: 8, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 255, D0: 8, D1: 2
-    lea.l __01$$_C__0BE_HAKBDHCG_reverse$0$5from$$DN$8$$CFs$8$6$$AA_,A0
-A0: 74, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 74, A1: 255, D0: 8, D1: 2
-    jsr _printf
-reverse?
-A0: 74, A1: 255, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 74, A1: 255, D0: 8, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 255, D0: 8, D1: 2
-    jsr _len
-A0: 255, A1: 255, D0: 8, D1: 2
-_len:
+A0: 3964, A1: 8, D0: 300, D1: 0
+    jsr _str_copy
+A0: 3964, A1: 8, D0: 300, D1: 0
+_str_copy:
 
-A0: 255, A1: 255, D0: 8, D1: 2
+A0: 3964, A1: 8, D0: 300, D1: 0
     sub.l #8,SP
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l 12(SP),A0
-A0: 255, A1: 255, D0: 8, D1: 2
+A0: 3964, A1: 8, D0: 300, D1: 0
+    move.l 12(SP),A1
+A0: 3964, A1: 3964, D0: 300, D1: 0
+    move.l 16(SP),A0
+A0: 8, A1: 3964, D0: 300, D1: 0
 entry0:
 
-A0: 255, A1: 255, D0: 8, D1: 2
-    move.l A0,0(SP) ; Store %str.addr to stack
-A0: 255, A1: 255, D0: 8, D1: 2
-    moveq #0,D0
-A0: 255, A1: 255, D0: 0, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 255, A1: 255, D0: 0, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 255, A1: 255, D0: 0, D1: 2
-    move.l A0,-(SP)
-A0: 255, A1: 255, D0: 0, D1: 2
-    lea.l __01$$_C__0P_IEEEKLOJ_len$0$5str$$DN$$CF08X$6$$AA_,A0
-A0: 0, A1: 255, D0: 0, D1: 2
-    move.l A0,-(SP)
-A0: 0, A1: 255, D0: 0, D1: 2
-    jsr _printf
-reverse?
-A0: 0, A1: 255, D0: 0, D1: 2
-    adda.l #8,SP
-A0: 0, A1: 255, D0: 0, D1: 2
+A0: 8, A1: 3964, D0: 300, D1: 0
+    move.l A0,0(SP) ; Store %source.addr to stack
+A0: 8, A1: 3964, D0: 300, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 8, A1: 3964, D0: 300, D1: 0
     jmp while$cond0
-A0: 0, A1: 255, D0: 0, D1: 2
+A0: 8, A1: 3964, D0: 300, D1: 0
 while$cond0:
 
-A0: 0, A1: 255, D0: 0, D1: 2
+A0: 8, A1: 3964, D0: 300, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 255, A1: 255, D0: 0, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 255, A1: 255, D0: 0, D1: 2
+A0: 8, A1: 3964, D0: 300, D1: 0
+    move.l A0,A1
+A0: 8, A1: 8, D0: 300, D1: 0
     adda.l #1,A1
-A0: 255, A1: 256, D0: 0, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 255, A1: 256, D0: 0, D1: 2
+A0: 8, A1: 9, D0: 300, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 8, A1: 9, D0: 300, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 255, A1: 256, D0: 114, D1: 2
+A0: 8, A1: 9, D0: 326, D1: 0
     cmp.b #0,D0
-A0: 255, A1: 256, D0: 114, D1: 2
+A0: 8, A1: 9, D0: 326, D1: 0
     bne while$body0
-A0: 255, A1: 256, D0: 114, D1: 2
+A0: 8, A1: 9, D0: 326, D1: 0
 while$body0:
 
-A0: 255, A1: 256, D0: 114, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 255, A1: 256, D0: 0, D1: 2
-    add.l #1,D0
-A0: 255, A1: 256, D0: 1, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 255, A1: 256, D0: 1, D1: 2
+A0: 8, A1: 9, D0: 326, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 9, A1: 9, D0: 326, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 9, A1: 9, D0: 367, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3964, A1: 9, D0: 367, D1: 0
+    move.l A0,A1
+A0: 3964, A1: 3964, D0: 367, D1: 0
+    adda.l #1,A1
+A0: 3964, A1: 3965, D0: 367, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3964, A1: 3965, D0: 367, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3964, A1: 3965, D0: 367, D1: 0
     jmp while$cond0
-A0: 255, A1: 256, D0: 1, D1: 2
+A0: 3964, A1: 3965, D0: 367, D1: 0
 while$cond0:
 
-A0: 255, A1: 256, D0: 1, D1: 2
+A0: 3964, A1: 3965, D0: 367, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 256, A1: 256, D0: 1, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 256, A1: 256, D0: 1, D1: 2
+A0: 9, A1: 3965, D0: 367, D1: 0
+    move.l A0,A1
+A0: 9, A1: 9, D0: 367, D1: 0
     adda.l #1,A1
-A0: 256, A1: 257, D0: 1, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 256, A1: 257, D0: 1, D1: 2
+A0: 9, A1: 10, D0: 367, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 9, A1: 10, D0: 367, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 256, A1: 257, D0: 101, D1: 2
+A0: 9, A1: 10, D0: 367, D1: 0
     cmp.b #0,D0
-A0: 256, A1: 257, D0: 101, D1: 2
+A0: 9, A1: 10, D0: 367, D1: 0
     bne while$body0
-A0: 256, A1: 257, D0: 101, D1: 2
+A0: 9, A1: 10, D0: 367, D1: 0
 while$body0:
 
-A0: 256, A1: 257, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 256, A1: 257, D0: 1, D1: 2
-    add.l #1,D0
-A0: 256, A1: 257, D0: 2, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 256, A1: 257, D0: 2, D1: 2
+A0: 9, A1: 10, D0: 367, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 10, A1: 10, D0: 367, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 10, A1: 10, D0: 367, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3965, A1: 10, D0: 367, D1: 0
+    move.l A0,A1
+A0: 3965, A1: 3965, D0: 367, D1: 0
+    adda.l #1,A1
+A0: 3965, A1: 3966, D0: 367, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3965, A1: 3966, D0: 367, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3965, A1: 3966, D0: 367, D1: 0
     jmp while$cond0
-A0: 256, A1: 257, D0: 2, D1: 2
+A0: 3965, A1: 3966, D0: 367, D1: 0
 while$cond0:
 
-A0: 256, A1: 257, D0: 2, D1: 2
+A0: 3965, A1: 3966, D0: 367, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 257, A1: 257, D0: 2, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 257, A1: 257, D0: 2, D1: 2
+A0: 10, A1: 3966, D0: 367, D1: 0
+    move.l A0,A1
+A0: 10, A1: 10, D0: 367, D1: 0
     adda.l #1,A1
-A0: 257, A1: 258, D0: 2, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 257, A1: 258, D0: 2, D1: 2
+A0: 10, A1: 11, D0: 367, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 10, A1: 11, D0: 367, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 257, A1: 258, D0: 118, D1: 2
+A0: 10, A1: 11, D0: 367, D1: 0
     cmp.b #0,D0
-A0: 257, A1: 258, D0: 118, D1: 2
+A0: 10, A1: 11, D0: 367, D1: 0
     bne while$body0
-A0: 257, A1: 258, D0: 118, D1: 2
+A0: 10, A1: 11, D0: 367, D1: 0
 while$body0:
 
-A0: 257, A1: 258, D0: 118, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 257, A1: 258, D0: 2, D1: 2
-    add.l #1,D0
-A0: 257, A1: 258, D0: 3, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 257, A1: 258, D0: 3, D1: 2
+A0: 10, A1: 11, D0: 367, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 11, A1: 11, D0: 367, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 11, A1: 11, D0: 354, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3966, A1: 11, D0: 354, D1: 0
+    move.l A0,A1
+A0: 3966, A1: 3966, D0: 354, D1: 0
+    adda.l #1,A1
+A0: 3966, A1: 3967, D0: 354, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3966, A1: 3967, D0: 354, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3966, A1: 3967, D0: 354, D1: 0
     jmp while$cond0
-A0: 257, A1: 258, D0: 3, D1: 2
+A0: 3966, A1: 3967, D0: 354, D1: 0
 while$cond0:
 
-A0: 257, A1: 258, D0: 3, D1: 2
+A0: 3966, A1: 3967, D0: 354, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 258, A1: 258, D0: 3, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 258, A1: 258, D0: 3, D1: 2
+A0: 11, A1: 3967, D0: 354, D1: 0
+    move.l A0,A1
+A0: 11, A1: 11, D0: 354, D1: 0
     adda.l #1,A1
-A0: 258, A1: 259, D0: 3, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 258, A1: 259, D0: 3, D1: 2
+A0: 11, A1: 12, D0: 354, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 11, A1: 12, D0: 354, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 258, A1: 259, D0: 101, D1: 2
+A0: 11, A1: 12, D0: 354, D1: 0
     cmp.b #0,D0
-A0: 258, A1: 259, D0: 101, D1: 2
+A0: 11, A1: 12, D0: 354, D1: 0
     bne while$body0
-A0: 258, A1: 259, D0: 101, D1: 2
+A0: 11, A1: 12, D0: 354, D1: 0
 while$body0:
 
-A0: 258, A1: 259, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 258, A1: 259, D0: 3, D1: 2
-    add.l #1,D0
-A0: 258, A1: 259, D0: 4, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 258, A1: 259, D0: 4, D1: 2
+A0: 11, A1: 12, D0: 354, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 12, A1: 12, D0: 354, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 12, A1: 12, D0: 353, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3967, A1: 12, D0: 353, D1: 0
+    move.l A0,A1
+A0: 3967, A1: 3967, D0: 353, D1: 0
+    adda.l #1,A1
+A0: 3967, A1: 3968, D0: 353, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3967, A1: 3968, D0: 353, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3967, A1: 3968, D0: 353, D1: 0
     jmp while$cond0
-A0: 258, A1: 259, D0: 4, D1: 2
+A0: 3967, A1: 3968, D0: 353, D1: 0
 while$cond0:
 
-A0: 258, A1: 259, D0: 4, D1: 2
+A0: 3967, A1: 3968, D0: 353, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 259, A1: 259, D0: 4, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 259, A1: 259, D0: 4, D1: 2
+A0: 12, A1: 3968, D0: 353, D1: 0
+    move.l A0,A1
+A0: 12, A1: 12, D0: 353, D1: 0
     adda.l #1,A1
-A0: 259, A1: 260, D0: 4, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 259, A1: 260, D0: 4, D1: 2
+A0: 12, A1: 13, D0: 353, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 12, A1: 13, D0: 353, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 259, A1: 260, D0: 114, D1: 2
+A0: 12, A1: 13, D0: 353, D1: 0
     cmp.b #0,D0
-A0: 259, A1: 260, D0: 114, D1: 2
+A0: 12, A1: 13, D0: 353, D1: 0
     bne while$body0
-A0: 259, A1: 260, D0: 114, D1: 2
+A0: 12, A1: 13, D0: 353, D1: 0
 while$body0:
 
-A0: 259, A1: 260, D0: 114, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 259, A1: 260, D0: 4, D1: 2
-    add.l #1,D0
-A0: 259, A1: 260, D0: 5, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 259, A1: 260, D0: 5, D1: 2
+A0: 12, A1: 13, D0: 353, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 13, A1: 13, D0: 353, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 13, A1: 13, D0: 370, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3968, A1: 13, D0: 370, D1: 0
+    move.l A0,A1
+A0: 3968, A1: 3968, D0: 370, D1: 0
+    adda.l #1,A1
+A0: 3968, A1: 3969, D0: 370, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3968, A1: 3969, D0: 370, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3968, A1: 3969, D0: 370, D1: 0
     jmp while$cond0
-A0: 259, A1: 260, D0: 5, D1: 2
+A0: 3968, A1: 3969, D0: 370, D1: 0
 while$cond0:
 
-A0: 259, A1: 260, D0: 5, D1: 2
+A0: 3968, A1: 3969, D0: 370, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 260, A1: 260, D0: 5, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 260, A1: 260, D0: 5, D1: 2
+A0: 13, A1: 3969, D0: 370, D1: 0
+    move.l A0,A1
+A0: 13, A1: 13, D0: 370, D1: 0
     adda.l #1,A1
-A0: 260, A1: 261, D0: 5, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 260, A1: 261, D0: 5, D1: 2
+A0: 13, A1: 14, D0: 370, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 13, A1: 14, D0: 370, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 260, A1: 261, D0: 115, D1: 2
+A0: 13, A1: 14, D0: 370, D1: 0
     cmp.b #0,D0
-A0: 260, A1: 261, D0: 115, D1: 2
+A0: 13, A1: 14, D0: 370, D1: 0
     bne while$body0
-A0: 260, A1: 261, D0: 115, D1: 2
+A0: 13, A1: 14, D0: 370, D1: 0
 while$body0:
 
-A0: 260, A1: 261, D0: 115, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 260, A1: 261, D0: 5, D1: 2
-    add.l #1,D0
-A0: 260, A1: 261, D0: 6, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 260, A1: 261, D0: 6, D1: 2
+A0: 13, A1: 14, D0: 370, D1: 0
+    move.l 0(SP),A0 ; Load from stack
+A0: 14, A1: 14, D0: 370, D1: 0
+    move.b (A0),D0 ; Load by register address
+A0: 14, A1: 14, D0: 256, D1: 0
+    move.l 4(SP),A0 ; Load from stack
+A0: 3969, A1: 14, D0: 256, D1: 0
+    move.l A0,A1
+A0: 3969, A1: 3969, D0: 256, D1: 0
+    adda.l #1,A1
+A0: 3969, A1: 3970, D0: 256, D1: 0
+    move.l A1,4(SP) ; Store %dest.addr to stack
+A0: 3969, A1: 3970, D0: 256, D1: 0
+    move.b D0,(A0) ; Store to reg
+A0: 3969, A1: 3970, D0: 256, D1: 0
     jmp while$cond0
-A0: 260, A1: 261, D0: 6, D1: 2
+A0: 3969, A1: 3970, D0: 256, D1: 0
 while$cond0:
 
-A0: 260, A1: 261, D0: 6, D1: 2
+A0: 3969, A1: 3970, D0: 256, D1: 0
     move.l 0(SP),A0 ; Load from stack
-A0: 261, A1: 261, D0: 6, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 261, A1: 261, D0: 6, D1: 2
+A0: 14, A1: 3970, D0: 256, D1: 0
+    move.l A0,A1
+A0: 14, A1: 14, D0: 256, D1: 0
     adda.l #1,A1
-A0: 261, A1: 262, D0: 6, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 261, A1: 262, D0: 6, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
+    move.l A1,0(SP) ; Store %source.addr to stack
+A0: 14, A1: 15, D0: 256, D1: 0
     move.b (A0),D0 ; Load by register address
-A0: 261, A1: 262, D0: 101, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
     cmp.b #0,D0
-A0: 261, A1: 262, D0: 101, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
     bne while$body0
-A0: 261, A1: 262, D0: 101, D1: 2
-while$body0:
-
-A0: 261, A1: 262, D0: 101, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 261, A1: 262, D0: 6, D1: 2
-    add.l #1,D0
-A0: 261, A1: 262, D0: 7, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 261, A1: 262, D0: 7, D1: 2
-    jmp while$cond0
-A0: 261, A1: 262, D0: 7, D1: 2
-while$cond0:
-
-A0: 261, A1: 262, D0: 7, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 262, A1: 262, D0: 7, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 262, A1: 262, D0: 7, D1: 2
-    adda.l #1,A1
-A0: 262, A1: 263, D0: 7, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 262, A1: 263, D0: 7, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 262, A1: 263, D0: 248, D1: 2
-    cmp.b #0,D0
-A0: 262, A1: 263, D0: 248, D1: 2
-    bne while$body0
-A0: 262, A1: 263, D0: 248, D1: 2
-while$body0:
-
-A0: 262, A1: 263, D0: 248, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 262, A1: 263, D0: 7, D1: 2
-    add.l #1,D0
-A0: 262, A1: 263, D0: 8, D1: 2
-    move.l D0,4(SP) ; Store %l to stack
-A0: 262, A1: 263, D0: 8, D1: 2
-    jmp while$cond0
-A0: 262, A1: 263, D0: 8, D1: 2
-while$cond0:
-
-A0: 262, A1: 263, D0: 8, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 263, A1: 263, D0: 8, D1: 2
-    move.l A0,A1 ; getelementptr
-A0: 263, A1: 263, D0: 8, D1: 2
-    adda.l #1,A1
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.l A1,0(SP) ; Store %str.addr to stack
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.b (A0),D0 ; Load by register address
-A0: 263, A1: 264, D0: 0, D1: 2
-    cmp.b #0,D0
-A0: 263, A1: 264, D0: 0, D1: 2
-    bne while$body0
-A0: 263, A1: 264, D0: 0, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
     jmp while$end0
-A0: 263, A1: 264, D0: 0, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
 while$end0:
 
-A0: 263, A1: 264, D0: 0, D1: 2
-    move.l 4(SP),D0 ; Load from stack
-A0: 263, A1: 264, D0: 8, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
     add.l #8,SP
-A0: 263, A1: 264, D0: 8, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
     rts 
-A0: 263, A1: 264, D0: 8, D1: 2
-    adda.l #4,SP
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.l D0,8(SP) ; Store %l to stack
-A0: 263, A1: 264, D0: 8, D1: 2
-    move.l 8(SP),D0 ; Load from stack
-A0: 263, A1: 264, D0: 8, D1: 2
+A0: 14, A1: 15, D0: 256, D1: 0
+    adda.l #8,SP
+A0: 14, A1: 15, D0: 256, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 256, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 256, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 256, D1: 0
+    adda.l #112,A0
+A0: 4072, A1: 15, D0: 256, D1: 0
+    move.l (A0),D0 ; Load by register address
+A0: 4072, A1: 15, D0: 300, D1: 0
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 0
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 0
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 0
+    adda.l #108,A0
+A0: 4068, A1: 15, D0: 300, D1: 0
+    move.l (A0),D1 ; Load by register address
+A0: 4068, A1: 15, D0: 300, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #104,A0
+A0: 4064, A1: 15, D0: 300, D1: 200
+    move.l (A0),D7 ; Load by register address
+A0: 4064, A1: 15, D0: 300, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    move.l (A0),A0 ; Load by register address
+A0: 0, A1: 15, D0: 300, D1: 200
     move.l D0,-(SP)
-A0: 263, A1: 264, D0: 8, D1: 2
-    lea.l __01$$_C__07IJNMEDPD_l$5$$DN$5$$CFd$6$$AA_,A0
-A0: 101, A1: 264, D0: 8, D1: 2
+A0: 0, A1: 15, D0: 300, D1: 200
+    move.l D1,-(SP)
+A0: 0, A1: 15, D0: 300, D1: 200
+    move.l D7,-(SP)
+A0: 0, A1: 15, D0: 300, D1: 200
     move.l A0,-(SP)
-A0: 101, A1: 264, D0: 8, D1: 2
+A0: 0, A1: 15, D0: 300, D1: 200
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
+A0: 16, A1: 15, D0: 300, D1: 200
+    move.l A0,-(SP)
+A0: 16, A1: 15, D0: 300, D1: 200
     jsr _printf
-tr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 101, A1: 264, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 101, A1: 264, D0: 8, D1: 2
+Testing 100 200 300
+A0: 16, A1: 15, D0: 4, D1: 200
+    adda.l #20,SP
+A0: 16, A1: 15, D0: 4, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 4, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 4, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 4, D1: 200
+    adda.l #112,A0
+A0: 4072, A1: 15, D0: 4, D1: 200
+    move.l (A0),D0 ; Load by register address
+A0: 4072, A1: 15, D0: 300, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #108,A0
+A0: 4068, A1: 15, D0: 300, D1: 200
+    move.l (A0),D1 ; Load by register address
+A0: 4068, A1: 15, D0: 300, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #104,A0
+A0: 4064, A1: 15, D0: 300, D1: 200
+    move.l (A0),D7 ; Load by register address
+A0: 4064, A1: 15, D0: 300, D1: 200
+    move.l SP,A0
+A0: 3948, A1: 15, D0: 300, D1: 200
+    adda.l #12,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3960, A1: 15, D0: 300, D1: 200
+    adda.l #4,A0
+A0: 3964, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3964, A1: 15, D0: 300, D1: 200
+    adda.l #0,A0
+A0: 3964, A1: 15, D0: 300, D1: 200
+    move.l D0,-(SP)
+A0: 3964, A1: 15, D0: 300, D1: 200
+    move.l D1,-(SP)
+A0: 3964, A1: 15, D0: 300, D1: 200
+    move.l D7,-(SP)
+A0: 3964, A1: 15, D0: 300, D1: 200
+    move.l A0,-(SP)
+A0: 3964, A1: 15, D0: 300, D1: 200
+    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
+A0: 16, A1: 15, D0: 300, D1: 200
+    move.l A0,-(SP)
+A0: 16, A1: 15, D0: 300, D1: 200
+    jsr _printf
+oobar 100 200 300
+A0: 16, A1: 15, D0: 4, D1: 200
+    adda.l #20,SP
+A0: 16, A1: 15, D0: 4, D1: 200
     moveq #0,D0
-A0: 101, A1: 264, D0: 0, D1: 2
-    move.l D0,12(SP) ; Store %i to stack
-A0: 101, A1: 264, D0: 0, D1: 2
-    jmp for$cond1
-A0: 101, A1: 264, D0: 0, D1: 2
-for$cond1:
-
-A0: 101, A1: 264, D0: 0, D1: 2
-    move.l 12(SP),D1 ; Load from stack
-A0: 101, A1: 264, D0: 0, D1: 0
-    move.l 8(SP),D0 ; Load from stack
-A0: 101, A1: 264, D0: 8, D1: 0
-    cmp.l D0,D1
-A0: 101, A1: 264, D0: 8, D1: 0
-    blt for$body1
-A0: 101, A1: 264, D0: 8, D1: 0
-for$body1:
-
-A0: 101, A1: 264, D0: 8, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 0
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 0
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 0
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 0
-    jsr _printf
-c"len, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 0
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 0
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 0
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 0
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 8, D1: 0
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 7, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 7, D1: 0
-    adda.l D0,A0 ; getelementptr
-A0: 262, A1: 264, D0: 7, D1: 0
-    move.b (A0),D1 ; Load by register address
-A0: 262, A1: 264, D0: 7, D1: 248
-    move.l 12(SP),D0 ; Load from stack
-A0: 262, A1: 264, D0: 0, D1: 248
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 0, D1: 248
-    adda.l D0,A0 ; getelementptr
-A0: 0, A1: 264, D0: 0, D1: 248
-    move.b D1,(A0) ; Store to reg
-A0: 0, A1: 264, D0: 0, D1: 248
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 0, D1: 248
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 0, D1: 248
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 0, D1: 248
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 0, D1: 248
-    jsr _printf
-?"len, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 0, D1: 248
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 0, D1: 248
-    jmp for$inc1
-A0: 22, A1: 264, D0: 0, D1: 248
-for$inc1:
-
-A0: 22, A1: 264, D0: 0, D1: 248
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 0, D1: 248
-    add.l #1,D0
-A0: 22, A1: 264, D0: 1, D1: 248
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 1, D1: 248
-    jmp for$cond1
-A0: 22, A1: 264, D0: 1, D1: 248
-for$cond1:
-
-A0: 22, A1: 264, D0: 1, D1: 248
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 1, D1: 1
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 1
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 1
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 1
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 1
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 1
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 1
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 1
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 1
-    jsr _printf
-?"len, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 1
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 1
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 1
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 1
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 7, D1: 1
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 6, D1: 1
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 6, D1: 1
-    adda.l D0,A0 ; getelementptr
-A0: 261, A1: 264, D0: 6, D1: 1
-    move.b (A0),D1 ; Load by register address
-A0: 261, A1: 264, D0: 6, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 261, A1: 264, D0: 1, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 1, D1: 101
-    adda.l D0,A0 ; getelementptr
-A0: 1, A1: 264, D0: 1, D1: 101
-    move.b D1,(A0) ; Store to reg
-A0: 1, A1: 264, D0: 1, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 1, D1: 101
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 1, D1: 101
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 1, D1: 101
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 1, D1: 101
-    jsr _printf
-?elen, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 1, D1: 101
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 1, D1: 101
-    jmp for$inc1
-A0: 22, A1: 264, D0: 1, D1: 101
-for$inc1:
-
-A0: 22, A1: 264, D0: 1, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 1, D1: 101
-    add.l #1,D0
-A0: 22, A1: 264, D0: 2, D1: 101
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 2, D1: 101
-    jmp for$cond1
-A0: 22, A1: 264, D0: 2, D1: 101
-for$cond1:
-
-A0: 22, A1: 264, D0: 2, D1: 101
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 2, D1: 2
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 2
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 2
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 2
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 2
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 2
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 2
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 2
-    jsr _printf
-?elen, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 2
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 2
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 2
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 2
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 6, D1: 2
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 5, D1: 2
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 5, D1: 2
-    adda.l D0,A0 ; getelementptr
-A0: 260, A1: 264, D0: 5, D1: 2
-    move.b (A0),D1 ; Load by register address
-A0: 260, A1: 264, D0: 5, D1: 115
-    move.l 12(SP),D0 ; Load from stack
-A0: 260, A1: 264, D0: 2, D1: 115
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 2, D1: 115
-    adda.l D0,A0 ; getelementptr
-A0: 2, A1: 264, D0: 2, D1: 115
-    move.b D1,(A0) ; Store to reg
-A0: 2, A1: 264, D0: 2, D1: 115
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 2, D1: 115
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 2, D1: 115
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 2, D1: 115
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 2, D1: 115
-    jsr _printf
-?esen, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 2, D1: 115
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 2, D1: 115
-    jmp for$inc1
-A0: 22, A1: 264, D0: 2, D1: 115
-for$inc1:
-
-A0: 22, A1: 264, D0: 2, D1: 115
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 2, D1: 115
-    add.l #1,D0
-A0: 22, A1: 264, D0: 3, D1: 115
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 3, D1: 115
-    jmp for$cond1
-A0: 22, A1: 264, D0: 3, D1: 115
-for$cond1:
-
-A0: 22, A1: 264, D0: 3, D1: 115
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 3, D1: 3
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 3
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 3
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 3
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 3
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 3
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 3
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 3
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 3
-    jsr _printf
-?esen, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 3
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 3
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 3
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 3
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 5, D1: 3
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 4, D1: 3
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 4, D1: 3
-    adda.l D0,A0 ; getelementptr
-A0: 259, A1: 264, D0: 4, D1: 3
-    move.b (A0),D1 ; Load by register address
-A0: 259, A1: 264, D0: 4, D1: 114
-    move.l 12(SP),D0 ; Load from stack
-A0: 259, A1: 264, D0: 3, D1: 114
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 3, D1: 114
-    adda.l D0,A0 ; getelementptr
-A0: 3, A1: 264, D0: 3, D1: 114
-    move.b D1,(A0) ; Store to reg
-A0: 3, A1: 264, D0: 3, D1: 114
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 3, D1: 114
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 3, D1: 114
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 3, D1: 114
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 3, D1: 114
-    jsr _printf
-?esrn, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 3, D1: 114
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 3, D1: 114
-    jmp for$inc1
-A0: 22, A1: 264, D0: 3, D1: 114
-for$inc1:
-
-A0: 22, A1: 264, D0: 3, D1: 114
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 3, D1: 114
-    add.l #1,D0
-A0: 22, A1: 264, D0: 4, D1: 114
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 4, D1: 114
-    jmp for$cond1
-A0: 22, A1: 264, D0: 4, D1: 114
-for$cond1:
-
-A0: 22, A1: 264, D0: 4, D1: 114
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 4, D1: 4
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 4
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 4
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 4
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 4
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 4
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 4
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 4
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 4
-    jsr _printf
-?esrn, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 4
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 4
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 4
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 4
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 4, D1: 4
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 3, D1: 4
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 3, D1: 4
-    adda.l D0,A0 ; getelementptr
-A0: 258, A1: 264, D0: 3, D1: 4
-    move.b (A0),D1 ; Load by register address
-A0: 258, A1: 264, D0: 3, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 258, A1: 264, D0: 4, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 4, D1: 101
-    adda.l D0,A0 ; getelementptr
-A0: 4, A1: 264, D0: 4, D1: 101
-    move.b D1,(A0) ; Store to reg
-A0: 4, A1: 264, D0: 4, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 4, D1: 101
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 4, D1: 101
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 4, D1: 101
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 4, D1: 101
-    jsr _printf
-?esre, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 4, D1: 101
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 4, D1: 101
-    jmp for$inc1
-A0: 22, A1: 264, D0: 4, D1: 101
-for$inc1:
-
-A0: 22, A1: 264, D0: 4, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 4, D1: 101
-    add.l #1,D0
-A0: 22, A1: 264, D0: 5, D1: 101
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 5, D1: 101
-    jmp for$cond1
-A0: 22, A1: 264, D0: 5, D1: 101
-for$cond1:
-
-A0: 22, A1: 264, D0: 5, D1: 101
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 5, D1: 5
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 5
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 5
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 5
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 5
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 5
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 5
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 5
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 5
-    jsr _printf
-?esre, str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 5
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 5
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 5
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 5
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 3, D1: 5
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 2, D1: 5
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 2, D1: 5
-    adda.l D0,A0 ; getelementptr
-A0: 257, A1: 264, D0: 2, D1: 5
-    move.b (A0),D1 ; Load by register address
-A0: 257, A1: 264, D0: 2, D1: 118
-    move.l 12(SP),D0 ; Load from stack
-A0: 257, A1: 264, D0: 5, D1: 118
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 5, D1: 118
-    adda.l D0,A0 ; getelementptr
-A0: 5, A1: 264, D0: 5, D1: 118
-    move.b D1,(A0) ; Store to reg
-A0: 5, A1: 264, D0: 5, D1: 118
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 5, D1: 118
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 5, D1: 118
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 5, D1: 118
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 5, D1: 118
-    jsr _printf
-?esrev str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 5, D1: 118
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 5, D1: 118
-    jmp for$inc1
-A0: 22, A1: 264, D0: 5, D1: 118
-for$inc1:
-
-A0: 22, A1: 264, D0: 5, D1: 118
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 5, D1: 118
-    add.l #1,D0
-A0: 22, A1: 264, D0: 6, D1: 118
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 6, D1: 118
-    jmp for$cond1
-A0: 22, A1: 264, D0: 6, D1: 118
-for$cond1:
-
-A0: 22, A1: 264, D0: 6, D1: 118
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 6, D1: 6
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 6
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 6
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 6
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 6
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 6
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 6
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 6
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 6
-    jsr _printf
-?esrev str=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 6
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 6
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 6
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 6
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 2, D1: 6
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 1, D1: 6
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 1, D1: 6
-    adda.l D0,A0 ; getelementptr
-A0: 256, A1: 264, D0: 1, D1: 6
-    move.b (A0),D1 ; Load by register address
-A0: 256, A1: 264, D0: 1, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 256, A1: 264, D0: 6, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 6, D1: 101
-    adda.l D0,A0 ; getelementptr
-A0: 6, A1: 264, D0: 6, D1: 101
-    move.b D1,(A0) ; Store to reg
-A0: 6, A1: 264, D0: 6, D1: 101
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 6, D1: 101
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 6, D1: 101
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 6, D1: 101
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 6, D1: 101
-    jsr _printf
-?esrevestr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 6, D1: 101
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 6, D1: 101
-    jmp for$inc1
-A0: 22, A1: 264, D0: 6, D1: 101
-for$inc1:
-
-A0: 22, A1: 264, D0: 6, D1: 101
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 6, D1: 101
-    add.l #1,D0
-A0: 22, A1: 264, D0: 7, D1: 101
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 7, D1: 101
-    jmp for$cond1
-A0: 22, A1: 264, D0: 7, D1: 101
-for$cond1:
-
-A0: 22, A1: 264, D0: 7, D1: 101
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 7, D1: 7
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 7
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 7
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 7
-for$body1:
-
-A0: 22, A1: 264, D0: 8, D1: 7
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 7
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 7
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 7
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 7
-    jsr _printf
-?esrevestr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 7
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 7
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 7
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 7
-    sub.l D1,D0
-A0: 22, A1: 264, D0: 1, D1: 7
-    sub.l #1,D0
-A0: 22, A1: 264, D0: 0, D1: 7
-    move.l 4(SP),A0 ; Load from stack
-A0: 255, A1: 264, D0: 0, D1: 7
-    adda.l D0,A0 ; getelementptr
-A0: 255, A1: 264, D0: 0, D1: 7
-    move.b (A0),D1 ; Load by register address
-A0: 255, A1: 264, D0: 0, D1: 114
-    move.l 12(SP),D0 ; Load from stack
-A0: 255, A1: 264, D0: 7, D1: 114
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 7, D1: 114
-    adda.l D0,A0 ; getelementptr
-A0: 7, A1: 264, D0: 7, D1: 114
-    move.b D1,(A0) ; Store to reg
-A0: 7, A1: 264, D0: 7, D1: 114
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 7, D1: 114
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 7, D1: 114
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 7, D1: 114
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 7, D1: 114
-    jsr _printf
-?esrevertr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 7, D1: 114
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 7, D1: 114
-    jmp for$inc1
-A0: 22, A1: 264, D0: 7, D1: 114
-for$inc1:
-
-A0: 22, A1: 264, D0: 7, D1: 114
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 7, D1: 114
-    add.l #1,D0
-A0: 22, A1: 264, D0: 8, D1: 114
-    move.l D0,12(SP) ; Store %i to stack
-A0: 22, A1: 264, D0: 8, D1: 114
-    jmp for$cond1
-A0: 22, A1: 264, D0: 8, D1: 114
-for$cond1:
-
-A0: 22, A1: 264, D0: 8, D1: 114
-    move.l 12(SP),D1 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l 8(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 8
-    cmp.l D0,D1
-A0: 22, A1: 264, D0: 8, D1: 8
-    blt for$body1
-A0: 22, A1: 264, D0: 8, D1: 8
-    jmp for$end1
-A0: 22, A1: 264, D0: 8, D1: 8
-for$end1:
-
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 8
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 8, D1: 8
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 8, D1: 8
-    jsr _printf
-?esrevertr=%08X\0A\00"c"reverse, to=%08X\0A\00"c"reverse, from=%08X\0A\00"c"reverse, from='%s'\0A\00"c"l = %d\0A\00"c"reverse, to end=%08X\0A\00"c"argc: %d\0A\00"c"len is: %d\0A\00"c"buf=%08X\0A\00"c"reverse is: %08X\0A\00"c"reverse is: '%s'\0A\00"programreverse?
-A0: 22, A1: 264, D0: 8, D1: 8
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 8
-    adda.l D0,A0 ; getelementptr
-A0: 8, A1: 264, D0: 8, D1: 8
-    moveq #0,D0
-A0: 8, A1: 264, D0: 0, D1: 8
-    move.b D0,(A0) ; Store to reg
-A0: 8, A1: 264, D0: 0, D1: 8
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 0, D1: 8
-    lea.l __01$$_C__0BC_GHOHLIIH_reverse$0$5to$$DN$$CF08X$6$$AA_,A0
-A0: 22, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 22, A1: 264, D0: 0, D1: 8
-    jsr _printf
-?esrever
-A0: 22, A1: 264, D0: 0, D1: 8
-    adda.l #8,SP
-A0: 22, A1: 264, D0: 0, D1: 8
-    move.l 12(SP),D0 ; Load from stack
-A0: 22, A1: 264, D0: 8, D1: 8
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 8
-    adda.l D0,A0 ; getelementptr
-A0: 8, A1: 264, D0: 8, D1: 8
-    move.l A0,-(SP)
-A0: 8, A1: 264, D0: 8, D1: 8
-    lea.l __01$$_C__0BG_BJGBGJBA_reverse$0$5to$5end$$DN$$CF08X$6$$AA_,A0
-A0: 116, A1: 264, D0: 8, D1: 8
-    move.l A0,-(SP)
-A0: 116, A1: 264, D0: 8, D1: 8
-    jsr _printf
-
-A0: 116, A1: 264, D0: 8, D1: 8
-    adda.l #8,SP
-A0: 116, A1: 264, D0: 8, D1: 8
-    move.l 0(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 8, D1: 8
-    move.l A0,D0
-A0: 0, A1: 264, D0: 0, D1: 8
-    add.l #16,SP
-A0: 0, A1: 264, D0: 0, D1: 8
-    rts 
-A0: 0, A1: 264, D0: 0, D1: 8
-    adda.l #8,SP
-A0: 0, A1: 264, D0: 0, D1: 8
-    move.l D0,112(SP) ; Store %r to stack
-A0: 0, A1: 264, D0: 0, D1: 8
-    move.l 112(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 0, D1: 8
-    lea.l __01$$_C__0BC_HAPMGLEP_reverse$5is$3$5$$CF08X$6$$AA_,A0
-A0: 198, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 198, A1: 264, D0: 0, D1: 8
-    jsr _printf
-?esrever
-A0: 198, A1: 264, D0: 0, D1: 8
-    adda.l #8,SP
-A0: 198, A1: 264, D0: 0, D1: 8
-    move.l 112(SP),A0 ; Load from stack
-A0: 0, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 0, A1: 264, D0: 0, D1: 8
-    lea.l __01$$_C__0BC_IGIMCCOH_reverse$5is$3$5$8$$CFs$8$6$$AA_,A0
-A0: 223, A1: 264, D0: 0, D1: 8
-    move.l A0,-(SP)
-A0: 223, A1: 264, D0: 0, D1: 8
-    jsr _printf
-?esrever
-A0: 223, A1: 264, D0: 0, D1: 8
-    adda.l #8,SP
-A0: 223, A1: 264, D0: 0, D1: 8
-    moveq #0,D0
-A0: 223, A1: 264, D0: 0, D1: 8
-    move.l D0,0(SP) ; Store %retval to stack
-A0: 223, A1: 264, D0: 0, D1: 8
-    jmp return2
-A0: 223, A1: 264, D0: 0, D1: 8
-return2:
-
-A0: 223, A1: 264, D0: 0, D1: 8
-    move.l 0(SP),D0 ; Load from stack
-A0: 223, A1: 264, D0: 0, D1: 8
-    add.l #116,SP
-A0: 223, A1: 264, D0: 0, D1: 8
+A0: 16, A1: 15, D0: 0, D1: 200
+    move.l 128(SP),D7 ; Spilled reg D14 load
+A0: 16, A1: 15, D0: 0, D1: 200
+    add.l #132,SP
+A0: 16, A1: 15, D0: 0, D1: 200
     rts 

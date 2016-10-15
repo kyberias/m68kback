@@ -10,7 +10,7 @@ namespace m68kback.test
         [Test]
         public void Tokens()
         {
-            var source = @"add 123 sub $ ! = # : ""hello there"" ""string literal"" @goo.doo @""yeah joo"" ... . ...";
+            var source = @"add 123 sub $ ! = # : ""hello there"" ""string literal"" @goo.doo @""yeah joo"" ... . ... type";
             var tokenizer = new Tokenizer();
             var elements = tokenizer.Lex(StreamFromString(source));
 
@@ -31,6 +31,7 @@ namespace m68kback.test
                 Token.Ellipsis,
                 Token.Dot,
                 Token.Ellipsis,
+                Token.Type,
             }, elements.Select(t => t.Type));
         }
 

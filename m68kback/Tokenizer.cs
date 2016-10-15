@@ -43,6 +43,7 @@ namespace m68kback
         ParenClose,
         Comma,
         Ellipsis,
+        Type,
         X,
         Call,
         Tail,
@@ -137,7 +138,8 @@ namespace m68kback
             { "to", Token.To },
             { "attributes", Token.Attributes },
             { "nocapture", Token.NoCapture },
-            { "readonly", Token.ReadOnly }
+            { "readonly", Token.ReadOnly },
+            { "type", Token.Type }
         };
 
         Regex CreateRegex()

@@ -310,6 +310,7 @@ namespace m68kback
             {
                 switch (AddressingMode2)
                 {
+                    case M68kAddressingMode.Address:
                     case M68kAddressingMode.AddressWithOffset:
                     case M68kAddressingMode.AddressWithPostIncrement:
                     case M68kAddressingMode.AddressWithPostDecrement:

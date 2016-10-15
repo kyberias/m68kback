@@ -192,6 +192,22 @@ for.end:                                          ; preds = %for.end.loopexit, %
         }
 
         [Test]
+        public void PrintfParam()
+        {
+            var prg = GetFileFromResource("printfparam.ll");
+            var emul = BuildEmulator(prg);
+            var par0 = emul.AllocGlobal("program");
+            var par1 = emul.AllocGlobal("param");
+
+            var arrStart = emul.AllocGlobal(par0);
+            emul.AllocGlobal(par1);
+
+            emul.RunFunction("@main", arrStart, 2);
+
+            Assert.Contains("param\n", printf.PrintedStrings.ToList());
+        }
+
+        [Test]
         public void ReversePrg()
         {
             var prg = GetFileFromResource("test2.ll");
@@ -205,7 +221,7 @@ for.end:                                          ; preds = %for.end.loopexit, %
 
             emul.RunFunction("@main", arrStart, 2);
 
-            Assert.Contains("reverse is: esrever\n", printf.PrintedStrings.ToList());
+            Assert.Contains("reverse is: 'esrever'\n", printf.PrintedStrings.ToList());
         }
 
         [Test]
@@ -221,6 +237,24 @@ for.end:                                          ; preds = %for.end.loopexit, %
             emul.AllocGlobal(par1);
 
             emul.RunFunction("@main", arrStart, 2);
+        }
+
+        [Test]
+        public void StructsPrg()
+        {
+            var prg = GetFileFromResource("structs.ll");
+
+            var emul = BuildEmulator(prg);
+            var par0 = emul.AllocGlobal("program");
+            var par1 = emul.AllocGlobal("42");
+
+            var arrStart = emul.AllocGlobal(par0);
+            emul.AllocGlobal(par1);
+
+            emul.RunFunction("@main", arrStart, 2);
+
+            CollectionAssert.Contains(printf.PrintedStrings, "Testing 100 200 300");
+            CollectionAssert.Contains(printf.PrintedStrings, "Foobar 100 200 300");
         }
 
         string GetFileFromResource(string filename)

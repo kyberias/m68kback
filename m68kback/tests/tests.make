@@ -1,9 +1,9 @@
-AMIRUN = amirun
 SC = amirun sc:c/sc
+ASM = amirun sc:c/asm
 SLINK = amirun sc:c/slink
 CLANG = clang -S -emit-llvm
 M68KBACK = ../bin/debug/m68kback
-TARGETS = test2.run test.run
+TARGETS = test2.run test.run printfparam.run
 
 all : $(TARGETS)
 
@@ -11,7 +11,7 @@ all : $(TARGETS)
 	$(SLINK) from lib:c.o $< to $@ lib lib:sc.lib
 
 %.o : %.s
-	$(AMIRUN) sc:c/asm $<
+	$(ASM) $<
 
 %.s : %.ll
 	$(M68KBACK) $< > $@

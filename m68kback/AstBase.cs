@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace m68kback
 {
@@ -63,6 +64,8 @@ namespace m68kback
         {
             return visitor.Visit(this);
         }
+
+
     }
 
     public class VariableReference : Expression
@@ -88,34 +91,40 @@ namespace m68kback
         }
     }
 
-    public class TypeDeclaration : AstBase
+    public abstract class TypeDeclaration : AstBase
     {
-        public Token Type { get; set; }
-        public bool IsPointer { get; set; }
-        public bool IsArray { get; set; }
-        public int ArrayX { get; set; }
-        public int PointerDepth { get; set; }
-
-        public int ElementWidth
-        {
-            get
-            {
-                switch (this.Type)
-                {
-                    case Token.I32:
-                        return 4;
-                    case Token.I8:
-                        return 1;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-        }
+        public abstract int Width { get; }
 
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
         }
+    }
+
+    public class DefinedTypeDeclaration : TypeDeclaration
+    {
+        public DefinedTypeDeclaration(TypeDefinition typeDef)
+        {
+            Type = typeDef;
+        }
+        public TypeDefinition Type { get; set; }
+        public override int Width => Type.Width;
+    }
+
+    public abstract class IndirectTypeDeclaration : TypeDeclaration
+    {
+        public TypeDeclaration BaseType { get; set; }
+    }
+
+    public class PointerDeclaration : IndirectTypeDeclaration
+    {
+        public override int Width => 4;
+    }
+
+    public class ArrayDeclaration : IndirectTypeDeclaration
+    {
+        public override int Width => BaseType.Width * ArrayX;
+        public int ArrayX { get; set; }
     }
 
     public class RetStatement : Statement
@@ -204,6 +213,51 @@ namespace m68kback
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
+        }
+    }
+
+    public abstract class TypeDefinition : AstBase
+    {
+        public string Name { get; set; }
+
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+
+        public abstract int Width { get; }
+    }
+
+    public class InternalTypeDefinition : TypeDefinition
+    {
+        public Token Type { get; set; }
+
+        public override int Width
+        {
+            get
+            {
+                switch (Type)
+                {
+                    case Token.I32:
+                        return 4;
+                    case Token.I8:
+                        return 1;
+                    case Token.Void:
+                        return 0;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+    }
+
+    public class UserTypeDefinition : TypeDefinition
+    {
+        public List<TypeDeclaration> Members { get; } = new List<TypeDeclaration>();
+
+        public override int Width
+        {
+            get { return Members.Sum(m => m.Width); }
         }
     }
 

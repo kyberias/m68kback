@@ -1,4 +1,4 @@
-//#define PRINTCODE
+#define PRINTCODE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -166,13 +166,15 @@ namespace m68kback
 
                 if (va.Expr is AllocaExpression)
                 {
-                    if (va.Expr.Type.IsPointer)
+                    if (va.Expr.Type is PointerDeclaration)
                     {
                         frameOffset += 4;
                     }
                     else
                     {
-                        switch (va.Expr.Type.Type)
+                        //var arr = va.Expr.Type as ArrayDeclaration;
+                        frameOffset += va.Expr.Type.Width /** (arr?.ArrayX ?? 1)*/;
+/*                        switch (va.Expr.Type.Type)
                         {
                             case Token.I8:
                             case Token.I32:
@@ -183,7 +185,7 @@ namespace m68kback
                             //break;
                             default:
                                 throw new NotSupportedException();
-                        }
+                        }*/
                     }
                 }
             }
@@ -194,7 +196,7 @@ namespace m68kback
             foreach (var parameter in el.Parameters)
             {
                 Register parReg;
-                if (parameter.Type.IsPointer)
+                if (parameter.Type is PointerDeclaration)
                 {
                     parReg = NewAddressReg();
                 }
@@ -639,11 +641,127 @@ namespace m68kback
 
         public List<Reloc> Relocs { get; set; } = new List<Reloc>();
 
+        void CalculatePtr(GetElementPtr getElementPtr, Register addr)
+        {
+            var t = getElementPtr.Type;
+
+            foreach (var ix in getElementPtr.Indices)
+            {
+                Debug.Assert(t != null);
+                var ptr = t as IndirectTypeDeclaration;
+                if (ptr != null)
+                {
+                    /*if (ptr.BaseType is ArrayDeclaration)
+                    {
+                        ptr = (IndirectTypeDeclaration)ptr.BaseType;
+                    }*/
+
+                    var elSize = ptr.BaseType.Width;
+
+                    if (ix is IntegerConstant)
+                    {
+                        var i = ((IntegerConstant)ix).Constant;
+                        i *= elSize;
+
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Adda,
+                            Immediate = i,
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Register2 = addr
+                        });
+                    }
+                    else
+                    {
+                        var ixReg = (Register)ix.Visit(this);
+                        Debug.Assert(elSize == 1); // Don't support anything else yet
+
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Adda,
+                            Register1 = ixReg,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register2 = addr
+                        });
+                    }
+                    t = ptr.BaseType;
+                }
+                else
+                {
+                    var defType = t as DefinedTypeDeclaration;
+                    var userType = defType?.Type as UserTypeDefinition;
+                    if (userType != null)
+                    {
+                        var i = ((IntegerConstant) ix).Constant;
+                        var index = userType.Members.Select(m => m.Width).Take(i).Sum();
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Adda,
+                            Immediate = index,
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Register2 = addr
+                        });
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                        /*var intType = ptr.PtrBaseType.Type as InternalTypeDefinition;
+                        var index = intType.Width*t.Type.Width;
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Adda,
+                            Immediate = index,
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Register2 = addr
+                        });*/
+                    }
+                    t = null;
+                }
+            }
+        }
+
         public object Visit(GetElementPtr getElementPtr)
         {
             if (getElementPtr.PtrVar[0] == '%')
             {
-                if (getElementPtr.PtrType.IsArray)
+                var newTemp = NewAddressReg();
+                var varOrOffset = GetVarRegisterOrStackOffset(getElementPtr.PtrVar);
+                var varReg = varOrOffset as Register;
+
+                if (varReg != null)
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        Register1 = varReg,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register2 = newTemp,
+                        AddressingMode2 = M68kAddressingMode.Register
+                    });
+                }
+                else
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        FinalRegister1 = M68kRegister.SP,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        Register2 = newTemp,
+                        AddressingMode2 = M68kAddressingMode.Register
+                    });
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Adda,
+                        Immediate = (int)varOrOffset,
+                        AddressingMode1 = M68kAddressingMode.Immediate,
+                        Register2 = newTemp,
+                        AddressingMode2 = M68kAddressingMode.Register
+                    });
+                }
+                CalculatePtr(getElementPtr, newTemp);
+                return newTemp;
+
+                /*if (getElementPtr.PtrType.IsArray)
                 {
                     var arrPtrReg = GetVarRegisterOrStackOffset(getElementPtr.PtrVar);
                     var indexExpr = getElementPtr.Indices[0];
@@ -729,7 +847,7 @@ namespace m68kback
                         throw new NotSupportedException();
                     }
                     return newReg;
-                }
+                }*/
             }
             else
             {
@@ -750,33 +868,10 @@ namespace m68kback
                 });
                 return newReg;
             }
-
-            /*Emit(new M68kInstruction
-            {
-                Opcode = M68kOpcode.Move,
-                AddressingMode1 = M68kAddressingMode.Register,
-                Register1 = M68kRegister.A0,
-                AddressingMode2 = M68kAddressingMode.Register,
-                Register2 = M68kRegister.D0
-            });*/
         }
 
         public object Visit(VariableReference variableReference)
         {
-            /*variableReference.Type = vars[variableReference.Variable];
-
-            Emit(new M68kInstruction
-            {
-                Opcode = M68kOpcode.Move,
-                AddressingMode1 = M68kAddressingMode.AddressWithOffset,
-                Register1 = M68kRegister.SP,
-                Offset = FrameIx(variableReference.Variable),
-                AddressingMode2 = M68kAddressingMode.Register,
-                Width = TypeToWidth(variableReference.Type),
-                Register2 = M68kRegister.D0,
-                Comment = "Variable reference"
-            });*/
-
             if (currentFunction.VarsInStack.ContainsKey(variableReference.Variable))
             {
                 return currentFunction.VarsInStack[variableReference.Variable];
@@ -810,7 +905,6 @@ namespace m68kback
                         AddressingMode1 = M68kAddressingMode.Register,
                         Register1 = reg,
                         AddressingMode2 = M68kAddressingMode.Register,
-                        //FinalRegister2 = M68kRegister.D0
                         Register2 = new Register { Number = 0, Type = RegType.Data },
                     });
                 }
@@ -827,11 +921,24 @@ namespace m68kback
             Emit(i);
             offsetsToFix.Add(i);
 
-            Emit(new M68kInstruction
+            var width = retStatement.Type.Width;
+
+            if (width > 0)
             {
-                Opcode = M68kOpcode.Rts,
-                FinalRegister1 = retStatement.Type.Type == Token.Void ? (M68kRegister?)null : M68kRegister.D0
-            });
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Rts,
+                    FinalRegister1 = M68kRegister.D0
+                });
+            }
+            else
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Rts,
+                });
+            }
+
             return null;
         }
 
@@ -944,20 +1051,17 @@ namespace m68kback
 
         M68Width TypeToWidth(TypeDeclaration type)
         {
-            if (type.IsPointer)
+            switch (type.Width)
             {
-                return M68Width.Long;
+                case 4:
+                    return M68Width.Long;
+                case 2:
+                    return M68Width.Word;
+                case 1:
+                    return M68Width.Byte;
             }
 
-            switch (type.Type)
-            {
-                case Token.I32:
-                    return M68Width.Long;
-                case Token.I8:
-                    return M68Width.Byte;
-                default:
-                    throw new NotSupportedException();
-            }
+            throw new NotSupportedException();
         }
 
         public object Visit(LoadExpression loadExpression)
@@ -965,7 +1069,7 @@ namespace m68kback
             //var ptrReg = (Register)loadExpression.Value.Visit(this);
             var offset = loadExpression.Value.Visit(this);
 
-            var reg = loadExpression.Type.IsPointer ? NewAddressReg() : NewDataReg();
+            var reg = loadExpression.Type is PointerDeclaration ? NewAddressReg() : NewDataReg();
 
             if (offset is Register)
             {
@@ -1029,10 +1133,12 @@ namespace m68kback
 
         public object Visit(StoreStatement storeStatement)
         {
-            var reg = storeStatement.Value.Visit(this);
-            if (reg is Register)
+            var valueToSave = storeStatement.Value.Visit(this);
+            if (valueToSave is Register)
             {
                 var varReg = GetVarRegister(storeStatement.Variable);
+                //var ptr = (PointerDeclaration) storeStatement.Type;
+                //var intType = ptr.PtrBaseType.Type as InternalTypeDefinition;
 
                 if (varReg != null)
                 {
@@ -1040,11 +1146,11 @@ namespace m68kback
                     {
                         Opcode = M68kOpcode.Move,
                         AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = (Register) reg,
+                        Register1 = (Register) valueToSave,
                         AddressingMode2 = M68kAddressingMode.Address,
                         Register2 = varReg,
                         Comment = "Store to reg",
-                        Width = storeStatement.Type.Type == Token.I8 ? M68Width.Byte : M68Width.Long
+                        Width = storeStatement.ExprType.Width == 1 ? M68Width.Byte : M68Width.Long
                     });
                 }
                 else
@@ -1054,7 +1160,7 @@ namespace m68kback
                     {
                         Opcode = M68kOpcode.Move,
                         AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = (Register)reg,
+                        Register1 = (Register)valueToSave,
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
                         FinalRegister2 = M68kRegister.SP,
                         Offset = offset,
@@ -1076,17 +1182,7 @@ namespace m68kback
             {
                 var alloca = variableAssignmentStatement.Expr as AllocaExpression;
                 currentFunction.VarsInStack[variableAssignmentStatement.Variable] = currentFunction.FrameSize;
-
-                if (alloca.Type.IsArray)
-                {
-                    var elSize = alloca.Type.Type == Token.I8 ? 1 : 4;
-                    currentFunction.FrameSize += alloca.Type.ArrayX*elSize;
-                }
-                else
-                {
-                    // TODO: FIX!!!
-                    currentFunction.FrameSize += 4;
-                }
+                currentFunction.FrameSize += alloca.Type.Width;
                 return null;
             }
 
@@ -1101,7 +1197,7 @@ namespace m68kback
             }
             else
             {
-                if (variableAssignmentStatement.Expr.Type.IsPointer)
+                if (variableAssignmentStatement.Expr.Type is PointerDeclaration)
                 {
                     var newTemp = NewAddressReg();
                     Emit(new M68kInstruction
@@ -1294,6 +1390,11 @@ namespace m68kback
             }
 
             return tempReg;
+        }
+
+        public object Visit(TypeDefinition typeDef)
+        {
+            throw new NotImplementedException();
         }
     }
 }

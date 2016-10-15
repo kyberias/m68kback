@@ -1,4 +1,4 @@
-﻿//#define PRINTSTATES
+﻿#define PRINTSTATES
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +54,9 @@ namespace m68kback
 
             var bytes = Encoding.ASCII.GetBytes(data);
             Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
-            globalUsed += (uint)bytes.Length;
+            memory[globalUsed + bytes.Length] = 0;
+
+            globalUsed += (uint)(bytes.Length + 1);
 
             return addr;
         }
@@ -120,13 +122,20 @@ namespace m68kback
 
         uint Read32(uint addr)
         {
-            return BitConverter.ToUInt32(memory, (int)addr);
+            uint val = BitConverter.ToUInt32(memory, (int)addr);
+#if PRINTSTATES
+//            Console.WriteLine($"Read32({addr}) = {val}");
+#endif
+            return val;
         }
 
         void Write32(uint addr, uint value)
         {
             var bytes = BitConverter.GetBytes(value);
             Array.Copy(bytes, 0, memory, addr, 4);
+#if PRINTSTATES
+            //Console.WriteLine($"Write32({addr}) = {value}");
+#endif
         }
 
         byte Read8(uint addr)
@@ -221,8 +230,9 @@ namespace m68kback
                             {
                                 if (i.TargetLabel == "@printf")
                                 {
-                                    var strPtr = memory[Sp + 4];
-                                    Regs[0] = printf.printf(NullTerminatedToString(memory, strPtr), this);
+                                    //var strPtr = memory[Sp + 4];
+                                    var strPtr = Read32(Sp);
+                                    Regs[0] = printf.printf(NullTerminatedToString(memory, (int)strPtr), this);
                                 }
                             }
                         }
@@ -370,8 +380,8 @@ namespace m68kback
 
         public string GetString(int ix)
         {
-            var strPtr = memory[Sp + 4 + ix * 4];
-            return NullTerminatedToString(memory, strPtr);
+            var strPtr = Read32((uint)(Sp + 4 + ix*4)); //memory[Sp + 4 + ix * 4];
+            return NullTerminatedToString(memory, (int)strPtr);
         }
 
         public uint GetUint(int ix)

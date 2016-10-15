@@ -13,6 +13,12 @@ namespace m68kback
         public Parser(IEnumerable<TokenElement> lexicalElements)
         {
             this.lexicalElements = lexicalElements.ToList();
+
+            internalTypes[Token.I1] = new InternalTypeDefinition { Name = "i1", Type = Token.I1 };
+            internalTypes[Token.I8] = new InternalTypeDefinition {Name = "i8", Type = Token.I8};
+            internalTypes[Token.I32] = new InternalTypeDefinition { Name = "i32", Type = Token.I32 };
+            internalTypes[Token.Void] = new InternalTypeDefinition { Name = "void", Type = Token.Void };
+
             cursor = 0;
         }
 
@@ -60,6 +66,34 @@ namespace m68kback
             AcceptElement(Token.CurlyBraceClose);
         }
 
+        public TypeDefinition ParseTypeDefinition()
+        {
+            var typeDef = new UserTypeDefinition();
+            var id = AcceptElement(Token.LocalIdentifier);
+
+            typeDef.Name = id.Data;
+
+            AcceptElement(Token.Assign);
+            AcceptElement(Token.Type);
+            AcceptElement(Token.CurlyBraceOpen);
+
+            while (PeekElement().Type != Token.CurlyBraceClose)
+            {
+                var t = ParseType();
+                typeDef.Members.Add(t);
+                if (PeekElement().Type != Token.CurlyBraceClose)
+                {
+                    AcceptElement(Token.Comma);
+                }
+            }
+
+            AcceptElement(Token.CurlyBraceClose);
+
+            types[typeDef.Name] = typeDef;
+
+            return typeDef;
+        }
+
         public Program ParseProgram()
         {
             var program = new Program();
@@ -68,6 +102,9 @@ namespace m68kback
             {
                 switch (PeekElement().Type)
                 {
+                    case Token.LocalIdentifier:
+                        ParseTypeDefinition();
+                        break;
                     case Token.Exclamation:
                         ParseMetadata();
                         break;
@@ -148,9 +185,12 @@ namespace m68kback
             return func;
         }
 
+        Dictionary<Token, TypeDefinition> internalTypes = new Dictionary<Token, TypeDefinition>();
+        Dictionary<string, TypeDefinition> types = new Dictionary<string, TypeDefinition>();
+
         TypeDeclaration ParseType()
         {
-            var decl = new TypeDeclaration();
+            TypeDeclaration decl;// = new TypeDeclaration();
             var el = PeekElement();
             switch (el.Type)
             {
@@ -159,17 +199,25 @@ namespace m68kback
                 case Token.I8:
                 case Token.I1:
                 case Token.Void:
-                    decl.Type = el.Type;
+                    decl = new DefinedTypeDeclaration(internalTypes[el.Type]);
                     AcceptElement(el.Type);
                     break;
                 case Token.BracketOpen:
                     {
                         AcceptElement(Token.BracketOpen);
-                        decl.IsArray = true;
-                        decl.ArrayX = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
+                        var arr = new ArrayDeclaration();
+                        arr.ArrayX = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
                         AcceptElement(Token.Symbol);
-                        decl.Type = AcceptElement(Token.I32, Token.I8).Type;
+                        arr.BaseType = 
+                            new DefinedTypeDeclaration(internalTypes[AcceptElement(Token.I32, Token.I8).Type]);
                         AcceptElement(Token.BracketClose);
+                        decl = arr;
+                    }
+                    break;
+                case Token.LocalIdentifier:
+                    {
+                        var id = AcceptElement(Token.LocalIdentifier);
+                        decl = new DefinedTypeDeclaration(types[id.Data]);
                     }
                     break;
                 default:
@@ -179,8 +227,9 @@ namespace m68kback
             while (PeekElement().Type == Token.Asterisk)
             {
                 AcceptElement(Token.Asterisk);
-                decl.IsPointer = true;
-                decl.PointerDepth++;
+                var ptr = new PointerDeclaration();
+                ptr.BaseType = decl;
+                decl = ptr;
             }
 
             if (PeekElement().Type == Token.ParenOpen)
@@ -368,7 +417,7 @@ namespace m68kback
             AcceptElement(Token.GetElementPtr);
             AcceptElementIfNext(Token.Inbounds);
 
-            var parents = AcceptElementIfNext(Token.ParenOpen);
+            var parens = AcceptElementIfNext(Token.ParenOpen);
 
             ptr.PtrType = ParseType();
             AcceptElement(Token.Comma);
@@ -387,7 +436,7 @@ namespace m68kback
                 }
                 else
                 {
-                    if (parents)
+                    if (parens)
                     {
                         AcceptElement(Token.ParenClose);
                     }
@@ -503,7 +552,10 @@ namespace m68kback
             AcceptElement(Token.Ret);
             stmt.Type = ParseType();
 
-            if (stmt.Type.Type != Token.Void)
+            var type = stmt.Type as DefinedTypeDeclaration;
+            var intDef = type?.Type as InternalTypeDefinition;
+
+            if (intDef == null || intDef.Type != Token.Void)
             {
                 stmt.Value = ParseExpression();
             }

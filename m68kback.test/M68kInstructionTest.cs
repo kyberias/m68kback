@@ -50,6 +50,101 @@ namespace m68kback.test
         }
 
         [Test]
+        public void LeaDef()
+        {
+            var cmp = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Lea,
+                Variable = "foobar",
+                AddressingMode1 = M68kAddressingMode.Absolute,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 =  new Register { Type = RegType.Address, Number = 2 }
+            };
+
+            CollectionAssert.AreEqual(new[] { "A2" }, cmp.Def(RegType.Address));
+        }
+
+        [Test]
+        public void LeaUse()
+        {
+            var cmp = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Lea,
+                Variable = "foobar",
+                AddressingMode1 = M68kAddressingMode.Absolute,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = new Register { Type = RegType.Address, Number = 2 }
+            };
+
+            CollectionAssert.IsEmpty(cmp.Use(RegType.Address));
+            CollectionAssert.IsEmpty(cmp.Use(RegType.Data));
+        }
+
+        [Test]
+        public void AddressStoreDef()
+        {
+            var i = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                AddressingMode1 = M68kAddressingMode.Register,
+                Register1 = new Register { Type = RegType.Data, Number = 1 },
+                AddressingMode2 = M68kAddressingMode.Address,
+                Register2 = new Register { Type = RegType.Address, Number = 2 }
+            };
+
+            CollectionAssert.IsEmpty(i.Def(RegType.Address));
+            CollectionAssert.IsEmpty(i.Def(RegType.Data));
+        }
+
+        [Test]
+        public void AddressStoreUse()
+        {
+            var i = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                AddressingMode1 = M68kAddressingMode.Register,
+                Register1 = new Register { Type = RegType.Data, Number = 1 },
+                AddressingMode2 = M68kAddressingMode.Address,
+                Register2 = new Register { Type = RegType.Address, Number = 2 }
+            };
+
+            CollectionAssert.AreEquivalent(new[] { "D1", }, i.Use(RegType.Data));
+            CollectionAssert.AreEquivalent(new[] { "A2", }, i.Use(RegType.Address));
+        }
+
+        [Test]
+        public void AddressLoadUse()
+        {
+            var i = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                AddressingMode1 = M68kAddressingMode.Address,
+                Register1 = new Register { Type = RegType.Address, Number = 2 },
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = new Register { Type = RegType.Data, Number = 1 },
+            };
+
+            CollectionAssert.IsEmpty(i.Use(RegType.Data));
+            CollectionAssert.AreEquivalent(new[] { "A2", }, i.Use(RegType.Address));
+        }
+
+        [Test]
+        public void AddressLoadDef()
+        {
+            var i = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                AddressingMode1 = M68kAddressingMode.Address,
+                Register1 = new Register { Type = RegType.Address, Number = 2 },
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = new Register { Type = RegType.Data, Number = 1 },
+            };
+
+            CollectionAssert.IsEmpty(i.Def(RegType.Address));
+            CollectionAssert.AreEquivalent(new[] { "D1", }, i.Def(RegType.Data));
+        }
+
+        [Test]
         public void LsrDef()
         {
             var cmp = new M68kInstruction(M68kOpcode.Lsr, new Register { Type = RegType.Data, Number = 1 }, new Register { Type = RegType.Data, Number = 2 });

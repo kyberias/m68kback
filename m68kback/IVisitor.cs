@@ -21,5 +21,6 @@ namespace m68kback
         object Visit(VariableAssignmentStatement variableAssignmentStatement);
         object Visit(Declaration declaration);
         object Visit(PhiExpression loadExpression);
+        object Visit(TypeDefinition typeDef);
     }
 }

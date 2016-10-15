@@ -54,9 +54,11 @@
     <Compile Include="TokenizerTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <EmbeddedResource Include="TestFiles\test2.ll" />
+    <None Include="packages.config" />
     <EmbeddedResource Include="TestFiles\primes.ll" />
+    <EmbeddedResource Include="TestFiles\structs.ll" />
+    <EmbeddedResource Include="TestFiles\printfparam.ll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\m68kback\m68kback.csproj">
