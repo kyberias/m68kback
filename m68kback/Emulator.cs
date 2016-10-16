@@ -26,7 +26,7 @@ namespace m68kback
                     globalAddress[g.Key] = globalUsed;
 
                     var bytes = Encoding.ASCII.GetBytes(g.Value.Value);
-                    Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
+                    Array.Copy(bytes, 0, memory, (int)globalUsed, bytes.Length);
 
                     globalUsed += (uint) g.Value.Value.Length;
 
@@ -42,7 +42,7 @@ namespace m68kback
 
             var bytes = BitConverter.GetBytes(data);
 
-            Array.Copy(bytes, 0, memory, addr, 4);
+            Array.Copy(bytes, 0, memory, (int)addr, 4);
             globalUsed += 4;
 
             return addr;
@@ -53,7 +53,7 @@ namespace m68kback
             var addr = globalUsed;
 
             var bytes = Encoding.ASCII.GetBytes(data);
-            Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
+            Array.Copy(bytes, 0, memory, (int)globalUsed, bytes.Length);
             memory[globalUsed + bytes.Length] = 0;
 
             globalUsed += (uint)(bytes.Length + 1);
@@ -88,7 +88,7 @@ namespace m68kback
                     Write32(Sp, (uint)globalUsed);
 
                     var bytes = Encoding.ASCII.GetBytes(str);
-                    Array.Copy(bytes, 0, memory, globalUsed, bytes.Length);
+                    Array.Copy(bytes, 0, memory, (int)globalUsed, bytes.Length);
                     memory[globalUsed + bytes.Length] = 0;
 
                     var len = bytes.Length + 1;
@@ -132,7 +132,7 @@ namespace m68kback
         void Write32(uint addr, uint value)
         {
             var bytes = BitConverter.GetBytes(value);
-            Array.Copy(bytes, 0, memory, addr, 4);
+            Array.Copy(bytes, 0, memory, (int)addr, 4);
 #if PRINTSTATES
             //Console.WriteLine($"Write32({addr}) = {value}");
 #endif

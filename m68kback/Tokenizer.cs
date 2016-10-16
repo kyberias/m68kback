@@ -168,7 +168,7 @@ namespace m68kback
                 $@"(?<{Token.Dot}>\.)",
 
                 //$@"(?<{Token.GlobalIdentifier}>@([a-zA-Z_$][a-zA-Z0-9_$]*|""(?:\\.|[^\\""])*""))",
-                $"(?<{Token.GlobalIdentifier}>@([a-zA-Z_$][a-zA-Z0-9_$\\.]*|\"(?:\\.|[^\\\"])*\"))",
+                $"(?<{Token.GlobalIdentifier}>@([a-zA-Z_$\\.][a-zA-Z0-9_$\\.]*|\"(?:\\.|[^\\\"])*\"))",
                 $@"(?<{Token.LocalIdentifier}>%[a-zA-Z0-9_$\.]*)",
                 $@"(?<{Token.StringLiteral}>c?""(?:\\.|[^\\""])*"")",
 

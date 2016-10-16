@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
+//using System.Configuration;
 using System.IO;
-using System.Linq;
+//using System.Linq;
 using System.Text;
 
 namespace m68kback
@@ -12,6 +12,7 @@ namespace m68kback
         static void Main(string[] args)
         {
             var llFilename = args[0];
+            Console.WriteLine(llFilename);
 
             var tokenizer = new Tokenizer();
 

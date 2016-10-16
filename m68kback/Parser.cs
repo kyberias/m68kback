@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+//using System.Data;
 using System.Linq;
 
 namespace m68kback
@@ -221,7 +221,7 @@ namespace m68kback
                     }
                     break;
                 default:
-                    throw new SyntaxErrorException();
+                    throw new Exception();
             }
 
             while (PeekElement().Type == Token.Asterisk)
@@ -677,8 +677,13 @@ namespace m68kback
 
                 decl.Value = AcceptElement(Token.StringLiteral).Data;
                 AcceptElement(Token.Comma);
-                AcceptElement(Token.Comdat);
-                AcceptElement(Token.Comma);
+
+                if(PeekElement().Type == Token.Comdat)
+                {
+                    AcceptElement(Token.Comdat);
+                    AcceptElement(Token.Comma);
+                }
+
                 AcceptElement(Token.Align);
                 AcceptElement(Token.IntegerLiteral);
             }
@@ -762,6 +767,7 @@ namespace m68kback
 
                 if (types.Contains(el.Type))
                 {
+//                    Console.WriteLine($"Accept {el.Type} {el.Data}");
                     cursor++;
                     return el;
                 }
