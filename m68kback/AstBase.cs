@@ -40,6 +40,7 @@ namespace m68kback
         public Token Operator { get; set; }
         public Expression Operand1 { get; set; }
         public Expression Operand2 { get; set; }
+        public TypeDeclaration To { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
@@ -49,6 +50,15 @@ namespace m68kback
     public class IntegerConstant : Expression
     {
         public int Constant { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
+    public class BooleanConstant : Expression
+    {
+        public bool Constant { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);

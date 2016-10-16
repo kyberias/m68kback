@@ -3,7 +3,7 @@ ASM = amirun sc:c/asm
 SLINK = amirun sc:c/slink
 CLANG = clang -S -emit-llvm
 M68KBACK = ../bin/debug/m68kback
-TARGETS = test2.run test.run printfparam.run
+TARGETS = test2.run test.run printfparam.run structs.run NotTest.run
 
 all : $(TARGETS)
 

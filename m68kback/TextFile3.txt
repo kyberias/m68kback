@@ -1,825 +1,783 @@
-  Expected: collection containing "Foobar 100 200 300"
-  But was:  < "Testing 100 200 300", "oobar 100 200 300" >
-
-at NUnit.Framework.CollectionAssert.Contains(IEnumerable collection, Object actual)
-at m68kback.test.AllStepsTest.StructsPrg() in C:\Projects\misc\m68kback\m68kback.test\AllStepsTest.cs:line 241
-
+System.IndexOutOfRangeException : Index was outside the bounds of the array.
+   at m68kback.Emulator.Run() in C:\Projects\misc\m68kback\m68kback\Emulator.cs:line 269
+   at m68kback.Emulator.RunFunction(String name, Object[] pars) in C:\Projects\misc\m68kback\m68kback\Emulator.cs:line 105
+   at m68kback.test.AllStepsTest.NotTestPrg() in C:\Projects\misc\m68kback\m68kback.test\AllStepsTest.cs:line 272
 
 Before register allocation:
-_str_copy:
+_testBitWiseNot:
 
     regdef.l _,_
-    sub.l #8,SP
-    move.l A6_,A13_
-    move.l A5_,A12_
-    move.l A4_,A11_
-    move.l A3_,A10_
-    move.l A2_,A9_
+    sub.l #16,SP
+    move.l A6_,A11_
+    move.l A5_,A10_
+    move.l A4_,A9_
+    move.l A3_,A8_
+    move.l A2_,A7_
+    move.l D7_,D17_
+    move.l D6_,D16_
+    move.l D5_,D15_
+    move.l D4_,D14_
+    move.l D3_,D13_
+    move.l D2_,D12_
+    move.l 4(SP),D8_
+    move.l 8(SP),D9_
+    move.l 12(SP),D10_
+    move.l 16(SP),D11_
+entry0:
+
+    move.l D11_,0(SP) ; Store %D.addr to stack
+    move.l D10_,4(SP) ; Store %C.addr to stack
+    move.l D9_,8(SP) ; Store %B.addr to stack
+    move.l D8_,12(SP) ; Store %A.addr to stack
+    move.l 0(SP),D18_ ; Load from stack
+    move.l D18_,D19_
+    eor.l #-1,D19_
+    move.l 4(SP),D20_ ; Load from stack
+    move.l D20_,D21_
+    eor.l #-1,D21_
+    move.l 8(SP),D22_ ; Load from stack
+    move.l D22_,D23_
+    eor.l #-1,D23_
+    move.l 12(SP),D24_ ; Load from stack
+    move.l D24_,D25_
+    eor.l #-1,D25_
+    move.l D19_,-(SP)
+    move.l D21_,-(SP)
+    move.l D23_,-(SP)
+    move.l D25_,-(SP)
+    lea.l __01$$_C__0BK_OEFEKPJI_Bitwise$5Not$3$5$$CFd$5$$CFd$5$$CFd$5$$CFd$6$$AA_,A12_
+    move.l A12_,-(SP)
+    jsr _printf
+    move.l D0_,D26_
+    adda.l #20,SP
+    move.l D12_,D2_
+    move.l D13_,D3_
+    move.l D14_,D4_
+    move.l D15_,D5_
+    move.l D16_,D6_
+    move.l D17_,D7_
+    move.l A7_,A2_
+    move.l A8_,A3_
+    move.l A9_,A4_
+    move.l A10_,A5_
+    move.l A11_,A6_
+    add.l #16,SP
+    rts 
+========================================
+AFTER register allocation and fixes:
+_testBitWiseNot:
+
+    sub.l #24,SP
+    move.l D7,16(SP) ; Spilled reg D17 store
+    move.l D6,20(SP) ; Spilled reg D16 store
+    move.l 28(SP),D0
+    move.l 32(SP),D1
+    move.l 36(SP),D6
+    move.l 40(SP),D7
+entry0:
+
+    move.l D7,0(SP) ; Store %D.addr to stack
+    move.l D6,4(SP) ; Store %C.addr to stack
+    move.l D1,8(SP) ; Store %B.addr to stack
+    move.l D0,12(SP) ; Store %A.addr to stack
+    move.l 0(SP),D7 ; Load from stack
+    eor.l #-1,D7
+    move.l 4(SP),D6 ; Load from stack
+    eor.l #-1,D6
+    move.l 8(SP),D1 ; Load from stack
+    eor.l #-1,D1
+    move.l 12(SP),D0 ; Load from stack
+    eor.l #-1,D0
+    move.l D7,-(SP)
+    move.l D6,-(SP)
+    move.l D1,-(SP)
+    move.l D0,-(SP)
+    lea.l __01$$_C__0BK_OEFEKPJI_Bitwise$5Not$3$5$$CFd$5$$CFd$5$$CFd$5$$CFd$6$$AA_,A0
+    move.l A0,-(SP)
+    jsr _printf
+    adda.l #20,SP
+    move.l 20(SP),D6 ; Spilled reg D16 load
+    move.l 16(SP),D7 ; Spilled reg D17 load
+    add.l #24,SP
+    rts 
+Before register allocation:
+_testBooleanNot:
+
+    regdef.l _,_
+    sub.l #16,SP
+    move.l A6_,A11_
+    move.l A5_,A10_
+    move.l A4_,A9_
+    move.l A3_,A8_
+    move.l A2_,A7_
+    move.l D7_,D17_
+    move.l D6_,D16_
+    move.l D5_,D15_
+    move.l D4_,D14_
+    move.l D3_,D13_
+    move.l D2_,D12_
+    move.l 4(SP),D8_
+    move.l 8(SP),D9_
+    move.l 12(SP),D10_
+    move.l 16(SP),D11_
+entry1:
+
+    move.l D11_,0(SP) ; Store %D.addr to stack
+    move.l D10_,4(SP) ; Store %C.addr to stack
+    move.l D9_,8(SP) ; Store %B.addr to stack
+    move.l D8_,12(SP) ; Store %A.addr to stack
+    move.l 4(SP),D18_ ; Load from stack
+    cmp.l #0,D18_
+    move.l CCR,CCR0_
+    move.l CCR0_,CCR
+    bgt land$rhs1
+    jmp land$end1$0
+land$rhs1:
+
+    move.l 0(SP),D19_ ; Load from stack
+    cmp.l #0,D19_
+    move.l CCR,CCR1_
+    move.l CCR1_,D20_
+    jmp land$end1$1
+land$end1:
+
+land$end1$0:
+
+    moveq #0,D20_ ; from Phi
+    jmp land$end1$end ; from Phi
+land$end1$1:
+
+    jmp land$end1$end ; from Phi
+land$end1$end:
+
+    move.l D20_,D21_
+    eor.l #1,D21_
+    move.l D21_,D22_
+    move.l D21_,D22_
+    move.l 8(SP),D23_ ; Load from stack
+    cmp.l #0,D23_
+    move.l CCR,CCR2_
+    move.l CCR2_,CCR
+    bgt land$rhs$31
+    jmp land$end$51$2
+land$rhs$31:
+
+    move.l 0(SP),D24_ ; Load from stack
+    cmp.l #0,D24_
+    move.l CCR,CCR3_
+    move.l CCR3_,D25_
+    jmp land$end$51$3
+land$end$51:
+
+land$end$51$2:
+
+    moveq #0,D25_ ; from Phi
+    jmp land$end$51$end ; from Phi
+land$end$51$3:
+
+    jmp land$end$51$end ; from Phi
+land$end$51$end:
+
+    move.l D25_,D26_
+    eor.l #1,D26_
+    move.l D26_,D27_
+    move.l D26_,D27_
+    move.l 8(SP),D28_ ; Load from stack
+    cmp.l #0,D28_
+    move.l CCR,CCR4_
+    move.l CCR4_,CCR
+    bgt land$rhs$91
+    jmp land$end$111$4
+land$rhs$91:
+
+    move.l 4(SP),D29_ ; Load from stack
+    cmp.l #0,D29_
+    move.l CCR,CCR5_
+    move.l CCR5_,D30_
+    jmp land$end$111$5
+land$end$111:
+
+land$end$111$4:
+
+    moveq #0,D30_ ; from Phi
+    jmp land$end$111$end ; from Phi
+land$end$111$5:
+
+    jmp land$end$111$end ; from Phi
+land$end$111$end:
+
+    move.l D30_,D31_
+    eor.l #1,D31_
+    move.l D31_,D32_
+    move.l D31_,D32_
+    move.l 12(SP),D33_ ; Load from stack
+    cmp.l #0,D33_
+    move.l CCR,CCR6_
+    move.l CCR6_,CCR
+    bgt land$rhs$151
+    jmp land$end$171$6
+land$rhs$151:
+
+    move.l 0(SP),D34_ ; Load from stack
+    cmp.l #0,D34_
+    move.l CCR,CCR7_
+    move.l CCR7_,D35_
+    jmp land$end$171$7
+land$end$171:
+
+land$end$171$6:
+
+    moveq #0,D35_ ; from Phi
+    jmp land$end$171$end ; from Phi
+land$end$171$7:
+
+    jmp land$end$171$end ; from Phi
+land$end$171$end:
+
+    move.l D35_,D36_
+    eor.l #1,D36_
+    move.l D36_,D37_
+    move.l D36_,D37_
+    move.l 12(SP),D38_ ; Load from stack
+    cmp.l #0,D38_
+    move.l CCR,CCR8_
+    move.l CCR8_,CCR
+    bgt land$rhs$211
+    jmp land$end$231$8
+land$rhs$211:
+
+    move.l 4(SP),D39_ ; Load from stack
+    cmp.l #0,D39_
+    move.l CCR,CCR9_
+    move.l CCR9_,D40_
+    jmp land$end$231$9
+land$end$231:
+
+land$end$231$8:
+
+    moveq #0,D40_ ; from Phi
+    jmp land$end$231$end ; from Phi
+land$end$231$9:
+
+    jmp land$end$231$end ; from Phi
+land$end$231$end:
+
+    move.l D40_,D41_
+    eor.l #1,D41_
+    move.l D41_,D42_
+    move.l D41_,D42_
+    move.l 12(SP),D43_ ; Load from stack
+    cmp.l #0,D43_
+    move.l CCR,CCR10_
+    move.l CCR10_,CCR
+    bgt land$rhs$271
+    jmp land$end$291$10
+land$rhs$271:
+
+    move.l 8(SP),D44_ ; Load from stack
+    cmp.l #0,D44_
+    move.l CCR,CCR11_
+    move.l CCR11_,D45_
+    jmp land$end$291$11
+land$end$291:
+
+land$end$291$10:
+
+    moveq #0,D45_ ; from Phi
+    jmp land$end$291$end ; from Phi
+land$end$291$11:
+
+    jmp land$end$291$end ; from Phi
+land$end$291$end:
+
+    move.l D45_,D46_
+    eor.l #1,D46_
+    move.l D46_,D47_
+    move.l D46_,D47_
+    move.l D22_,-(SP)
+    move.l D27_,-(SP)
+    move.l D32_,-(SP)
+    move.l D37_,-(SP)
+    move.l D42_,-(SP)
+    move.l D47_,-(SP)
+    lea.l __01$$_C__0CA_OEJBLFEO_Boolean$5Not$3$5$$CFd$5$$CFd$5$$CFd$5$$CFd$5$$CFd$5$$CFd$6$$AA_,A12_
+    move.l A12_,-(SP)
+    jsr _printf
+    move.l D0_,D48_
+    adda.l #28,SP
+    move.l D12_,D2_
+    move.l D13_,D3_
+    move.l D14_,D4_
+    move.l D15_,D5_
+    move.l D16_,D6_
+    move.l D17_,D7_
+    move.l A7_,A2_
+    move.l A8_,A3_
+    move.l A9_,A4_
+    move.l A10_,A5_
+    move.l A11_,A6_
+    add.l #16,SP
+    rts 
+========================================
+AFTER register allocation and fixes:
+_testBooleanNot:
+
+    sub.l #36,SP
+    move.l D7,16(SP) ; Spilled reg D17 store
+    move.l D6,20(SP) ; Spilled reg D16 store
+    move.l D5,24(SP) ; Spilled reg D15 store
+    move.l D4,28(SP) ; Spilled reg D14 store
+    move.l D3,32(SP) ; Spilled reg D13 store
+    move.l 40(SP),D0
+    move.l 44(SP),D1
+    move.l 48(SP),D3
+    move.l 52(SP),D4
+entry1:
+
+    move.l D4,0(SP) ; Store %D.addr to stack
+    move.l D3,4(SP) ; Store %C.addr to stack
+    move.l D1,8(SP) ; Store %B.addr to stack
+    move.l D0,12(SP) ; Store %A.addr to stack
+    move.l 4(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs1
+    jmp land$end1$0
+land$rhs1:
+
+    move.l 0(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D0
+    jmp land$end1$1
+land$end1:
+
+land$end1$0:
+
+    moveq #0,D0 ; from Phi
+    jmp land$end1$end ; from Phi
+land$end1$1:
+
+    jmp land$end1$end ; from Phi
+land$end1$end:
+
+    eor.l #1,D0
+    move.l D0,D7
+    move.l D0,D7
+    move.l 8(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs$31
+    jmp land$end$51$2
+land$rhs$31:
+
+    move.l 0(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D0
+    jmp land$end$51$3
+land$end$51:
+
+land$end$51$2:
+
+    moveq #0,D0 ; from Phi
+    jmp land$end$51$end ; from Phi
+land$end$51$3:
+
+    jmp land$end$51$end ; from Phi
+land$end$51$end:
+
+    eor.l #1,D0
+    move.l D0,D6
+    move.l D0,D6
+    move.l 8(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs$91
+    jmp land$end$111$4
+land$rhs$91:
+
+    move.l 4(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D0
+    jmp land$end$111$5
+land$end$111:
+
+land$end$111$4:
+
+    moveq #0,D0 ; from Phi
+    jmp land$end$111$end ; from Phi
+land$end$111$5:
+
+    jmp land$end$111$end ; from Phi
+land$end$111$end:
+
+    eor.l #1,D0
+    move.l D0,D5
+    move.l D0,D5
+    move.l 12(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs$151
+    jmp land$end$171$6
+land$rhs$151:
+
+    move.l 0(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D0
+    jmp land$end$171$7
+land$end$171:
+
+land$end$171$6:
+
+    moveq #0,D0 ; from Phi
+    jmp land$end$171$end ; from Phi
+land$end$171$7:
+
+    jmp land$end$171$end ; from Phi
+land$end$171$end:
+
+    eor.l #1,D0
+    move.l D0,D4
+    move.l D0,D4
+    move.l 12(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs$211
+    jmp land$end$231$8
+land$rhs$211:
+
+    move.l 4(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D0
+    jmp land$end$231$9
+land$end$231:
+
+land$end$231$8:
+
+    moveq #0,D0 ; from Phi
+    jmp land$end$231$end ; from Phi
+land$end$231$9:
+
+    jmp land$end$231$end ; from Phi
+land$end$231$end:
+
+    eor.l #1,D0
+    move.l D0,D3
+    move.l D0,D3
+    move.l 12(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    bgt land$rhs$271
+    jmp land$end$291$10
+land$rhs$271:
+
+    move.l 8(SP),D0 ; Load from stack
+    cmp.l #0,D0
+    move.l CCR0,D1
+    jmp land$end$291$11
+land$end$291:
+
+land$end$291$10:
+
+    moveq #0,D1 ; from Phi
+    jmp land$end$291$end ; from Phi
+land$end$291$11:
+
+    jmp land$end$291$end ; from Phi
+land$end$291$end:
+
+    eor.l #1,D1
+    move.l D1,D0
+    move.l D1,D0
+    move.l D7,-(SP)
+    move.l D6,-(SP)
+    move.l D5,-(SP)
+    move.l D4,-(SP)
+    move.l D3,-(SP)
+    move.l D0,-(SP)
+    lea.l __01$$_C__0CA_OEJBLFEO_Boolean$5Not$3$5$$CFd$5$$CFd$5$$CFd$5$$CFd$5$$CFd$5$$CFd$6$$AA_,A0
+    move.l A0,-(SP)
+    jsr _printf
+    adda.l #28,SP
+    move.l 32(SP),D3 ; Spilled reg D13 load
+    move.l 28(SP),D4 ; Spilled reg D14 load
+    move.l 24(SP),D5 ; Spilled reg D15 load
+    move.l 20(SP),D6 ; Spilled reg D16 load
+    move.l 16(SP),D7 ; Spilled reg D17 load
+    add.l #36,SP
+    rts 
+Before register allocation:
+_main:
+
+    regdef.l _,_
+    sub.l #4,SP
+    move.l A6_,A11_
+    move.l A5_,A10_
+    move.l A4_,A9_
+    move.l A3_,A8_
+    move.l A2_,A7_
     move.l D7_,D13_
     move.l D6_,D12_
     move.l D5_,D11_
     move.l D4_,D10_
     move.l D3_,D9_
     move.l D2_,D8_
-    move.l 4(SP),A7_
-    move.l 8(SP),A8_
-entry0:
+entry2:
 
-    move.l A8_,0(SP) ; Store %source.addr to stack
-    move.l A7_,4(SP) ; Store %dest.addr to stack
-    jmp while$cond0
-while$cond0:
-
-    move.l 0(SP),A14_ ; Load from stack
-    move.l A14_,A15_
-    adda.l #1,A15_
-    move.l A15_,0(SP) ; Store %source.addr to stack
-    move.b (A14_),D14_ ; Load by register address
-    cmp.b #0,D14_
-    move.b CCR,CCR0_
-    move.l CCR0_,CCR
-    bne while$body0
-    jmp while$end0
-while$body0:
-
-    move.l 0(SP),A16_ ; Load from stack
-    move.b (A16_),D15_ ; Load by register address
-    move.l 4(SP),A17_ ; Load from stack
-    move.l A17_,A18_
-    adda.l #1,A18_
-    move.l A18_,4(SP) ; Store %dest.addr to stack
-    move.b D15_,(A17_) ; Store to reg
-    jmp while$cond0
-while$end0:
-
+    move.l #0,D14_
+    move.l D14_,0(SP) ; Store %retval to stack
+    move.l #5,D15_
+    move.l D15_,-(SP)
+    move.l #-3,D16_
+    move.l D16_,-(SP)
+    move.l #2,D17_
+    move.l D17_,-(SP)
+    move.l #1,D18_
+    move.l D18_,-(SP)
+    jsr _testBitWiseNot
+    move.l D0_,D19_
+    adda.l #16,SP
+    move.l #5,D20_
+    move.l D20_,-(SP)
+    move.l #-3,D21_
+    move.l D21_,-(SP)
+    move.l #2,D22_
+    move.l D22_,-(SP)
+    move.l #1,D23_
+    move.l D23_,-(SP)
+    jsr _testBooleanNot
+    move.l D0_,D24_
+    adda.l #16,SP
+    move.l #0,D25_
+    move.l D25_,D0_
     move.l D8_,D2_
     move.l D9_,D3_
     move.l D10_,D4_
     move.l D11_,D5_
     move.l D12_,D6_
     move.l D13_,D7_
-    move.l A9_,A2_
-    move.l A10_,A3_
-    move.l A11_,A4_
-    move.l A12_,A5_
-    move.l A13_,A6_
-    add.l #8,SP
-    rts 
-========================================
-AFTER register allocation and fixes:
-_str_copy:
-
-    sub.l #8,SP
-    move.l 12(SP),A1
-    move.l 16(SP),A0
-entry0:
-
-    move.l A0,0(SP) ; Store %source.addr to stack
-    move.l A1,4(SP) ; Store %dest.addr to stack
-    jmp while$cond0
-while$cond0:
-
-    move.l 0(SP),A0 ; Load from stack
-    move.l A0,A1
-    adda.l #1,A1
-    move.l A1,0(SP) ; Store %source.addr to stack
-    move.b (A0),D0 ; Load by register address
-    cmp.b #0,D0
-    bne while$body0
-    jmp while$end0
-while$body0:
-
-    move.l 0(SP),A0 ; Load from stack
-    move.b (A0),D0 ; Load by register address
-    move.l 4(SP),A0 ; Load from stack
-    move.l A0,A1
-    adda.l #1,A1
-    move.l A1,4(SP) ; Store %dest.addr to stack
-    move.b D0,(A0) ; Store to reg
-    jmp while$cond0
-while$end0:
-
-    add.l #8,SP
-    rts 
-Before register allocation:
-_main:
-
-    regdef.l _,_
-    sub.l #128,SP
-    move.l A6_,A12_
-    move.l A5_,A11_
-    move.l A4_,A10_
-    move.l A3_,A9_
-    move.l A2_,A8_
-    move.l D7_,D14_
-    move.l D6_,D13_
-    move.l D5_,D12_
-    move.l D4_,D11_
-    move.l D3_,D10_
-    move.l D2_,D9_
-    move.l 4(SP),D8_
-    move.l 8(SP),A7_
-entry1:
-
-    moveq #0,D15_
-    move.l D15_,0(SP) ; Store %retval to stack
-    move.l A7_,4(SP) ; Store %argv.addr to stack
-    move.l D8_,8(SP) ; Store %argc.addr to stack
-    move.l SP,A13_
-    adda.l #12,A13_
-    adda.l #0,A13_
-    adda.l #0,A13_
-    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A14_
-    move.l A14_,(A13_) ; Store to reg
-    move.l SP,A15_
-    adda.l #12,A15_
-    adda.l #0,A15_
-    adda.l #104,A15_
-    moveq #100,D16_
-    move.l D16_,(A15_) ; Store to reg
-    move.l SP,A16_
-    adda.l #12,A16_
-    adda.l #0,A16_
-    adda.l #108,A16_
-    moveq #200,D17_
-    move.l D17_,(A16_) ; Store to reg
-    move.l SP,A17_
-    adda.l #12,A17_
-    adda.l #0,A17_
-    adda.l #112,A17_
-    moveq #300,D18_
-    move.l D18_,(A17_) ; Store to reg
-    move.l SP,A18_
-    adda.l #12,A18_
-    adda.l #0,A18_
-    adda.l #4,A18_
-    move.l A18_,A19_
-    adda.l #0,A19_
-    adda.l #0,A19_
-    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A20_
-    move.l A20_,-(SP)
-    move.l A19_,-(SP)
-    jsr _str_copy
-    move.l D0_,D19_
-    adda.l #8,SP
-    move.l SP,A21_
-    adda.l #12,A21_
-    adda.l #0,A21_
-    adda.l #112,A21_
-    move.l (A21_),D20_ ; Load by register address
-    move.l SP,A22_
-    adda.l #12,A22_
-    adda.l #0,A22_
-    adda.l #108,A22_
-    move.l (A22_),D21_ ; Load by register address
-    move.l SP,A23_
-    adda.l #12,A23_
-    adda.l #0,A23_
-    adda.l #104,A23_
-    move.l (A23_),D22_ ; Load by register address
-    move.l SP,A24_
-    adda.l #12,A24_
-    adda.l #0,A24_
-    adda.l #0,A24_
-    move.l (A24_),A25_ ; Load by register address
-    move.l D20_,-(SP)
-    move.l D21_,-(SP)
-    move.l D22_,-(SP)
-    move.l A25_,-(SP)
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A26_
-    move.l A26_,-(SP)
-    jsr _printf
-    move.l D0_,D23_
-    adda.l #20,SP
-    move.l SP,A27_
-    adda.l #12,A27_
-    adda.l #0,A27_
-    adda.l #112,A27_
-    move.l (A27_),D24_ ; Load by register address
-    move.l SP,A28_
-    adda.l #12,A28_
-    adda.l #0,A28_
-    adda.l #108,A28_
-    move.l (A28_),D25_ ; Load by register address
-    move.l SP,A29_
-    adda.l #12,A29_
-    adda.l #0,A29_
-    adda.l #104,A29_
-    move.l (A29_),D26_ ; Load by register address
-    move.l SP,A30_
-    adda.l #12,A30_
-    adda.l #0,A30_
-    adda.l #4,A30_
-    move.l A30_,A31_
-    adda.l #0,A31_
-    adda.l #0,A31_
-    move.l D24_,-(SP)
-    move.l D25_,-(SP)
-    move.l D26_,-(SP)
-    move.l A31_,-(SP)
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A32_
-    move.l A32_,-(SP)
-    jsr _printf
-    move.l D0_,D27_
-    adda.l #20,SP
-    moveq #0,D28_
-    move.l D28_,D0_
-    move.l D9_,D2_
-    move.l D10_,D3_
-    move.l D11_,D4_
-    move.l D12_,D5_
-    move.l D13_,D6_
-    move.l D14_,D7_
-    move.l A8_,A2_
-    move.l A9_,A3_
-    move.l A10_,A4_
-    move.l A11_,A5_
-    move.l A12_,A6_
-    add.l #128,SP
+    move.l A7_,A2_
+    move.l A8_,A3_
+    move.l A9_,A4_
+    move.l A10_,A5_
+    move.l A11_,A6_
+    add.l #4,SP
     rts 
 ========================================
 AFTER register allocation and fixes:
 _main:
 
-    sub.l #132,SP
-    move.l D7,128(SP) ; Spilled reg D14 store
-    move.l 136(SP),D0
-    move.l 140(SP),A0
-entry1:
+    sub.l #4,SP
+entry2:
 
-    moveq #0,D1
-    move.l D1,0(SP) ; Store %retval to stack
-    move.l A0,4(SP) ; Store %argv.addr to stack
-    move.l D0,8(SP) ; Store %argc.addr to stack
-    move.l SP,A1
-    adda.l #12,A1
-    adda.l #0,A1
-    adda.l #0,A1
-    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A0
-    move.l A0,(A1) ; Store to reg
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #104,A0
-    moveq #100,D0
-    move.l D0,(A0) ; Store to reg
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #108,A0
-    moveq #200,D0
-    move.l D0,(A0) ; Store to reg
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #112,A0
-    moveq #300,D0
-    move.l D0,(A0) ; Store to reg
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #4,A0
-    adda.l #0,A0
-    adda.l #0,A0
-    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A1
-    move.l A1,-(SP)
-    move.l A0,-(SP)
-    jsr _str_copy
-    adda.l #8,SP
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #112,A0
-    move.l (A0),D0 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #108,A0
-    move.l (A0),D1 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #104,A0
-    move.l (A0),D7 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #0,A0
-    move.l (A0),A0 ; Load by register address
+    move.l #0,D0
+    move.l D0,0(SP) ; Store %retval to stack
+    move.l #5,D0
     move.l D0,-(SP)
-    move.l D1,-(SP)
-    move.l D7,-(SP)
-    move.l A0,-(SP)
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #20,SP
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #112,A0
-    move.l (A0),D0 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #108,A0
-    move.l (A0),D1 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #104,A0
-    move.l (A0),D7 ; Load by register address
-    move.l SP,A0
-    adda.l #12,A0
-    adda.l #0,A0
-    adda.l #4,A0
-    adda.l #0,A0
-    adda.l #0,A0
+    move.l #-3,D0
     move.l D0,-(SP)
-    move.l D1,-(SP)
-    move.l D7,-(SP)
-    move.l A0,-(SP)
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
-    move.l A0,-(SP)
-    jsr _printf
-    adda.l #20,SP
-    moveq #0,D0
-    move.l 128(SP),D7 ; Spilled reg D14 load
-    add.l #132,SP
+    move.l #2,D0
+    move.l D0,-(SP)
+    move.l #1,D0
+    move.l D0,-(SP)
+    jsr _testBitWiseNot
+    adda.l #16,SP
+    move.l #5,D0
+    move.l D0,-(SP)
+    move.l #-3,D0
+    move.l D0,-(SP)
+    move.l #2,D0
+    move.l D0,-(SP)
+    move.l #1,D0
+    move.l D0,-(SP)
+    jsr _testBooleanNot
+    adda.l #16,SP
+    move.l #0,D0
+    add.l #4,SP
     rts 
 A0: 0, A1: 0, D0: 0, D1: 0
 _main:
 
 A0: 0, A1: 0, D0: 0, D1: 0
-    sub.l #132,SP
+    sub.l #4,SP
 A0: 0, A1: 0, D0: 0, D1: 0
-    move.l D7,128(SP) ; Spilled reg D14 store
+entry2:
+
 A0: 0, A1: 0, D0: 0, D1: 0
-    move.l 136(SP),D0
+    move.l #0,D0
+A0: 0, A1: 0, D0: 0, D1: 0
+    move.l D0,0(SP) ; Store %retval to stack
+A0: 0, A1: 0, D0: 0, D1: 0
+    move.l #5,D0
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 5, D1: 0
+    move.l #-3,D0
+A0: 0, A1: 0, D0: 4294967293, D1: 0
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 4294967293, D1: 0
+    move.l #2,D0
 A0: 0, A1: 0, D0: 2, D1: 0
-    move.l 140(SP),A0
-A0: 37, A1: 0, D0: 2, D1: 0
-entry1:
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 2, D1: 0
+    move.l #1,D0
+A0: 0, A1: 0, D0: 1, D1: 0
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 1, D1: 0
+    jsr _testBitWiseNot
+A0: 0, A1: 0, D0: 1, D1: 0
+_testBitWiseNot:
 
-A0: 37, A1: 0, D0: 2, D1: 0
-    moveq #0,D1
-A0: 37, A1: 0, D0: 2, D1: 0
-    move.l D1,0(SP) ; Store %retval to stack
-A0: 37, A1: 0, D0: 2, D1: 0
-    move.l A0,4(SP) ; Store %argv.addr to stack
-A0: 37, A1: 0, D0: 2, D1: 0
-    move.l D0,8(SP) ; Store %argc.addr to stack
-A0: 37, A1: 0, D0: 2, D1: 0
-    move.l SP,A1
-A0: 37, A1: 3948, D0: 2, D1: 0
-    adda.l #12,A1
-A0: 37, A1: 3960, D0: 2, D1: 0
-    adda.l #0,A1
-A0: 37, A1: 3960, D0: 2, D1: 0
-    adda.l #0,A1
-A0: 37, A1: 3960, D0: 2, D1: 0
-    lea.l __01$$_C__07DNAACEEL_Testing$$AA_,A0
-A0: 0, A1: 3960, D0: 2, D1: 0
-    move.l A0,(A1) ; Store to reg
-A0: 0, A1: 3960, D0: 2, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 3960, D0: 2, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 3960, D0: 2, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 3960, D0: 2, D1: 0
-    adda.l #104,A0
-A0: 4064, A1: 3960, D0: 2, D1: 0
-    moveq #100,D0
-A0: 4064, A1: 3960, D0: 100, D1: 0
-    move.l D0,(A0) ; Store to reg
-A0: 4064, A1: 3960, D0: 100, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 3960, D0: 100, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 3960, D0: 100, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 3960, D0: 100, D1: 0
-    adda.l #108,A0
-A0: 4068, A1: 3960, D0: 100, D1: 0
-    moveq #200,D0
-A0: 4068, A1: 3960, D0: 200, D1: 0
-    move.l D0,(A0) ; Store to reg
-A0: 4068, A1: 3960, D0: 200, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 3960, D0: 200, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 3960, D0: 200, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 3960, D0: 200, D1: 0
-    adda.l #112,A0
-A0: 4072, A1: 3960, D0: 200, D1: 0
-    moveq #300,D0
-A0: 4072, A1: 3960, D0: 300, D1: 0
-    move.l D0,(A0) ; Store to reg
-A0: 4072, A1: 3960, D0: 300, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 3960, D0: 300, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 3960, D0: 300, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 3960, D0: 300, D1: 0
-    adda.l #4,A0
-A0: 3964, A1: 3960, D0: 300, D1: 0
-    adda.l #0,A0
-A0: 3964, A1: 3960, D0: 300, D1: 0
-    adda.l #0,A0
-A0: 3964, A1: 3960, D0: 300, D1: 0
-    lea.l __01$$_C__06GCLLLIDK_Foobar$$AA_,A1
-A0: 3964, A1: 8, D0: 300, D1: 0
-    move.l A1,-(SP)
-A0: 3964, A1: 8, D0: 300, D1: 0
-    move.l A0,-(SP)
-A0: 3964, A1: 8, D0: 300, D1: 0
-    jsr _str_copy
-A0: 3964, A1: 8, D0: 300, D1: 0
-_str_copy:
-
-A0: 3964, A1: 8, D0: 300, D1: 0
-    sub.l #8,SP
-A0: 3964, A1: 8, D0: 300, D1: 0
-    move.l 12(SP),A1
-A0: 3964, A1: 3964, D0: 300, D1: 0
-    move.l 16(SP),A0
-A0: 8, A1: 3964, D0: 300, D1: 0
+A0: 0, A1: 0, D0: 1, D1: 0
+    sub.l #24,SP
+A0: 0, A1: 0, D0: 1, D1: 0
+    move.l D7,16(SP) ; Spilled reg D17 store
+A0: 0, A1: 0, D0: 1, D1: 0
+    move.l D6,20(SP) ; Spilled reg D16 store
+A0: 0, A1: 0, D0: 1, D1: 0
+    move.l 28(SP),D0
+A0: 0, A1: 0, D0: 1, D1: 0
+    move.l 32(SP),D1
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 36(SP),D6
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 40(SP),D7
+A0: 0, A1: 0, D0: 1, D1: 2
 entry0:
 
-A0: 8, A1: 3964, D0: 300, D1: 0
-    move.l A0,0(SP) ; Store %source.addr to stack
-A0: 8, A1: 3964, D0: 300, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 8, A1: 3964, D0: 300, D1: 0
-    jmp while$cond0
-A0: 8, A1: 3964, D0: 300, D1: 0
-while$cond0:
-
-A0: 8, A1: 3964, D0: 300, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 8, A1: 3964, D0: 300, D1: 0
-    move.l A0,A1
-A0: 8, A1: 8, D0: 300, D1: 0
-    adda.l #1,A1
-A0: 8, A1: 9, D0: 300, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 8, A1: 9, D0: 300, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 8, A1: 9, D0: 326, D1: 0
-    cmp.b #0,D0
-A0: 8, A1: 9, D0: 326, D1: 0
-    bne while$body0
-A0: 8, A1: 9, D0: 326, D1: 0
-while$body0:
-
-A0: 8, A1: 9, D0: 326, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 9, A1: 9, D0: 326, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 9, A1: 9, D0: 367, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3964, A1: 9, D0: 367, D1: 0
-    move.l A0,A1
-A0: 3964, A1: 3964, D0: 367, D1: 0
-    adda.l #1,A1
-A0: 3964, A1: 3965, D0: 367, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3964, A1: 3965, D0: 367, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3964, A1: 3965, D0: 367, D1: 0
-    jmp while$cond0
-A0: 3964, A1: 3965, D0: 367, D1: 0
-while$cond0:
-
-A0: 3964, A1: 3965, D0: 367, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 9, A1: 3965, D0: 367, D1: 0
-    move.l A0,A1
-A0: 9, A1: 9, D0: 367, D1: 0
-    adda.l #1,A1
-A0: 9, A1: 10, D0: 367, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 9, A1: 10, D0: 367, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 9, A1: 10, D0: 367, D1: 0
-    cmp.b #0,D0
-A0: 9, A1: 10, D0: 367, D1: 0
-    bne while$body0
-A0: 9, A1: 10, D0: 367, D1: 0
-while$body0:
-
-A0: 9, A1: 10, D0: 367, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 10, A1: 10, D0: 367, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 10, A1: 10, D0: 367, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3965, A1: 10, D0: 367, D1: 0
-    move.l A0,A1
-A0: 3965, A1: 3965, D0: 367, D1: 0
-    adda.l #1,A1
-A0: 3965, A1: 3966, D0: 367, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3965, A1: 3966, D0: 367, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3965, A1: 3966, D0: 367, D1: 0
-    jmp while$cond0
-A0: 3965, A1: 3966, D0: 367, D1: 0
-while$cond0:
-
-A0: 3965, A1: 3966, D0: 367, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 10, A1: 3966, D0: 367, D1: 0
-    move.l A0,A1
-A0: 10, A1: 10, D0: 367, D1: 0
-    adda.l #1,A1
-A0: 10, A1: 11, D0: 367, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 10, A1: 11, D0: 367, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 10, A1: 11, D0: 367, D1: 0
-    cmp.b #0,D0
-A0: 10, A1: 11, D0: 367, D1: 0
-    bne while$body0
-A0: 10, A1: 11, D0: 367, D1: 0
-while$body0:
-
-A0: 10, A1: 11, D0: 367, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 11, A1: 11, D0: 367, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 11, A1: 11, D0: 354, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3966, A1: 11, D0: 354, D1: 0
-    move.l A0,A1
-A0: 3966, A1: 3966, D0: 354, D1: 0
-    adda.l #1,A1
-A0: 3966, A1: 3967, D0: 354, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3966, A1: 3967, D0: 354, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3966, A1: 3967, D0: 354, D1: 0
-    jmp while$cond0
-A0: 3966, A1: 3967, D0: 354, D1: 0
-while$cond0:
-
-A0: 3966, A1: 3967, D0: 354, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 11, A1: 3967, D0: 354, D1: 0
-    move.l A0,A1
-A0: 11, A1: 11, D0: 354, D1: 0
-    adda.l #1,A1
-A0: 11, A1: 12, D0: 354, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 11, A1: 12, D0: 354, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 11, A1: 12, D0: 354, D1: 0
-    cmp.b #0,D0
-A0: 11, A1: 12, D0: 354, D1: 0
-    bne while$body0
-A0: 11, A1: 12, D0: 354, D1: 0
-while$body0:
-
-A0: 11, A1: 12, D0: 354, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 12, A1: 12, D0: 354, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 12, A1: 12, D0: 353, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3967, A1: 12, D0: 353, D1: 0
-    move.l A0,A1
-A0: 3967, A1: 3967, D0: 353, D1: 0
-    adda.l #1,A1
-A0: 3967, A1: 3968, D0: 353, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3967, A1: 3968, D0: 353, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3967, A1: 3968, D0: 353, D1: 0
-    jmp while$cond0
-A0: 3967, A1: 3968, D0: 353, D1: 0
-while$cond0:
-
-A0: 3967, A1: 3968, D0: 353, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 12, A1: 3968, D0: 353, D1: 0
-    move.l A0,A1
-A0: 12, A1: 12, D0: 353, D1: 0
-    adda.l #1,A1
-A0: 12, A1: 13, D0: 353, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 12, A1: 13, D0: 353, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 12, A1: 13, D0: 353, D1: 0
-    cmp.b #0,D0
-A0: 12, A1: 13, D0: 353, D1: 0
-    bne while$body0
-A0: 12, A1: 13, D0: 353, D1: 0
-while$body0:
-
-A0: 12, A1: 13, D0: 353, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 13, A1: 13, D0: 353, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 13, A1: 13, D0: 370, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3968, A1: 13, D0: 370, D1: 0
-    move.l A0,A1
-A0: 3968, A1: 3968, D0: 370, D1: 0
-    adda.l #1,A1
-A0: 3968, A1: 3969, D0: 370, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3968, A1: 3969, D0: 370, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3968, A1: 3969, D0: 370, D1: 0
-    jmp while$cond0
-A0: 3968, A1: 3969, D0: 370, D1: 0
-while$cond0:
-
-A0: 3968, A1: 3969, D0: 370, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 13, A1: 3969, D0: 370, D1: 0
-    move.l A0,A1
-A0: 13, A1: 13, D0: 370, D1: 0
-    adda.l #1,A1
-A0: 13, A1: 14, D0: 370, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 13, A1: 14, D0: 370, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 13, A1: 14, D0: 370, D1: 0
-    cmp.b #0,D0
-A0: 13, A1: 14, D0: 370, D1: 0
-    bne while$body0
-A0: 13, A1: 14, D0: 370, D1: 0
-while$body0:
-
-A0: 13, A1: 14, D0: 370, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 14, A1: 14, D0: 370, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 14, A1: 14, D0: 256, D1: 0
-    move.l 4(SP),A0 ; Load from stack
-A0: 3969, A1: 14, D0: 256, D1: 0
-    move.l A0,A1
-A0: 3969, A1: 3969, D0: 256, D1: 0
-    adda.l #1,A1
-A0: 3969, A1: 3970, D0: 256, D1: 0
-    move.l A1,4(SP) ; Store %dest.addr to stack
-A0: 3969, A1: 3970, D0: 256, D1: 0
-    move.b D0,(A0) ; Store to reg
-A0: 3969, A1: 3970, D0: 256, D1: 0
-    jmp while$cond0
-A0: 3969, A1: 3970, D0: 256, D1: 0
-while$cond0:
-
-A0: 3969, A1: 3970, D0: 256, D1: 0
-    move.l 0(SP),A0 ; Load from stack
-A0: 14, A1: 3970, D0: 256, D1: 0
-    move.l A0,A1
-A0: 14, A1: 14, D0: 256, D1: 0
-    adda.l #1,A1
-A0: 14, A1: 15, D0: 256, D1: 0
-    move.l A1,0(SP) ; Store %source.addr to stack
-A0: 14, A1: 15, D0: 256, D1: 0
-    move.b (A0),D0 ; Load by register address
-A0: 14, A1: 15, D0: 256, D1: 0
-    cmp.b #0,D0
-A0: 14, A1: 15, D0: 256, D1: 0
-    bne while$body0
-A0: 14, A1: 15, D0: 256, D1: 0
-    jmp while$end0
-A0: 14, A1: 15, D0: 256, D1: 0
-while$end0:
-
-A0: 14, A1: 15, D0: 256, D1: 0
-    add.l #8,SP
-A0: 14, A1: 15, D0: 256, D1: 0
-    rts 
-A0: 14, A1: 15, D0: 256, D1: 0
-    adda.l #8,SP
-A0: 14, A1: 15, D0: 256, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 256, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 256, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 256, D1: 0
-    adda.l #112,A0
-A0: 4072, A1: 15, D0: 256, D1: 0
-    move.l (A0),D0 ; Load by register address
-A0: 4072, A1: 15, D0: 300, D1: 0
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 0
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 0
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 0
-    adda.l #108,A0
-A0: 4068, A1: 15, D0: 300, D1: 0
-    move.l (A0),D1 ; Load by register address
-A0: 4068, A1: 15, D0: 300, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #104,A0
-A0: 4064, A1: 15, D0: 300, D1: 200
-    move.l (A0),D7 ; Load by register address
-A0: 4064, A1: 15, D0: 300, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    move.l (A0),A0 ; Load by register address
-A0: 0, A1: 15, D0: 300, D1: 200
-    move.l D0,-(SP)
-A0: 0, A1: 15, D0: 300, D1: 200
-    move.l D1,-(SP)
-A0: 0, A1: 15, D0: 300, D1: 200
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D7,0(SP) ; Store %D.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D6,4(SP) ; Store %C.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D1,8(SP) ; Store %B.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D0,12(SP) ; Store %A.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 0(SP),D7 ; Load from stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    eor.l #-1,D7
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 4(SP),D6 ; Load from stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    eor.l #-1,D6
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 8(SP),D1 ; Load from stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    eor.l #-1,D1
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l 12(SP),D0 ; Load from stack
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    eor.l #-1,D0
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
     move.l D7,-(SP)
-A0: 0, A1: 15, D0: 300, D1: 200
-    move.l A0,-(SP)
-A0: 0, A1: 15, D0: 300, D1: 200
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
-A0: 16, A1: 15, D0: 300, D1: 200
-    move.l A0,-(SP)
-A0: 16, A1: 15, D0: 300, D1: 200
-    jsr _printf
-Testing 100 200 300
-A0: 16, A1: 15, D0: 4, D1: 200
-    adda.l #20,SP
-A0: 16, A1: 15, D0: 4, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 4, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 4, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 4, D1: 200
-    adda.l #112,A0
-A0: 4072, A1: 15, D0: 4, D1: 200
-    move.l (A0),D0 ; Load by register address
-A0: 4072, A1: 15, D0: 300, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #108,A0
-A0: 4068, A1: 15, D0: 300, D1: 200
-    move.l (A0),D1 ; Load by register address
-A0: 4068, A1: 15, D0: 300, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #104,A0
-A0: 4064, A1: 15, D0: 300, D1: 200
-    move.l (A0),D7 ; Load by register address
-A0: 4064, A1: 15, D0: 300, D1: 200
-    move.l SP,A0
-A0: 3948, A1: 15, D0: 300, D1: 200
-    adda.l #12,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3960, A1: 15, D0: 300, D1: 200
-    adda.l #4,A0
-A0: 3964, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3964, A1: 15, D0: 300, D1: 200
-    adda.l #0,A0
-A0: 3964, A1: 15, D0: 300, D1: 200
-    move.l D0,-(SP)
-A0: 3964, A1: 15, D0: 300, D1: 200
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
+    move.l D6,-(SP)
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
     move.l D1,-(SP)
-A0: 3964, A1: 15, D0: 300, D1: 200
-    move.l D7,-(SP)
-A0: 3964, A1: 15, D0: 300, D1: 200
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
+    lea.l __01$$_C__0BK_OEFEKPJI_Bitwise$5Not$3$5$$CFd$5$$CFd$5$$CFd$5$$CFd$6$$AA_,A0
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
     move.l A0,-(SP)
-A0: 3964, A1: 15, D0: 300, D1: 200
-    lea.l __01$$_C__0M_NLKJDCPF_$$CFs$5$$CFd$5$$CFd$5$$CFd$$AA_,A0
-A0: 16, A1: 15, D0: 300, D1: 200
-    move.l A0,-(SP)
-A0: 16, A1: 15, D0: 300, D1: 200
+A0: 0, A1: 0, D0: 4294967294, D1: 4294967293
     jsr _printf
-oobar 100 200 300
-A0: 16, A1: 15, D0: 4, D1: 200
+Bitwise Not: 4294967294 4294967293 2 4294967290
+
+A0: 0, A1: 0, D0: 4, D1: 4294967293
     adda.l #20,SP
-A0: 16, A1: 15, D0: 4, D1: 200
-    moveq #0,D0
-A0: 16, A1: 15, D0: 0, D1: 200
-    move.l 128(SP),D7 ; Spilled reg D14 load
-A0: 16, A1: 15, D0: 0, D1: 200
-    add.l #132,SP
-A0: 16, A1: 15, D0: 0, D1: 200
+A0: 0, A1: 0, D0: 4, D1: 4294967293
+    move.l 20(SP),D6 ; Spilled reg D16 load
+A0: 0, A1: 0, D0: 4, D1: 4294967293
+    move.l 16(SP),D7 ; Spilled reg D17 load
+A0: 0, A1: 0, D0: 4, D1: 4294967293
+    add.l #24,SP
+A0: 0, A1: 0, D0: 4, D1: 4294967293
     rts 
+A0: 0, A1: 0, D0: 4, D1: 4294967293
+    adda.l #16,SP
+A0: 0, A1: 0, D0: 4, D1: 4294967293
+    move.l #5,D0
+A0: 0, A1: 0, D0: 5, D1: 4294967293
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 5, D1: 4294967293
+    move.l #-3,D0
+A0: 0, A1: 0, D0: 4294967293, D1: 4294967293
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 4294967293, D1: 4294967293
+    move.l #2,D0
+A0: 0, A1: 0, D0: 2, D1: 4294967293
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 2, D1: 4294967293
+    move.l #1,D0
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D0,-(SP)
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    jsr _testBooleanNot
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+_testBooleanNot:
+
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    sub.l #36,SP
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D7,16(SP) ; Spilled reg D17 store
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D6,20(SP) ; Spilled reg D16 store
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D5,24(SP) ; Spilled reg D15 store
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D4,28(SP) ; Spilled reg D14 store
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l D3,32(SP) ; Spilled reg D13 store
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l 40(SP),D0
+A0: 0, A1: 0, D0: 1, D1: 4294967293
+    move.l 44(SP),D1
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 48(SP),D3
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 52(SP),D4
+A0: 0, A1: 0, D0: 1, D1: 2
+entry1:
+
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D4,0(SP) ; Store %D.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D3,4(SP) ; Store %C.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D1,8(SP) ; Store %B.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D0,12(SP) ; Store %A.addr to stack
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 4(SP),D0 ; Load from stack
+A0: 0, A1: 0, D0: 4294967293, D1: 2
+    cmp.l #0,D0
+A0: 0, A1: 0, D0: 4294967293, D1: 2
+    bgt land$rhs1
+A0: 0, A1: 0, D0: 4294967293, D1: 2
+    jmp land$end1$0
+A0: 0, A1: 0, D0: 4294967293, D1: 2
+land$end1$0:
+
+A0: 0, A1: 0, D0: 4294967293, D1: 2
+    moveq #0,D0 ; from Phi
+A0: 0, A1: 0, D0: 0, D1: 2
+    jmp land$end1$end ; from Phi
+A0: 0, A1: 0, D0: 0, D1: 2
+land$end1$end:
+
+A0: 0, A1: 0, D0: 0, D1: 2
+    eor.l #1,D0
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D0,D7
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l D0,D7
+A0: 0, A1: 0, D0: 1, D1: 2
+    move.l 8(SP),D0 ; Load from stack
+A0: 0, A1: 0, D0: 2, D1: 2
+    cmp.l #0,D0
+A0: 0, A1: 0, D0: 2, D1: 2
+    bgt land$rhs$31
+A0: 0, A1: 0, D0: 2, D1: 2
+land$rhs$31:
+
+A0: 0, A1: 0, D0: 2, D1: 2
+    move.l 0(SP),D0 ; Load from stack
+A0: 0, A1: 0, D0: 5, D1: 2
+    cmp.l #0,D0
+A0: 0, A1: 0, D0: 5, D1: 2
+    move.l CCR0,D0

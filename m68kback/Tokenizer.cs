@@ -55,6 +55,8 @@ namespace m68kback
         Load,
         Store,
         Add,
+        Xor,
+        Zext,
         Nsw,
         Nuw,
         I64,
@@ -76,6 +78,8 @@ namespace m68kback
         Attributes,
         NoCapture,
         ReadOnly,
+        True,
+        False,
         Unknown
     }
 
@@ -120,6 +124,8 @@ namespace m68kback
             { "sub", Token.Sub },
             { "nsw", Token.Nsw },
             { "nuw", Token.Nuw },
+            { "xor", Token.Xor },
+            { "zext", Token.Zext },
             { "i64", Token.I64 },
             { "i32", Token.I32 },
             { "i8", Token.I8 },
@@ -139,7 +145,9 @@ namespace m68kback
             { "attributes", Token.Attributes },
             { "nocapture", Token.NoCapture },
             { "readonly", Token.ReadOnly },
-            { "type", Token.Type }
+            { "type", Token.Type },
+            { "true", Token.True },
+            { "false", Token.False },
         };
 
         Regex CreateRegex()

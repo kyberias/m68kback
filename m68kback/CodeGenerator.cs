@@ -107,6 +107,7 @@ namespace m68kback
 
         private static void RemoveRedundantCCR(IList<M68kInstruction> instructions)
         {
+            return;
             // TODO: Should check this properly: use correct pattern to recognize the instructions:
             // - instruction that sets CCR (e.g. CMP)
             // - move from CCR to CCR0
@@ -496,6 +497,21 @@ namespace m68kback
             return frame[name] + frameTune;
         }
 
+        M68kOpcode OperatorToOpcode(Token oper)
+        {
+            switch (oper)
+            {
+                case Token.Add:
+                    return M68kOpcode.Add;
+                case Token.Sub:
+                    return M68kOpcode.Sub;
+                case Token.Xor:
+                    return M68kOpcode.Eor;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
         public object Visit(ArithmeticExpression arithmeticExpression)
         {
             var resultReg = NewDataReg();
@@ -519,7 +535,7 @@ namespace m68kback
                     {
                         Emit(new M68kInstruction
                         {
-                            Opcode = arithmeticExpression.Operator == Token.Add ? M68kOpcode.Add : M68kOpcode.Sub,
+                            Opcode = OperatorToOpcode(arithmeticExpression.Operator),
                             AddressingMode1 = M68kAddressingMode.Immediate,
                             Immediate = ((IntegerConstant) arithmeticExpression.Operand2).Constant,
                             AddressingMode2 = M68kAddressingMode.Register,
@@ -530,14 +546,48 @@ namespace m68kback
                     {
                         Emit(new M68kInstruction
                         {
-                            Opcode = arithmeticExpression.Operator == Token.Add ? M68kOpcode.Add : M68kOpcode.Sub,
+                            Opcode = OperatorToOpcode(arithmeticExpression.Operator),
                             AddressingMode1 = M68kAddressingMode.Register,
                             Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand2).Variable),
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
                         });
                     }
-
+                    break;
+                case Token.Xor:
+                    if (arithmeticExpression.Operand2 is IntegerConstant)
+                    {
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = OperatorToOpcode(arithmeticExpression.Operator),
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Immediate = ((IntegerConstant)arithmeticExpression.Operand2).Constant,
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = resultReg,
+                        });
+                    }
+                    else if (arithmeticExpression.Operand2 is BooleanConstant)
+                    {
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = OperatorToOpcode(arithmeticExpression.Operator),
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Immediate = ((BooleanConstant)arithmeticExpression.Operand2).Constant ? 1 : 0,
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = resultReg,
+                        });
+                    }
+                    else
+                    {
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = OperatorToOpcode(arithmeticExpression.Operator),
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand2).Variable),
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = resultReg,
+                        });
+                    }
                     break;
                 case Token.Srem:
                     {
@@ -575,6 +625,29 @@ namespace m68kback
                         AddressingMode2 = M68kAddressingMode.Register,
                         Register2 = resultReg
                     });
+                    }
+                    break;
+                case Token.Zext:
+                    {
+                        // TODO
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand1).Variable),
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = resultReg,
+                        });
+
+                        /*var t = arithmeticExpression.Operand1.Type as DefinedTypeDeclaration;
+                        var it = t?.Type as InternalTypeDefinition;
+                        if (it != null)
+                        {
+                            switch (it.Type)
+                            {
+                                
+                            }
+                        }*/
                     }
                     break;
                 default:
@@ -624,13 +697,18 @@ namespace m68kback
             var reg = NewDataReg();
             Emit(new M68kInstruction
             {
-                Opcode = M68kOpcode.MoveQ,
+                Opcode = M68kOpcode.Move,
                 AddressingMode1 = M68kAddressingMode.Immediate,
                 Immediate = integerConstant.Constant,
                 AddressingMode2 = M68kAddressingMode.Register,
                 Register2 = reg
             });
             return reg;
+        }
+
+        public object Visit(BooleanConstant constant)
+        {
+            throw new NotImplementedException();
         }
 
         public class Reloc
@@ -943,6 +1021,25 @@ namespace m68kback
         }
 
         //private Token? statusReg;
+
+        /*int CompareOperatorToCcrBitmask(Token oper)
+        {
+            // 543210
+            //  XNZVC
+            const int Xbit = 4;
+            const int Nbit = 3;
+            const int Zbit = 2;
+            const int Vbit = 1;
+            const int Cbit = 0;
+
+            switch (oper)
+            {
+                case Token.Eq:
+                    return 1 << Zbit;
+                case Token.Sgt:
+                    break;
+            }
+        }*/
 
         public object Visit(IcmpExpression icmpExpression)
         {
@@ -1327,7 +1424,7 @@ namespace m68kback
                 {
                     Emit(new M68kInstruction
                     {
-                        Opcode = M68kOpcode.MoveQ,
+                        Opcode = M68kOpcode.Move,
                         AddressingMode1 = M68kAddressingMode.Immediate,
                         Immediate = ((IntegerConstant) phiBranch.Expr).Constant,
                         AddressingMode2 = M68kAddressingMode.Register,
@@ -1335,6 +1432,19 @@ namespace m68kback
                         Comment = "from Phi"
                     }, ix++);
                 }
+                else if (phiBranch.Expr is BooleanConstant)
+                {
+                    Emit(new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.MoveQ,
+                        AddressingMode1 = M68kAddressingMode.Immediate,
+                        Immediate = ((BooleanConstant)phiBranch.Expr).Constant ? 1 : 0,
+                        AddressingMode2 = M68kAddressingMode.Register,
+                        Register2 = tempReg,
+                        Comment = "from Phi"
+                    }, ix++);
+                }
+
                 else if (phiBranch.Expr is VariableReference)
                 {
                     // We will handle this later by inserting a move before each branch!

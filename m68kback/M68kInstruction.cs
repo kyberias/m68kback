@@ -26,6 +26,7 @@ namespace m68kback
         Cmp,
         Divs,
         Lsr,
+        Eor,
         RegDef,
         RegUse
     }

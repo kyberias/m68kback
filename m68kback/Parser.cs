@@ -449,7 +449,7 @@ namespace m68kback
         ArithmeticExpression ParseArithmeticExpression()
         {
             var expr = new ArithmeticExpression();
-            expr.Operator = AcceptElement(Token.Mul, Token.Add, Token.Sub, Token.Srem).Type;
+            expr.Operator = AcceptElement(Token.Mul, Token.Add, Token.Sub, Token.Srem, Token.Xor, Token.Zext).Type;
 
             if (AcceptElementIfNext(Token.Nuw))
             {
@@ -462,8 +462,17 @@ namespace m68kback
 
             expr.Type = ParseType();
             expr.Operand1 = ParseExpression();
-            AcceptElement(Token.Comma);
-            expr.Operand2 = ParseExpression();
+
+            if (PeekElement().Type == Token.Comma)
+            {
+                AcceptElement(Token.Comma);
+                expr.Operand2 = ParseExpression();
+            }
+            else
+            {
+                AcceptElement(Token.To);
+                expr.To = ParseType();
+            }
             return expr;
         }
 
@@ -508,7 +517,9 @@ namespace m68kback
                 case Token.Mul:
                 case Token.Add:
                 case Token.Sub:
+                case Token.Xor:
                 case Token.Srem:
+                case Token.Zext:
                     return ParseArithmeticExpression();
                 case Token.GetElementPtr:
                     return ParseGetElementPtr();
@@ -519,21 +530,33 @@ namespace m68kback
             }
 
             //var type = ParseType();
-            if (PeekElement().Type == Token.IntegerLiteral || PeekElement().Type == Token.Minus)
-            {
-                bool minus = AcceptElementIfNext(Token.Minus);
+            var peek = PeekElement().Type;
 
-                return new IntegerConstant
-                {
-                    Constant = int.Parse(AcceptElement(Token.IntegerLiteral).Data) * (minus ? -1 : 1),
-                };
-            }
-            else
+            switch (peek)
             {
-                return new VariableReference
-                {
-                    Variable = AcceptElement(Token.LocalIdentifier).Data
-                };
+                case Token.IntegerLiteral:
+                case Token.Minus:
+                    {
+                        bool minus = AcceptElementIfNext(Token.Minus);
+
+                        return new IntegerConstant
+                        {
+                            Constant = int.Parse(AcceptElement(Token.IntegerLiteral).Data) * (minus ? -1 : 1),
+                        };
+                    }
+                case Token.True:
+                case Token.False:
+                    AcceptElement(peek);
+                    return new BooleanConstant()
+                    {
+                        Constant = peek == Token.True
+                    };
+                default:
+                    return new VariableReference
+                    {
+                        Variable = AcceptElement(Token.LocalIdentifier).Data
+                    };
+
             }
         }
 

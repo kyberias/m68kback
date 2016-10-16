@@ -326,6 +326,7 @@ namespace m68kback
                                 break;
                         }
                         break;
+                    // TODO: Update status register accordingly
                     case M68kOpcode.Sub:
                     {
                         var val1 = (i.AddressingMode1 == M68kAddressingMode.Immediate
@@ -337,11 +338,21 @@ namespace m68kback
                         break;
                     case M68kOpcode.Add:
                     case M68kOpcode.Adda:
-                        var valToAdd = i.AddressingMode1 == M68kAddressingMode.Immediate
-                            ? i.Immediate
-                            : (int)Regs[(int) i.FinalRegister1];
+                        {
+                            var valToAdd = i.AddressingMode1 == M68kAddressingMode.Immediate
+                                ? i.Immediate
+                                : (int) Regs[(int) i.FinalRegister1];
 
-                        Regs[(int)i.FinalRegister2] = (uint)((int)Regs[(int)i.FinalRegister2] + valToAdd);
+                            Regs[(int) i.FinalRegister2] = (uint) ((int) Regs[(int) i.FinalRegister2] + valToAdd);
+                        }
+                        break;
+                    case M68kOpcode.Eor:
+                        {
+                            var valToAdd = i.AddressingMode1 == M68kAddressingMode.Immediate
+                                ? i.Immediate
+                                : (int)Regs[(int)i.FinalRegister1];
+                            Regs[(int)i.FinalRegister2] = (uint)((int)Regs[(int)i.FinalRegister2] ^ valToAdd);
+                        }
                         break;
                     case M68kOpcode.Jmp:
                         pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;

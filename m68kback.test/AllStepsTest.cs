@@ -257,6 +257,24 @@ for.end:                                          ; preds = %for.end.loopexit, %
             CollectionAssert.Contains(printf.PrintedStrings, "Foobar 100 200 300");
         }
 
+        [Test]
+        public void NotTestPrg()
+        {
+            var prg = GetFileFromResource("NotTest.ll");
+
+            var emul = BuildEmulator(prg);
+            var par0 = emul.AllocGlobal("program");
+            var par1 = emul.AllocGlobal("42");
+
+            var arrStart = emul.AllocGlobal(par0);
+            emul.AllocGlobal(par1);
+
+            emul.RunFunction("@main", arrStart, 2);
+
+            CollectionAssert.Contains(printf.PrintedStrings, "Testing 100 200 300");
+            CollectionAssert.Contains(printf.PrintedStrings, "Foobar 100 200 300");
+        }
+
         string GetFileFromResource(string filename)
         {
             using (
