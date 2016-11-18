@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace m68kback.test
 {
     [TestFixture]
-    class AllStepsTest
+    class CodeGeneratorTest
     {
         [Test]
         public void VoidTest()
@@ -35,6 +35,107 @@ entry:
             var emul = RunFunction(source, "@main", 42, 11);
             Assert.AreEqual(42+11, emul.Regs[0]);
         }
+
+        [TestCase(1,2,3, "%par1", ExpectedResult = 1)]
+        [TestCase(1, 2, 3, "%par2", ExpectedResult = 2)]
+        [TestCase(1, 2, 3, "%par3", ExpectedResult = 3)]
+        public int ReturnParameter(int par1, int par2, int par3, string parname)
+        {
+            var source = $@"define i32 @main(i32 %par1, i32 %par2, i32 %par3) #0 {{ 
+entry: 
+    ret i32 {parname} 
+}}";
+            var emul = RunFunction(source, "@main", par1, par2, par3);
+            return (int)emul.Regs[0];
+        }
+
+        [TestCase(6, 4, ExpectedResult = 6)]
+        [TestCase(4, 6, ExpectedResult = 6)]
+        [TestCase(1, 2, ExpectedResult = 2)]
+        [TestCase(0, 4, ExpectedResult = 4)]
+        public int BooleanCmpWithBranch(int par1, int par2)
+        {
+            var source = @"define i32 @main(i32 %par1, i32 %par2) #0 { 
+entry: 
+    %cmp2 = icmp sgt i32 %par1, %par2
+    br i1 %cmp2, label %greaterthan, label %notgreaterthan
+
+greaterthan:
+    br label %doret
+
+notgreaterthan:
+    br label %doret
+
+doret:
+    %retval = phi i32 [%par1, %greaterthan], [%par2, %notgreaterthan]
+    ret i32 %retval
+}";
+            var emul = RunFunction(source, "@main", par1, par2);
+            return (int)emul.Regs[0];
+        }
+
+        [TestCase(1, 2, ExpectedResult = 2)]
+        [TestCase(2, 1, ExpectedResult = 2)]
+        public int BooleanCmpWithBranchPhi(int par1, int par2)
+        {
+            var source = @"define i32 @main(i32 %par1, i32 %par2) #0 { 
+entry: 
+    %cmp2 = icmp sgt i32 %par1, %par2
+    br i1 %cmp2, label %doret, label %other
+
+other:
+    br label %doret
+
+doret:
+    %retval = phi i32 [%par1, %entry], [%par2, %other]
+    ret i32 %retval
+}";
+            var emul = RunFunction(source, "@main", par1, par2);
+            return (int)emul.Regs[0];
+        }
+
+        [TestCase(1, 2, ExpectedResult = 1)]
+        [TestCase(0, 2, ExpectedResult = 0)]
+        public int BooleanCmpWithBranchPhiAndConversionToInt(int par1, int par2)
+        {
+            var source = @"define i32 @main(i32 %par1, i32 %par2) #0 { 
+entry: 
+    %cmp2 = icmp sgt i32 %par1, 0
+    br i1 %cmp2, label %doret, label %other
+
+other:
+    br label %doret
+
+doret:
+    %bval = phi i32 [%cmp2, %entry], [false, %other]
+    %retval = zext i1 %bval to i32
+    ret i32 %retval
+}";
+            var emul = RunFunction(source, "@main", par1, par2);
+            return (int)emul.Regs[0];
+        }
+
+
+        [Test]
+        public void Cmp()
+        {
+            var source = @"define i32 @main(i32 %par1, i32 %par2) #0 { 
+entry: 
+    %b = add i32 %par1, %par2
+    %cmp1 = icmp eq i32 %par1, %par2
+    %cmp2 = icmp eq i32 %par1, %b
+    br label %step2
+step2:
+    %lnot6 = icmp eq i1 %cmp1, false
+    br i1 %lnot6, label %endit, label %step2
+endit:
+
+ret i32 %b
+}";
+            var emul = RunFunction(source, "@main", 11, 42);
+            Assert.AreEqual(42 + 11, emul.Regs[0]);
+        }
+
 
         [Test]
         public void PhiTest()
@@ -94,17 +195,6 @@ while.end:                                        ; preds = %while.cond
         }
 
         [Test]
-        public void RetSecond()
-        {
-            var source = @"define i32 @store(i32 %first, i32 %par) #0 {
-entry:
-  ret i32 %par
-}";
-            var emul = RunFunction(source, "@store", 66, 21);
-            Assert.AreEqual(66, emul.Regs[0]);
-        }
-
-        [Test]
         public void Store8()
         {
             var source = @"define i32 @store(i8* %ptr, i32 %par) #0 {
@@ -112,7 +202,7 @@ entry:
   store i8 42, i8* %ptr, align 1
   ret i32 %par
 }";
-            var emul = RunFunction(source, "@store", 66, 100);
+            var emul = RunFunction(source, "@store", 100, 66);
             Assert.AreEqual(66, emul.Regs[0]);
             Assert.AreEqual(42, emul.Memory[100]);
         }
@@ -183,7 +273,7 @@ for.end:                                          ; preds = %for.end.loopexit, %
   ret i8* %to
 }
 ";
-            var emul = RunFunction(source, "@reverse", 100, "12345");
+            var emul = RunFunction(source, "@reverse", "12345", 100);
             Assert.AreEqual(100, emul.Regs[0]);
 
             var result = Encoding.ASCII.GetString(emul.Memory, 100, 5);
@@ -202,7 +292,7 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var arrStart = emul.AllocGlobal(par0);
             emul.AllocGlobal(par1);
 
-            emul.RunFunction("@main", arrStart, 2);
+            emul.RunFunction("@main", 2, arrStart);
 
             Assert.Contains("param\n", printf.PrintedStrings.ToList());
         }
@@ -219,7 +309,7 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var arrStart = emul.AllocGlobal(par0);
             emul.AllocGlobal(par1);
 
-            emul.RunFunction("@main", arrStart, 2);
+            emul.RunFunction("@main", 2, arrStart);
 
             Assert.Contains("reverse is: 'esrever'\n", printf.PrintedStrings.ToList());
         }
@@ -236,7 +326,7 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var arrStart = emul.AllocGlobal(par0);
             emul.AllocGlobal(par1);
 
-            emul.RunFunction("@main", arrStart, 2);
+            emul.RunFunction("@main", 2, arrStart);
         }
 
         [Test]
@@ -269,10 +359,10 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var arrStart = emul.AllocGlobal(par0);
             emul.AllocGlobal(par1);
 
-            emul.RunFunction("@main", arrStart, 2);
+            emul.RunFunction("@main", 2, arrStart);
 
-            CollectionAssert.Contains(printf.PrintedStrings, "Testing 100 200 300");
-            CollectionAssert.Contains(printf.PrintedStrings, "Foobar 100 200 300");
+            CollectionAssert.AreEquivalent(printf.PrintedStrings,
+                new [] { "Bitwise Not: -2 -3 2 -6\n", "Boolean Not: 0 1 0 1 0 1\n" });
         }
 
         string GetFileFromResource(string filename)

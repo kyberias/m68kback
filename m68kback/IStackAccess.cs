@@ -4,5 +4,6 @@ namespace m68kback
     {
         string GetString(int ix);
         uint GetUint(int ix);
+        int GetInt(int ix);
     }
 }

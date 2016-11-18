@@ -123,6 +123,7 @@ namespace m68kback
     public class M68kInstruction
     {
         public string Label { get; set; }
+        public bool IgnoreLabelForPhi { get; set; }
         public M68kOpcode Opcode { get; set; }
         public M68Width? Width { get; set; }
 
@@ -243,6 +244,8 @@ namespace m68kback
                 case M68kOpcode.Bne:
                 case M68kOpcode.Jsr:
                     return 0;
+                case M68kOpcode.Tst:
+                    return 1;
                 default:
                     return 2;
             }

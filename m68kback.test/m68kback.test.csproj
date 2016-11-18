@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AllStepsTest.cs" />
+    <Compile Include="CodeGeneratorTest.cs" />
     <Compile Include="GraphColoringTest.cs" />
     <Compile Include="InterferenceGraphTest.cs" />
     <Compile Include="M68kInstructionTest.cs" />

@@ -252,6 +252,8 @@ namespace m68kback
                         return 4;
                     case Token.I8:
                         return 1;
+                    case Token.I1:
+                        return 1;
                     case Token.Void:
                         return 0;
                     default:

@@ -1,4 +1,4 @@
-#define PRINTCODE
+//#define PRINTCODE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -310,13 +310,12 @@ namespace m68kback
             phiFixRegs.Clear();
             foreach (var ph in phiFixLabels)
             {
-                //var ix = func.Instructions.IndexOf(func.Instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label.StartsWith(ph.BlockLabel.Substring(1))));
                 var ix = func.Instructions.IndexOf(func.Instructions.First(i => i.Opcode == M68kOpcode.Label && i.Label == ph.BlockLabel.Substring(1))) + 1;
                 for (var i=ix;i<func.Instructions.Count;i++)
                 {
                     var inst = func.Instructions[i];
 
-                    if (inst.Opcode == M68kOpcode.Label && !inst.LabelFromPhi)
+                    if (inst.Opcode == M68kOpcode.Label && !inst.LabelFromPhi && !inst.IgnoreLabelForPhi)
                     {
                         break;
                     }
@@ -385,7 +384,7 @@ namespace m68kback
             gcA.FinalRewrite(RegType.Address);
             frameOffset += gcA.SpillCount * 4;
 
-            var gcC = new GraphColoring(gcA.Instructions, 2, RegType.ConditionCode, frameOffset);
+            var gcC = new GraphColoring(gcA.Instructions, 1, RegType.ConditionCode, frameOffset);
             gcC.Main();
             gcC.FinalRewrite(RegType.ConditionCode);
             frameOffset += gcC.SpillCount * 4;
@@ -1057,6 +1056,18 @@ namespace m68kback
                     AddressingMode2 = M68kAddressingMode.Register
                 });
             }
+            else if (icmpExpression.Value is BooleanConstant)
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Cmp,
+                    Width = TypeToWidth(icmpExpression.Type),
+                    AddressingMode1 = M68kAddressingMode.Immediate,
+                    Immediate = (icmpExpression.Value as BooleanConstant).Constant ? 1 : 0,
+                    Register2 = GetVarRegister(icmpExpression.Var),
+                    AddressingMode2 = M68kAddressingMode.Register
+                });
+            }
             else if (icmpExpression.Value is VariableReference)
             {
                 Emit(new M68kInstruction
@@ -1075,7 +1086,7 @@ namespace m68kback
             }
 
 
-            var r = NewConditionReg();
+/*            var r = NewConditionReg();
             r.Condition = icmpExpression.Condition;
 
             Emit(new M68kInstruction
@@ -1088,7 +1099,76 @@ namespace m68kback
                 Register2 = r,
             });
 
-            return r;
+            return r;*/
+
+
+            var resReg = NewDataReg();
+
+            var trueLabel = "icmp_true_" + Instructions.Count;
+            var falseLabel = "icmp_false_" + Instructions.Count;
+            var endLabel = "icmp_end_" + Instructions.Count;
+
+            Emit(new M68kInstruction
+            {
+                Opcode = ConditionToOpcode(icmpExpression.Condition),
+                IgnoreLabelForPhi = true,
+                TargetLabel = "%" + trueLabel
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Jmp,
+                IgnoreLabelForPhi = true,
+                TargetLabel = "%" + falseLabel
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Label,
+                Label = trueLabel,
+                IgnoreLabelForPhi = true
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                Immediate = 1,
+                AddressingMode1 = M68kAddressingMode.Immediate,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = resReg,
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Jmp,
+                IgnoreLabelForPhi = true,
+                TargetLabel = "%" + endLabel
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Label,
+                Label = falseLabel,
+                IgnoreLabelForPhi = true
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                Immediate = 0,
+                AddressingMode1 = M68kAddressingMode.Immediate,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = resReg,
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Label,
+                Label = endLabel,
+                IgnoreLabelForPhi = true
+            });
+
+            return resReg;
         }
 
         public object Visit(LabelBrStatement labelBrStatement)
@@ -1101,12 +1181,10 @@ namespace m68kback
             return null;
         }
 
-        public object Visit(ConditionalBrStatement conditionalBrStatement)
+        M68kOpcode ConditionToOpcode(Token condition)
         {
-            var reg = GetVarRegister(conditionalBrStatement.Identifier);
-
             M68kOpcode opc;
-            switch (reg.Condition)
+            switch (condition)
             {
                 case Token.Eq:
                     opc = M68kOpcode.Beq;
@@ -1121,8 +1199,16 @@ namespace m68kback
                     opc = M68kOpcode.Bgt;
                     break;
                 default:
-                    throw new NotSupportedException(reg.Condition.ToString());
+                    throw new NotSupportedException(condition.ToString());
             }
+            return opc;
+        }
+
+        public object Visit(ConditionalBrStatement conditionalBrStatement)
+        {
+            var reg = GetVarRegister(conditionalBrStatement.Identifier);
+
+            /*M68kOpcode opc = ConditionToOpcode(reg.Condition);
 
             Emit(new M68kInstruction
             {
@@ -1138,6 +1224,25 @@ namespace m68kback
                 Opcode = opc,
                 TargetLabel = conditionalBrStatement.Label1 + functionIx
             });
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Jmp,
+                TargetLabel = conditionalBrStatement.Label2 + functionIx
+            });
+            return null;*/
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Tst,
+                Register1 = reg,
+            });
+
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Bne,
+                TargetLabel = conditionalBrStatement.Label1 + functionIx
+            });
+
             Emit(new M68kInstruction
             {
                 Opcode = M68kOpcode.Jmp,
@@ -1450,28 +1555,6 @@ namespace m68kback
                     // We will handle this later by inserting a move before each branch!
                     var varref = phiBranch.Expr as VariableReference;
                     sourceVar = varref.Variable;
-                    /*var reg = GetVarRegister(varref.Variable);
-                    if(reg == null)
-                    {
-                        var def = Emit(new M68kInstruction
-                        {
-                            Opcode = M68kOpcode.RegDef,
-                            Comment = "from Phi"
-                        }, ix++);
-                        sourceVar = ((VariableReference) phiBranch.Expr).Variable;
-                        phiFixRegs[def] = sourceVar;
-                    }
-
-                    var move = Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Move,
-                        AddressingMode1 = M68kAddressingMode.Register,
-                        Register1 = reg,
-                        AddressingMode2 = M68kAddressingMode.Register,
-                        Register2 = tempReg,
-                        Comment = "from Phi"
-                    }, ix++);
-                    phiFixRegs[move] = ((VariableReference)phiBranch.Expr).Variable;*/
                 }
                 else
                 {

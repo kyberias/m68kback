@@ -47,7 +47,7 @@ namespace m68kback
                 case 's':
                     return stack.GetString(i);
                 case 'd':
-                    return stack.GetUint(i).ToString();
+                    return stack.GetInt(i).ToString();
             }
 
             throw new NotSupportedException();

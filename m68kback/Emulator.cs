@@ -69,7 +69,8 @@ namespace m68kback
             pc = instructions.IndexOf(start);
             Sp = (uint)memory.Length - 4;
 
-            foreach (var par in pars)
+            // Push in reverse order
+            foreach (var par in pars.Reverse())
             {
                 if (par is int)
                 {
@@ -192,16 +193,21 @@ namespace m68kback
                                 {
                                     var val1 = i.FinalRegister1.HasValue ? (int)Regs[(int)i.FinalRegister1] : i.Immediate;
                                     var val2 = (int)Regs[(int)i.FinalRegister2];
-                                    Z = val2 - val1 == 0;
-                                    N = (val2 - val1) < 0;
+                                    var res = val2 - val1;
+                                    Z = res == 0;
+                                    N = res < 0;
+
+                                    //V = (val2 > 0 && res < 0) || (val2 < 0 && res > 0);
+                                    V = (res < val2) != (val1 > 0);
                                 }
                                 break;
                                 case M68Width.Byte:
                                 {
                                     var val1 = i.FinalRegister1.HasValue ? (byte)(Regs[(int)i.FinalRegister1] & 0xFF) : (byte)i.Immediate;
                                     var val2 = (byte)(Regs[(int)i.FinalRegister2] & 0xFF);
-                                    Z = val2 - val1 == 0;
-                                    N = ((int)val2 - (int)val1) < 0;
+                                    var res = val2 - val1;
+                                    Z = res == 0;
+                                    N = res < 0;
                                 }
                                 break;
                         }
@@ -381,6 +387,13 @@ namespace m68kback
                             pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1))) - 1;
                         }
                         break;
+                    case M68kOpcode.Tst:
+                        {
+                            var val = i.FinalRegister1.HasValue ? (int)Regs[(int)i.FinalRegister1] : i.Immediate;
+                            Z = val == 0;
+                            N = val < 0;
+                        }
+                        break;
                     default:
                         throw new Exception($"Unknown opcode {i.Opcode}");
                 }
@@ -398,6 +411,11 @@ namespace m68kback
         public uint GetUint(int ix)
         {
             return Read32(Sp + 4 + (uint)ix * 4);
+        }
+
+        public int GetInt(int ix)
+        {
+            return (int)Read32(Sp + 4 + (uint)ix * 4);
         }
     }
 }

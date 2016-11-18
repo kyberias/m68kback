@@ -159,5 +159,30 @@ namespace m68kback.test
 
             CollectionAssert.AreEquivalent(new[] { "D1", "D2" }, cmp.Use(RegType.Data));
         }
+
+        [Test]
+        public void TstUse()
+        {
+            var tst = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Tst,
+                Register1 = new Register { Type = RegType.Data, Number = 1}
+            };
+
+            CollectionAssert.AreEquivalent(new[] { "D1" }, tst.Use(RegType.Data));
+        }
+
+        [Test]
+        public void TstDef()
+        {
+            var tst = new M68kInstruction
+            {
+                Opcode = M68kOpcode.Tst,
+                Register1 = new Register { Type = RegType.Data, Number = 1 }
+            };
+
+            CollectionAssert.IsEmpty(tst.Def(RegType.Data));
+        }
+
     }
 }
