@@ -10,6 +10,8 @@ namespace m68kback
     {
         private IList<M68kInstruction> instructions;
 
+        public IList<M68kInstruction> Instructions => instructions;
+
         uint globalUsed = 0;
         Dictionary<string, uint> globalAddress = new Dictionary<string, uint>();
         private IPrintf printf;
@@ -210,6 +212,8 @@ namespace m68kback
                                     N = res < 0;
                                 }
                                 break;
+                            default:
+                                throw new NotImplementedException();
                         }
                         break;
                     case M68kOpcode.Rts:

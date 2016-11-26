@@ -14,6 +14,7 @@ namespace m68kback
         object Visit(ExpressionStatement expressionStatement);
         object Visit(TypeDeclaration typeDeclaration);
         object Visit(RetStatement retStatement);
+        object Visit(SwitchStatement statement);
         object Visit(IcmpExpression icmpExpression);
         object Visit(LabelBrStatement labelBrStatement);
         object Visit(ConditionalBrStatement conditionalBrStatement);

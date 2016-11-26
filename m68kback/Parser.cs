@@ -16,6 +16,7 @@ namespace m68kback
 
             internalTypes[Token.I1] = new InternalTypeDefinition { Name = "i1", Type = Token.I1 };
             internalTypes[Token.I8] = new InternalTypeDefinition {Name = "i8", Type = Token.I8};
+            internalTypes[Token.I16] = new InternalTypeDefinition { Name = "i16", Type = Token.I16 };
             internalTypes[Token.I32] = new InternalTypeDefinition { Name = "i32", Type = Token.I32 };
             internalTypes[Token.Void] = new InternalTypeDefinition { Name = "void", Type = Token.Void };
 
@@ -196,6 +197,7 @@ namespace m68kback
             {
                 case Token.I64:
                 case Token.I32:
+                case Token.I16:
                 case Token.I8:
                 case Token.I1:
                 case Token.Void:
@@ -209,7 +211,7 @@ namespace m68kback
                         arr.ArrayX = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
                         AcceptElement(Token.Symbol);
                         arr.BaseType = 
-                            new DefinedTypeDeclaration(internalTypes[AcceptElement(Token.I32, Token.I8).Type]);
+                            new DefinedTypeDeclaration(internalTypes[AcceptElement(Token.I32, Token.I16, Token.I8).Type]);
                         AcceptElement(Token.BracketClose);
                         decl = arr;
                     }
@@ -647,6 +649,9 @@ namespace m68kback
                 case Token.LocalIdentifier:
                     stmt = ParseAssignmentStatement();
                     break;
+                case Token.Switch:
+                    stmt = ParseSwitchStatement();
+                    break;
                 case Token.Ret:
                     stmt = ParseRetStatement();
                     break;
@@ -668,6 +673,39 @@ namespace m68kback
             }
 
             stmt.Label = label;
+            return stmt;
+        }
+
+        private SwitchStatement ParseSwitchStatement()
+        {
+            AcceptElement(Token.Switch);
+            var stmt = new SwitchStatement();
+
+            stmt.Type = ParseType();
+            stmt.Value = ParseExpression();
+
+            AcceptElement(Token.Comma);
+            AcceptElement(Token.Label);
+
+            stmt.DefaultLabel = AcceptElement(Token.LocalIdentifier).Data;
+            AcceptElement(Token.BracketOpen);
+
+            while (PeekElement().Type != Token.BracketClose)
+            {
+                var sc = new SwitchCase();
+
+                ParseType();
+
+                sc.Value = ParseExpression();
+                AcceptElement(Token.Comma);
+                AcceptElement(Token.Label);
+                sc.Label = AcceptElement(Token.LocalIdentifier).Data;
+
+                stmt.Switches.Add(sc);
+            }
+
+            AcceptElement(Token.BracketClose);
+
             return stmt;
         }
 

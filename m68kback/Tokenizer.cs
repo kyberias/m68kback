@@ -61,6 +61,7 @@ namespace m68kback
         Nuw,
         I64,
         I32,
+        I16,
         I8,
         I1,
         Label,
@@ -80,6 +81,7 @@ namespace m68kback
         ReadOnly,
         True,
         False,
+        Switch,
         Unknown
     }
 
@@ -128,6 +130,7 @@ namespace m68kback
             { "zext", Token.Zext },
             { "i64", Token.I64 },
             { "i32", Token.I32 },
+            { "i16", Token.I16 },
             { "i8", Token.I8 },
             { "i1", Token.I1 },
             { "label", Token.Label },
@@ -148,6 +151,7 @@ namespace m68kback
             { "type", Token.Type },
             { "true", Token.True },
             { "false", Token.False },
+            { "switch", Token.Switch},
         };
 
         Regex CreateRegex()

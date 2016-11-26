@@ -148,6 +148,26 @@ namespace m68kback
         }
     }
 
+    public class SwitchCase
+    {
+        public Expression Value { get; set; }
+        public string Label { get; set; }
+    }
+
+    public class SwitchStatement : Statement
+    {
+        public TypeDeclaration Type { get; set; }
+        public Expression Value { get; set; }
+        public string DefaultLabel { get; set; }
+
+        public IList<SwitchCase> Switches { get; set; } = new List<SwitchCase>();
+
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
     public class IcmpExpression : Expression
     {
         public Token Condition { get; set; }
@@ -250,6 +270,8 @@ namespace m68kback
                 {
                     case Token.I32:
                         return 4;
+                    case Token.I16:
+                        return 2;
                     case Token.I8:
                         return 1;
                     case Token.I1:

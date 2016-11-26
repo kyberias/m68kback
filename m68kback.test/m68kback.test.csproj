@@ -60,6 +60,7 @@
     <EmbeddedResource Include="TestFiles\structs.ll" />
     <EmbeddedResource Include="TestFiles\printfparam.ll" />
     <EmbeddedResource Include="TestFiles\NotTest.ll" />
+    <EmbeddedResource Include="TestFiles\DuffsDevice.ll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\m68kback\m68kback.csproj">

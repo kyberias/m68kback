@@ -49,6 +49,28 @@ entry:
             return (int)emul.Regs[0];
         }
 
+        [TestCase("%ret1", ExpectedResult = 1)]
+        [TestCase("%ret2", ExpectedResult = 2)]
+        [TestCase("%ret3", ExpectedResult = 3)]
+        public int MultipleReturns(string labelname)
+        {
+            var source = $@"define i32 @main() #0 {{
+    br label {labelname} 
+ret1: 
+    ret i32 1
+ret2: 
+    ret i32 2
+ret3: 
+    ret i32 3
+}}";
+            var emul = RunFunction(source, "@main");
+
+            Assert.IsTrue(emul.Instructions.Count < 20);
+
+            return (int)emul.Regs[0];
+        }
+
+
         [TestCase(6, 4, ExpectedResult = 6)]
         [TestCase(4, 6, ExpectedResult = 6)]
         [TestCase(1, 2, ExpectedResult = 2)]
@@ -155,6 +177,60 @@ fooexit:
 }";
             var emul = RunFunction(source, "@main", 42);
             Assert.AreEqual(42 + 2, emul.Regs[0]);
+        }
+
+        [Test]
+        public void SwitchTest()
+        {
+            var source = @"define i32 @main(i32 %arg, i32 %par0, i32 %par1, i32 %par2, i32 %par3, i32 %def) #0 { 
+entry: 
+  switch i32 %arg, label %deflab [
+    i32 0, label %zero
+    i32 1, label %one
+    i32 2, label %two
+    i32 3, label %three
+  ]
+
+zero:
+    br label %retlab
+one:
+    br label %retlab
+two:
+    br label %retlab
+three:
+    br label %retlab
+deflab:
+    br label %retlab
+
+retlab:
+    %retval = phi i32 [%par0, %zero], [%par1, %one], [%par2, %two], [%par3, %three], [%def, %deflab]
+    ret i32 %retval
+}";
+            var emul = RunFunction(source, "@main", 3, 0, 10, 20, 30, 42);
+            Assert.AreEqual(30, emul.Regs[0]);
+        }
+
+        [TestCase(1,5,15,42, ExpectedResult = 15)]
+        [TestCase(0, 5, 15, 42, ExpectedResult = 5)]
+        [TestCase(2, 5, 15, 42, ExpectedResult = 42)]
+        public int CmpPhiTest(int arg, int par0, int par1, int def)
+        {
+            var source = @"define i32 @main(i32 %arg, i32 %par0, i32 %par1, i32 %def) #0 { 
+lc0: 
+    %c0 = icmp eq i32 %arg, 0
+    br i1 %c0, label %r0, label %lc1
+r0:
+    ret i32 %par0
+lc1: 
+    %c1 = icmp eq i32 %arg, 1
+    br i1 %c1, label %r1, label %deflab
+r1:
+    ret i32 %par1
+deflab:
+    ret i32 %def
+}";
+            var emul = RunFunction(source, "@main", arg, par0, par1, def);
+            return (int)emul.Regs[0];
         }
 
 
@@ -363,6 +439,19 @@ for.end:                                          ; preds = %for.end.loopexit, %
 
             CollectionAssert.AreEquivalent(printf.PrintedStrings,
                 new [] { "Bitwise Not: -2 -3 2 -6\n", "Boolean Not: 0 1 0 1 0 1\n" });
+        }
+
+        [Test]
+        public void DuffsDeviceTest()
+        {
+            var prg = GetFileFromResource("DuffsDevice.ll");
+
+            var emul = BuildEmulator(prg);
+
+            emul.RunFunction("@main");
+
+            CollectionAssert.AreEquivalent(printf.PrintedStrings,
+                new[] { "Bitwise Not: -2 -3 2 -6\n", "Boolean Not: 0 1 0 1 0 1\n" });
         }
 
         string GetFileFromResource(string filename)
