@@ -43,6 +43,7 @@ namespace m68kback
         X,
         Call,
         Tail,
+        Nonnull,
         Ret,
         GetElementPtr,
         Inbounds,

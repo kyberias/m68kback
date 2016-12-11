@@ -38,7 +38,7 @@ namespace m68kback
     public enum M68kAddressingMode
     {
         Register,
-        AddressRegister,
+        //AddressRegister,
         Address, // (An)
         AddressWithPostIncrement, // (An)+
         AddressWithPostDecrement, // (An)-

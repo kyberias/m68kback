@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 //using System.Data;
 using System.Linq;
 
@@ -413,6 +414,8 @@ namespace m68kback
                 {
                     ParseType();
 
+                    AcceptElementIfNext(Token.Nonnull);
+
                     expr.Parameters.Add(ParseExpression());
 
                     if (PeekElement().Type == Token.Comma)
@@ -807,7 +810,9 @@ namespace m68kback
                 if (PeekElement().Type == Token.Global)
                 {
                     AcceptElement(Token.Global);
+                    decl.Global = true;
                     decl.Type = ParseType();
+                    Debug.Assert(decl.Type != null);
 
                     if (AcceptElementIfNext(Token.ZeroInitializer))
                     {
@@ -861,6 +866,7 @@ namespace m68kback
             }
             else if (PeekElement().Type == Token.Declare)
             {
+                decl.Declare = true;
                 // declare i32 @printf(i8*, ...) #1
 
                 AcceptElement(Token.Declare);

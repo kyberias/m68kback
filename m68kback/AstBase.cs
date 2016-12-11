@@ -355,6 +355,8 @@ namespace m68kback
         public Expression Expr { get; set; }
         public TypeReference Type { get; set; }
         public bool InitializeToZero { get; set; }
+        public bool Declare { get; set; }
+        public bool Global { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);

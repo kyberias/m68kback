@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace m68kback
@@ -26,9 +27,9 @@ namespace m68kback
                 var codeGenerator = new CodeGenerator();
                 codeGenerator.Visit(prg);
 
-                foreach (var decl in codeGenerator.Globals)
+                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Declare))
                 {
-                    if (decl.Value.Value == null)
+                    //if (decl.Value.Value == null && decl.Value.Expr == null)
                     {
                         Console.WriteLine("    xref " + decl.Value.Name.Replace("@", "_"));
                     }
@@ -51,17 +52,55 @@ namespace m68kback
 
                 Console.WriteLine("         section __MERGED,DATA");
 
-                foreach (var decl in codeGenerator.Globals)
+                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Global))
                 {
                     if (decl.Value.Value != null)
                     {
-                        Console.WriteLine("{0}    dc.b {1}", 
+                        Console.WriteLine("{0}    dc.b {1}",
                             M68kInstruction.ConvertLabel(decl.Value.Name),
                             string.Join(",", ToBytes(decl.Value.Value)));
+                    }
+                    else if(decl.Value.Type != null)
+                    {
+                        if (decl.Value.InitializeToZero || decl.Value.Expr == null)
+                        {
+                            Console.WriteLine(
+                                $"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    dcb.b {decl.Value.Type.Width},0");
+                        }
+                        else
+                        {
+                            Console.Write($"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    ");
+                            var sexpr = decl.Value.Expr as StructExpression;
+                            if (sexpr != null)
+                            {
+                                GenerateStructExprData(sexpr);
+                            }
+                            else
+                            {
+                                var constant = decl.Value.Expr as IntegerConstant;
+                                Console.WriteLine("DC." + (decl.Value.Type.Width == 1 ? "B" : (decl.Value.Type.Width == 2 ? "W" : "L") + "   " + constant.Constant));
+                            }
+                        }
                     }
                 }
 
                 Console.WriteLine("         end");
+            }
+        }
+
+        static void GenerateStructExprData(StructExpression sexpr)
+        {
+            foreach (var val in sexpr.Values)
+            {
+                if (val.Value is StructExpression)
+                {
+                    GenerateStructExprData((StructExpression)val.Value);
+                }
+                else if (val.Value is IntegerConstant)
+                {
+                    var constant = val.Value as IntegerConstant;
+                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L"))+ "   " + constant.Constant);
+                }
             }
         }
 

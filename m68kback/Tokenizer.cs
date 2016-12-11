@@ -25,6 +25,7 @@ namespace m68kback
             { "declare", Token.Declare },
             { "call", Token.Call },
             { "tail", Token.Tail },
+            { "nonnull", Token.Nonnull },
             { "ret", Token.Ret },
             { "getelementptr", Token.GetElementPtr },
             { "inbounds", Token.Inbounds },

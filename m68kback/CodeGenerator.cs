@@ -1,10 +1,8 @@
-#define PRINTCODE
+//#define PRINTCODE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security;
 
 namespace m68kback
 {
@@ -1351,17 +1349,17 @@ namespace m68kback
                         Emit(new M68kInstruction
                         {
                             Opcode = M68kOpcode.Lea,
+                            AddressingMode1 = M68kAddressingMode.Absolute,
+                            Variable = storeStatement.Variable,
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = tempAddr,
-                            AddressingMode1 = M68kAddressingMode.Absolute,
-                            Variable = storeStatement.Variable
                         });
                         Emit(new M68kInstruction
                         {
                             Opcode = M68kOpcode.Move,
                             AddressingMode1 = M68kAddressingMode.Register,
                             Register1 = (Register)valueToSave,
-                            AddressingMode2 = M68kAddressingMode.AddressRegister,
+                            AddressingMode2 = M68kAddressingMode.Address,
                             Register2 = tempAddr
                         });
                     }
