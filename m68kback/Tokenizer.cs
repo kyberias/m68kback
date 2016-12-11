@@ -1,110 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace m68kback
 {
-    public enum Token
-    {
-        LocalIdentifier, // %foo
-        GlobalIdentifier, // @foo
-        To,
-        Target,
-        Datalayout,
-        Triple,
-        StringLiteral,
-        Dollar,
-        //At,
-        Comdat,
-        Comment,
-        Align,
-        IntegerLiteral,
-        //Percentage,
-        Define,
-        Void,
-        Symbol,
-        Hash,
-        Asterisk,
-        CurlyBraceOpen,
-        CurlyBraceClose,
-        Exclamation,
-        Assign,
-        Any,
-        Sub,
-        Constant,
-        BracketOpen,
-        BracketClose,
-        Declare,
-        Dot,
-        ParenOpen,
-        ParenClose,
-        Comma,
-        Ellipsis,
-        Type,
-        X,
-        Call,
-        Tail,
-        Ret,
-        GetElementPtr,
-        Inbounds,
-        Colon,
-        Alloca,
-        Load,
-        Store,
-        Add,
-        Xor,
-        Zext,
-        Nsw,
-        Nuw,
-        I64,
-        I32,
-        I16,
-        I8,
-        I1,
-        Label,
-        Phi,
-        Icmp,
-        Sgt,
-        Slt,
-        Mul,
-        Br,
-        Minus,
-        Srem,
-        Eq,
-        Ne,
-        Bitcast,
-        Attributes,
-        NoCapture,
-        ReadOnly,
-        True,
-        False,
-        Switch,
-        Unknown
-    }
-
-    public class TokenElement
-    {
-        public Token Type
-        {
-            get;
-            set;
-        }
-        public string Data { get; set; }
-
-        public TokenElement(Token type, string data = null)
-        {
-            Type = type;
-            Data = data;
-        }
-    }
-
     public class Tokenizer
     {
         Dictionary<string,Token> keywords = new Dictionary<string, Token>
         {
+            { "global", Token.Global },
+            { "common", Token.Common },
             { "target", Token.Target },
             { "datalayout", Token.Datalayout },
             { "triple", Token.Triple },
@@ -112,6 +19,9 @@ namespace m68kback
             { "any", Token.Any },
             { "define", Token.Define },
             { "void", Token.Void },
+            { "null", Token.Null },
+            { "zeroinitializer", Token.ZeroInitializer },
+            { "undef", Token.Undef },
             { "declare", Token.Declare },
             { "call", Token.Call },
             { "tail", Token.Tail },
@@ -122,12 +32,16 @@ namespace m68kback
             { "load", Token.Load },
             { "store", Token.Store },
             { "align", Token.Align },
+            { "ashr", Token.Ashr },
             { "add", Token.Add },
             { "sub", Token.Sub },
             { "nsw", Token.Nsw },
             { "nuw", Token.Nuw },
             { "xor", Token.Xor },
+            { "and", Token.And },
+            { "or", Token.Or },
             { "zext", Token.Zext },
+            { "sext", Token.Sext },
             { "i64", Token.I64 },
             { "i32", Token.I32 },
             { "i16", Token.I16 },
@@ -141,9 +55,11 @@ namespace m68kback
             { "sgt", Token.Sgt },
             { "slt", Token.Slt },
             { "mul", Token.Mul },
+            { "sdiv", Token.Sdiv },
             { "srem", Token.Srem },
             { "phi", Token.Phi },
             { "bitcast", Token.Bitcast },
+            { "trunc", Token.Trunc },
             { "to", Token.To },
             { "attributes", Token.Attributes },
             { "nocapture", Token.NoCapture },
@@ -187,7 +103,7 @@ namespace m68kback
                 $@"(?<{Token.Symbol}>[a-zA-Z_$][a-zA-Z0-9_$\.]*)",
             };
 
-            sb.Append(string.Join("|", /*keywords.Select(kw => $"(?<{kw.Value}>{kw.Key})")*/ /*.Union(*/rg/*)*/ ));
+            sb.Append(string.Join("|", rg));
 
             sb.Append($"|(?<{Token.Unknown}>[^\\s]+)");
 

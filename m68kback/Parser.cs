@@ -18,6 +18,7 @@ namespace m68kback
             internalTypes[Token.I8] = new InternalTypeDefinition {Name = "i8", Type = Token.I8};
             internalTypes[Token.I16] = new InternalTypeDefinition { Name = "i16", Type = Token.I16 };
             internalTypes[Token.I32] = new InternalTypeDefinition { Name = "i32", Type = Token.I32 };
+            internalTypes[Token.I64] = new InternalTypeDefinition { Name = "i64", Type = Token.I64 };
             internalTypes[Token.Void] = new InternalTypeDefinition { Name = "void", Type = Token.Void };
 
             cursor = 0;
@@ -90,6 +91,7 @@ namespace m68kback
 
             AcceptElement(Token.CurlyBraceClose);
 
+            
             types[typeDef.Name] = typeDef;
 
             return typeDef;
@@ -104,7 +106,7 @@ namespace m68kback
                 switch (PeekElement().Type)
                 {
                     case Token.LocalIdentifier:
-                        ParseTypeDefinition();
+                        program.TypeDefinitions.Add(ParseTypeDefinition());
                         break;
                     case Token.Exclamation:
                         ParseMetadata();
@@ -189,9 +191,9 @@ namespace m68kback
         Dictionary<Token, TypeDefinition> internalTypes = new Dictionary<Token, TypeDefinition>();
         Dictionary<string, TypeDefinition> types = new Dictionary<string, TypeDefinition>();
 
-        TypeDeclaration ParseType()
+        TypeReference ParseType()
         {
-            TypeDeclaration decl;// = new TypeDeclaration();
+            TypeReference decl;// = new TypeReference();
             var el = PeekElement();
             switch (el.Type)
             {
@@ -201,17 +203,17 @@ namespace m68kback
                 case Token.I8:
                 case Token.I1:
                 case Token.Void:
-                    decl = new DefinedTypeDeclaration(internalTypes[el.Type]);
+                    decl = new DefinedTypeReference(internalTypes[el.Type]);
                     AcceptElement(el.Type);
                     break;
                 case Token.BracketOpen:
                     {
                         AcceptElement(Token.BracketOpen);
-                        var arr = new ArrayDeclaration();
+                        var arr = new ArrayReference();
                         arr.ArrayX = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
                         AcceptElement(Token.Symbol);
-                        arr.BaseType = 
-                            new DefinedTypeDeclaration(internalTypes[AcceptElement(Token.I32, Token.I16, Token.I8).Type]);
+                        arr.BaseType = ParseType();
+                            //new DefinedTypeReference(internalTypes[AcceptElement(Token.I32, Token.I16, Token.I8).Type]);
                         AcceptElement(Token.BracketClose);
                         decl = arr;
                     }
@@ -219,7 +221,14 @@ namespace m68kback
                 case Token.LocalIdentifier:
                     {
                         var id = AcceptElement(Token.LocalIdentifier);
-                        decl = new DefinedTypeDeclaration(types[id.Data]);
+                        if (types.ContainsKey(id.Data))
+                        {
+                            decl = new DefinedTypeReference(types[id.Data]);
+                        }
+                        else
+                        {
+                            decl = new DefinedTypeReference(id.Data);
+                        }
                     }
                     break;
                 default:
@@ -229,7 +238,7 @@ namespace m68kback
             while (PeekElement().Type == Token.Asterisk)
             {
                 AcceptElement(Token.Asterisk);
-                var ptr = new PointerDeclaration();
+                var ptr = new PointerReference();
                 ptr.BaseType = decl;
                 decl = ptr;
             }
@@ -272,7 +281,7 @@ namespace m68kback
             AcceptElement(Token.Comma);
 
             expr.Type = ParseType();
-            expr.Variable = AcceptElement(Token.LocalIdentifier).Data;
+            expr.Variable = AcceptElement(Token.LocalIdentifier, Token.GlobalIdentifier).Data;
 
             if (PeekElement().Type == Token.Comma)
             {
@@ -332,6 +341,19 @@ namespace m68kback
             AcceptElement(Token.Comma);
             AcceptElement(Token.Align);
             expr.Alignment = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
+
+            return expr;
+        }
+
+        CastExpression ParseCastExpression()
+        {
+            var expr = new CastExpression();
+            expr.CastType = AcceptElement(Token.Bitcast, Token.Trunc, Token.Sext).Type;
+
+            expr.Type = ParseType();
+            expr.Value = ParseExpression();
+            AcceptElement(Token.To);
+            expr.Type = ParseType();
 
             return expr;
         }
@@ -424,7 +446,8 @@ namespace m68kback
             ptr.PtrType = ParseType();
             AcceptElement(Token.Comma);
             ptr.Type = ParseType();
-            ptr.PtrVar = AcceptElement(Token.LocalIdentifier, Token.GlobalIdentifier).Data;
+            //ptr.PtrVar = AcceptElement(Token.LocalIdentifier, Token.GlobalIdentifier).Data;
+            ptr.PtrVal = ParseExpression();
 
             AcceptElement(Token.Comma);
             while (true)
@@ -451,7 +474,8 @@ namespace m68kback
         ArithmeticExpression ParseArithmeticExpression()
         {
             var expr = new ArithmeticExpression();
-            expr.Operator = AcceptElement(Token.Mul, Token.Add, Token.Sub, Token.Srem, Token.Xor, Token.Zext).Type;
+            expr.Operator = AcceptElement(Token.Mul, Token.Sdiv, Token.Add, Token.Sub, Token.Srem, Token.Xor, Token.Zext, Token.And, Token.Or,
+                Token.Ashr).Type;
 
             if (AcceptElementIfNext(Token.Nuw))
             {
@@ -505,23 +529,70 @@ namespace m68kback
             return phi;
         }
 
+        StructExpression ParseStructExpression()
+        {
+            var expr = new StructExpression
+            {
+                Values = new List<StructField>()
+            };
+
+            AcceptElement(Token.CurlyBraceOpen);
+
+            while (PeekElement().Type != Token.CurlyBraceClose)
+            {
+                var val = new StructField();
+
+                val.Type = ParseType();
+
+                if (AcceptElementIfNext(Token.Null))
+                {
+                }
+                else if (AcceptElementIfNext(Token.ZeroInitializer))
+                {
+                    val.InitializeToZero = true;
+                }
+                else
+                {
+                    val.Value = ParseExpression();
+                }
+
+                expr.Values.Add(val);
+
+                AcceptElementIfNext(Token.Comma);
+            }
+
+            AcceptElement(Token.CurlyBraceClose);
+
+            return expr;
+        }
+
         Expression ParseExpression()
         {
             switch (PeekElement().Type)
             {
+                case Token.CurlyBraceOpen:
+                    return ParseStructExpression();
                 case Token.Alloca:
                     return ParseAllocaExpression();
+                case Token.Bitcast:
+                case Token.Trunc:
+                case Token.Sext:
+                    return ParseCastExpression();
                 case Token.Tail:
                 case Token.Call:
                     return ParseCallExpression();
                 case Token.Icmp:
                     return ParseIcmpExpression();
                 case Token.Mul:
+                case Token.Sdiv:
                 case Token.Add:
                 case Token.Sub:
                 case Token.Xor:
                 case Token.Srem:
                 case Token.Zext:
+                case Token.And:
+                case Token.Or:
+                case Token.Ashr:
                     return ParseArithmeticExpression();
                 case Token.GetElementPtr:
                     return ParseGetElementPtr();
@@ -553,12 +624,21 @@ namespace m68kback
                     {
                         Constant = peek == Token.True
                     };
-                default:
+                case Token.LocalIdentifier:
                     return new VariableReference
                     {
                         Variable = AcceptElement(Token.LocalIdentifier).Data
                     };
-
+                case Token.GlobalIdentifier:
+                    return new VariableReference
+                    {
+                        Variable = AcceptElement(Token.GlobalIdentifier).Data
+                    };
+                case Token.Null:
+                    AcceptElement(Token.Null);
+                    return null;
+                default:
+                    throw new NotSupportedException();
             }
         }
 
@@ -577,12 +657,15 @@ namespace m68kback
             AcceptElement(Token.Ret);
             stmt.Type = ParseType();
 
-            var type = stmt.Type as DefinedTypeDeclaration;
+            var type = stmt.Type as DefinedTypeReference;
             var intDef = type?.Type as InternalTypeDefinition;
 
             if (intDef == null || intDef.Type != Token.Void)
             {
-                stmt.Value = ParseExpression();
+                if(!AcceptElementIfNext(Token.Undef))
+                { 
+                    stmt.Value = ParseExpression();
+                }
             }
             /*switch (stmt.Type.Type)
             {
@@ -718,25 +801,53 @@ namespace m68kback
                 decl.Name = AcceptElement(Token.GlobalIdentifier).Data;
 
                 AcceptElement(Token.Assign);
-                while (PeekElement().Type == Token.Symbol)
+
+                AcceptElementIfNext(Token.Common);
+
+                if (PeekElement().Type == Token.Global)
                 {
-                    AcceptElement(Token.Symbol);
+                    AcceptElement(Token.Global);
+                    decl.Type = ParseType();
+
+                    if (AcceptElementIfNext(Token.ZeroInitializer))
+                    {
+                        decl.InitializeToZero = true;
+                    }
+                    else
+                    {
+                        if (PeekElement().Type != Token.Null)
+                        {
+                            decl.Expr = ParseExpression();
+                        }
+                        else
+                        {
+                            AcceptElement(Token.Null);
+                        }
+                    }
+                }
+                else
+                {
+                    while (PeekElement().Type == Token.Symbol)
+                    {
+                        AcceptElement(Token.Symbol);
+                    }
+
+                    if (PeekElement().Type == Token.Constant)
+                    {
+                        AcceptElement(Token.Constant);
+                    }
+
+                    if (PeekElement().Type == Token.BracketOpen)
+                    {
+                        AcceptElement(Token.BracketOpen);
+                        while (PeekElement().Type != Token.BracketClose)
+                            AcceptElement(PeekElement().Type);
+                        AcceptElement(Token.BracketClose);
+                    }
+
+                    decl.Value = AcceptElement(Token.StringLiteral).Data;
                 }
 
-                if (PeekElement().Type == Token.Constant)
-                {
-                    AcceptElement(Token.Constant);
-                }
-
-                if (PeekElement().Type == Token.BracketOpen)
-                {
-                    AcceptElement(Token.BracketOpen);
-                    while (PeekElement().Type != Token.BracketClose)
-                        AcceptElement(PeekElement().Type);
-                    AcceptElement(Token.BracketClose);
-                }
-
-                decl.Value = AcceptElement(Token.StringLiteral).Data;
                 AcceptElement(Token.Comma);
 
                 if(PeekElement().Type == Token.Comdat)

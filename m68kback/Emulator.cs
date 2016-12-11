@@ -1,5 +1,6 @@
 ﻿#define PRINTSTATES
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -248,7 +249,18 @@ namespace m68kback
                         }
                         break;
                     case M68kOpcode.Lea:
-                        Regs[(int) i.FinalRegister2] = globalAddress[i.Variable];
+                        {
+                            uint val;
+                            if (i.AddressingMode1 == M68kAddressingMode.AddressWithOffset)
+                            {
+                                val = (uint) (Regs[(int) i.FinalRegister1] + i.Offset);
+                            }
+                            else
+                            {
+                                val = globalAddress[i.Variable];
+                            }
+                            Regs[(int) i.FinalRegister2] = val;
+                        }
                         break;
                     case M68kOpcode.MoveQ:
                         {
@@ -390,6 +402,9 @@ namespace m68kback
                         {
                             pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1))) - 1;
                         }
+                        break;
+                    case M68kOpcode.Lsl:
+                        Regs[(int) i.FinalRegister2] = Regs[(int) i.FinalRegister2] << i.Immediate.Value;
                         break;
                     case M68kOpcode.Tst:
                         {

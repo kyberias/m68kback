@@ -20,6 +20,9 @@ namespace m68kback
                 var parser = new Parser(elements);
                 var prg = parser.ParseProgram();
 
+                var semanticAnalysis = new SemanticAnalysis();
+                semanticAnalysis.Visit(prg);
+
                 var codeGenerator = new CodeGenerator();
                 codeGenerator.Visit(prg);
 

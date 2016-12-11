@@ -153,97 +153,60 @@ entry:
   %Array = alloca [100 x i16], align 2
   %0 = bitcast [100 x i16]* %Array to i8*
   call void @llvm.lifetime.start(i64 200, i8* %0) #1
-  br label %vector.body
-
-vector.body:                                      ; preds = %entry
-  %1 = bitcast [100 x i16]* %Array to <8 x i16>*
-  store <8 x i16> <i16 0, i16 1, i16 2, i16 3, i16 4, i16 5, i16 6, i16 7>, <8 x i16>* %1, align 2, !tbaa !1
-  %2 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 8
-  %3 = bitcast i16* %2 to <8 x i16>*
-  store <8 x i16> <i16 8, i16 9, i16 10, i16 11, i16 12, i16 13, i16 14, i16 15>, <8 x i16>* %3, align 2, !tbaa !1
-  %4 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 16
-  %5 = bitcast i16* %4 to <8 x i16>*
-  store <8 x i16> <i16 16, i16 17, i16 18, i16 19, i16 20, i16 21, i16 22, i16 23>, <8 x i16>* %5, align 2, !tbaa !1
-  %6 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 24
-  %7 = bitcast i16* %6 to <8 x i16>*
-  store <8 x i16> <i16 24, i16 25, i16 26, i16 27, i16 28, i16 29, i16 30, i16 31>, <8 x i16>* %7, align 2, !tbaa !1
-  %8 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 32
-  %9 = bitcast i16* %8 to <8 x i16>*
-  store <8 x i16> <i16 32, i16 33, i16 34, i16 35, i16 36, i16 37, i16 38, i16 39>, <8 x i16>* %9, align 2, !tbaa !1
-  %10 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 40
-  %11 = bitcast i16* %10 to <8 x i16>*
-  store <8 x i16> <i16 40, i16 41, i16 42, i16 43, i16 44, i16 45, i16 46, i16 47>, <8 x i16>* %11, align 2, !tbaa !1
-  %12 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 48
-  %13 = bitcast i16* %12 to <8 x i16>*
-  store <8 x i16> <i16 48, i16 49, i16 50, i16 51, i16 52, i16 53, i16 54, i16 55>, <8 x i16>* %13, align 2, !tbaa !1
-  %14 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 56
-  %15 = bitcast i16* %14 to <8 x i16>*
-  store <8 x i16> <i16 56, i16 57, i16 58, i16 59, i16 60, i16 61, i16 62, i16 63>, <8 x i16>* %15, align 2, !tbaa !1
-  %16 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 64
-  %17 = bitcast i16* %16 to <8 x i16>*
-  store <8 x i16> <i16 64, i16 65, i16 66, i16 67, i16 68, i16 69, i16 70, i16 71>, <8 x i16>* %17, align 2, !tbaa !1
-  %18 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 72
-  %19 = bitcast i16* %18 to <8 x i16>*
-  store <8 x i16> <i16 72, i16 73, i16 74, i16 75, i16 76, i16 77, i16 78, i16 79>, <8 x i16>* %19, align 2, !tbaa !1
-  %20 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 80
-  %21 = bitcast i16* %20 to <8 x i16>*
-  store <8 x i16> <i16 80, i16 81, i16 82, i16 83, i16 84, i16 85, i16 86, i16 87>, <8 x i16>* %21, align 2, !tbaa !1
-  %22 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 88
-  %23 = bitcast i16* %22 to <8 x i16>*
-  store <8 x i16> <i16 88, i16 89, i16 90, i16 91, i16 92, i16 93, i16 94, i16 95>, <8 x i16>* %23, align 2, !tbaa !1
   br label %for.body
 
-for.body:                                         ; preds = %vector.body
-  %arrayidx = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 96
-  store i16 96, i16* %arrayidx, align 2, !tbaa !1
-  %arrayidx.1 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 97
-  store i16 97, i16* %arrayidx.1, align 2, !tbaa !1
-  %arrayidx.2 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 98
-  store i16 98, i16* %arrayidx.2, align 2, !tbaa !1
-  %arrayidx.3 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 99
-  store i16 99, i16* %arrayidx.3, align 2, !tbaa !1
+for.body:                                         ; preds = %entry, %for.body
+  %i.018 = phi i32 [ 0, %entry ], [ %inc, %for.body ]
+  %conv = trunc i32 %i.018 to i16
+  %arrayidx = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 %i.018
+  store i16 %conv, i16* %arrayidx, align 2, !tbaa !1
+  %inc = add nuw nsw i32 %i.018, 1
+  %cmp = icmp eq i32 %inc, 100
+  br i1 %cmp, label %for.end, label %for.body
+
+for.end:                                          ; preds = %for.body
   %arraydecay = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 0
   %incdec.ptr23.i.9 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 1
-  %24 = load i16, i16* %arraydecay, align 2, !tbaa !1
+  %1 = load i16, i16* %arraydecay, align 2, !tbaa !1
   %incdec.ptr29.i.10 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 2
-  %25 = load i16, i16* %incdec.ptr23.i.9, align 2, !tbaa !1
-  %add32.i.11 = add i16 %24, %25
+  %2 = load i16, i16* %incdec.ptr23.i.9, align 2, !tbaa !1
+  %add32.i.11 = add i16 %1, %2
   %incdec.ptr35.i.12 = getelementptr inbounds [100 x i16], [100 x i16]* %Array, i32 0, i32 3
-  %26 = load i16, i16* %incdec.ptr29.i.10, align 2, !tbaa !1
-  %add38.i.13 = add i16 %add32.i.11, %26
-  %27 = load i16, i16* %incdec.ptr35.i.12, align 2, !tbaa !1
-  %add44.i.14 = add i16 %add38.i.13, %27
+  %3 = load i16, i16* %incdec.ptr29.i.10, align 2, !tbaa !1
+  %add38.i.13 = add i16 %add32.i.11, %3
+  %4 = load i16, i16* %incdec.ptr35.i.12, align 2, !tbaa !1
+  %add44.i.14 = add i16 %add38.i.13, %4
   br label %do.body.i
 
-do.body.i:                                        ; preds = %for.body, %do.body.i
-  %add44.i17 = phi i16 [ %add44.i.14, %for.body ], [ %add44.i, %do.body.i ]
-  %n.4.i16 = phi i32 [ 13, %for.body ], [ %dec.i, %do.body.i ]
-  %from.addr.4.i15 = phi i16* [ %arraydecay, %for.body ], [ %incdec.ptr17.i, %do.body.i ]
+do.body.i:                                        ; preds = %for.end, %do.body.i
+  %add44.i17 = phi i16 [ %add44.i.14, %for.end ], [ %add44.i, %do.body.i ]
+  %n.4.i16 = phi i32 [ 13, %for.end ], [ %dec.i, %do.body.i ]
+  %from.addr.4.i15 = phi i16* [ %arraydecay, %for.end ], [ %incdec.ptr17.i, %do.body.i ]
   %incdec.ptr41.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 4
   %dec.i = add nsw i32 %n.4.i16, -1
   %incdec.ptr.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 5
-  %28 = load i16, i16* %incdec.ptr41.i, align 2, !tbaa !1
-  %add2.i = add i16 %28, %add44.i17
+  %5 = load i16, i16* %incdec.ptr41.i, align 2, !tbaa !1
+  %add2.i = add i16 %5, %add44.i17
   %incdec.ptr5.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 6
-  %29 = load i16, i16* %incdec.ptr.i, align 2, !tbaa !1
-  %add8.i = add i16 %add2.i, %29
+  %6 = load i16, i16* %incdec.ptr.i, align 2, !tbaa !1
+  %add8.i = add i16 %add2.i, %6
   %incdec.ptr11.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 7
-  %30 = load i16, i16* %incdec.ptr5.i, align 2, !tbaa !1
-  %add14.i = add i16 %add8.i, %30
+  %7 = load i16, i16* %incdec.ptr5.i, align 2, !tbaa !1
+  %add14.i = add i16 %add8.i, %7
   %incdec.ptr17.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 8
-  %31 = load i16, i16* %incdec.ptr11.i, align 2, !tbaa !1
-  %add20.i = add i16 %add14.i, %31
+  %8 = load i16, i16* %incdec.ptr11.i, align 2, !tbaa !1
+  %add20.i = add i16 %add14.i, %8
   %incdec.ptr23.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 9
-  %32 = load i16, i16* %incdec.ptr17.i, align 2, !tbaa !1
-  %add26.i = add i16 %32, %add20.i
+  %9 = load i16, i16* %incdec.ptr17.i, align 2, !tbaa !1
+  %add26.i = add i16 %9, %add20.i
   %incdec.ptr29.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 10
-  %33 = load i16, i16* %incdec.ptr23.i, align 2, !tbaa !1
-  %add32.i = add i16 %add26.i, %33
+  %10 = load i16, i16* %incdec.ptr23.i, align 2, !tbaa !1
+  %add32.i = add i16 %add26.i, %10
   %incdec.ptr35.i = getelementptr inbounds i16, i16* %from.addr.4.i15, i32 11
-  %34 = load i16, i16* %incdec.ptr29.i, align 2, !tbaa !1
-  %add38.i = add i16 %add32.i, %34
-  %35 = load i16, i16* %incdec.ptr35.i, align 2, !tbaa !1
-  %add44.i = add i16 %add38.i, %35
+  %11 = load i16, i16* %incdec.ptr29.i, align 2, !tbaa !1
+  %add38.i = add i16 %add32.i, %11
+  %12 = load i16, i16* %incdec.ptr35.i, align 2, !tbaa !1
+  %add44.i = add i16 %add38.i, %12
   %cmp.i = icmp sgt i32 %dec.i, 1
   br i1 %cmp.i, label %do.body.i, label %sum.exit
 

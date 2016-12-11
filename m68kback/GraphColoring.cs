@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace m68kback
 {
+    /// <summary>
+    /// Implements graph coloring register allocation with coalescing as described in:
+    /// Andrew Appel: Modern Compiler Implementation in Java, 2nd edition, 2004.
+    /// </summary>
     public class GraphColoring
     {
         private InterferenceGraph _graph;
@@ -36,13 +39,6 @@ namespace m68kback
                     precolored.AddRange(Enumerable.Range(0, k).Select(n => "A" + n));
                     break;
             }
-
-            //            Build(Liveness());
-
-            // Build
-            // Simplify
-            // Spill
-            // Select
         }
 
         public GraphColoring(IList<CfgNode> nodes)
@@ -329,24 +325,6 @@ namespace m68kback
                 i.Register1 = reg1newtemp ?? i.Register1;
                 i.Register2 = reg2newtemp ?? i.Register2;
 
-                /*newCode.Add(new M68kInstruction
-                {
-                    Opcode = i.Opcode,
-                    Register1 = reg1newtemp ?? i.Register1,
-                    Register2 = reg2newtemp ?? i.Register2,
-                    FinalRegister1 = i.FinalRegister1,
-                    FinalRegister2 = i.FinalRegister2,
-                    AddressingMode1 = i.AddressingMode1,
-                    AddressingMode2 = i.AddressingMode2,
-                    Immediate = i.Immediate,
-                    Offset = i.Offset,
-                    Label = i.Label,
-                    TargetLabel = i.TargetLabel,
-                    DefsUses = i.DefsUses,
-                    Comment = i.Comment,
-                    Variable = i.Variable
-                });*/
-
                 if (r2 != null && spilledNodes.Contains(r2.ToString()))
                 {
                     // Def
@@ -358,8 +336,6 @@ namespace m68kback
                         Opcode = M68kOpcode.Move,
                         FinalRegister2 = M68kRegister.SP,
                         AddressingMode2 = M68kAddressingMode.AddressWithOffset,
-                        //Offset = GetLocationForSpill(i.Register2.ToString()) * 4 + spillStartInStack,
-                        //Comment = $"Spilled reg {i.Register2} store"
                         Offset = GetLocationForSpill(r2.ToString()) * 4 + spillStartInStack,
                         Comment = $"Spilled reg {r2} store"
                     });
@@ -379,8 +355,6 @@ namespace m68kback
 
         private void AssignColors()
         {
-            //Debug.Assert(selectStack.Count == selectStack.Distinct().Count());
-
             while (selectStack.Count > 0)
             {
                 var n = selectStack.Pop();

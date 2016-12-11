@@ -21,42 +21,15 @@ namespace m68kback
         {
             CfgNode prev = null;
 
-            var labels = new Dictionary<string,int>();
-            //var currLabels = new List<string>();
             var defs = new List<string>();
-
-            /*for (int i = 0; i < code.Count; i++)
-            {
-                if (code[i].Opcode == M68kOpcode.Label)
-                {
-                    currLabels.Add(code[i].Label);
-                }
-                else if (currLabels.Count > 0)
-                {
-                    foreach (var label in currLabels)
-                    {
-                        labels[label] = i;
-                    }
-                    currLabels.Clear();
-                }
-            }*/
 
             var nodes = new List<CfgNode>();
 
-            //M68kInstruction prevLab = null;
-
-            for (int i = 0; i < code.Count; i++)
+            foreach (M68kInstruction t in code)
             {
-                /*if (code[i].Opcode == M68kOpcode.Label)
-                {
-                    prevLab = code[i];
-                    nodes.Add(null);
-                    continue;
-                }*/
-
                 var node = new CfgNode();
                 nodes.Add(node);
-                node.Instruction = code[i];
+                node.Instruction = t;
 
                 // TODO: For address registers, this is not enough!!
                 /*if (code[i].Register2 != null && code[i].Register2.Type == regType)
@@ -69,7 +42,7 @@ namespace m68kback
                     node.Def.Add(def);
                 }*/
 
-                var idefs = code[i].Def(regType).ToList();
+                var idefs = t.Def(regType).ToList();
                 foreach (var def in idefs)
                 {
                     if (!defs.Contains(def))
@@ -81,14 +54,14 @@ namespace m68kback
 
                 if (prev != null && 
                     (!prev.Instruction.IsBranch() || 
-                    (prev.Instruction.IsBranch() && prev.Instruction.TargetLabel == node.Instruction.Label)
-                    || prev.Instruction.IsConditionalBranch()))
+                     (prev.Instruction.IsBranch() && prev.Instruction.TargetLabel == node.Instruction.Label)
+                     || prev.Instruction.IsConditionalBranch()))
                 {
                     prev.Succ.Add(node);
                     node.Pred.Add(prev);
                 }
 
-                if (code[i].Opcode != M68kOpcode.Rts)
+                if (t.Opcode != M68kOpcode.Rts)
                 {
                     prev = node;
                 }
@@ -114,12 +87,6 @@ namespace m68kback
             }
 
             IterativeDataFlowAnalysis(nodes, regType);
-
-            /*var n = nodes.First(e => e != null);
-            foreach (var i in Enumerable.Range(2, 6))
-            {
-                n.In.Add("D" + i);
-            }*/
 
             _nodes = nodes;
         }

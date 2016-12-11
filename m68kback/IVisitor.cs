@@ -4,7 +4,9 @@ namespace m68kback
     {
         object Visit(Program el);
         object Visit(FunctionDefinition el);
+        object Visit(StructExpression expr);
         object Visit(AllocaExpression allocaExpression);
+        object Visit(CastExpression expression);
         object Visit(CallExpression callExpression);
         object Visit(ArithmeticExpression arithmeticExpression);
         object Visit(IntegerConstant integerConstant);
@@ -12,7 +14,7 @@ namespace m68kback
         object Visit(GetElementPtr getElementPtr);
         object Visit(VariableReference variableReference);
         object Visit(ExpressionStatement expressionStatement);
-        object Visit(TypeDeclaration typeDeclaration);
+        object Visit(TypeReference typeReference);
         object Visit(RetStatement retStatement);
         object Visit(SwitchStatement statement);
         object Visit(IcmpExpression icmpExpression);

@@ -11,12 +11,38 @@ namespace m68kback
 
     public abstract class Expression : AstBase
     {
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
+    }
+
+    public class StructField
+    {
+        public TypeReference Type { get; set; }
+        public Expression Value { get; set; }
+        public bool InitializeToZero { get; set; }
+    }
+
+    public class StructExpression : Expression
+    {
+        public IList<StructField> Values { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
     }
 
     public class AllocaExpression : Expression
     {
         public int Alignment { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
+    public class CastExpression : Expression
+    {
+        public Token CastType { get; set; }
+        public Expression Value { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
@@ -40,7 +66,7 @@ namespace m68kback
         public Token Operator { get; set; }
         public Expression Operand1 { get; set; }
         public Expression Operand2 { get; set; }
-        public TypeDeclaration To { get; set; }
+        public TypeReference To { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
@@ -67,15 +93,14 @@ namespace m68kback
 
     public class GetElementPtr : Expression
     {
-        public TypeDeclaration PtrType { get; set; }
-        public string PtrVar { get; set; }
+        public TypeReference PtrType { get; set; }
+        //public string PtrVar { get; set; }
+        public Expression PtrVal { get; set; }
         public List<Expression> Indices { get; set; } = new List<Expression>();
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
         }
-
-
     }
 
     public class VariableReference : Expression
@@ -101,7 +126,7 @@ namespace m68kback
         }
     }
 
-    public abstract class TypeDeclaration : AstBase
+    public abstract class TypeReference : AstBase
     {
         public abstract int Width { get; }
 
@@ -111,27 +136,33 @@ namespace m68kback
         }
     }
 
-    public class DefinedTypeDeclaration : TypeDeclaration
+    public class DefinedTypeReference : TypeReference
     {
-        public DefinedTypeDeclaration(TypeDefinition typeDef)
+        public DefinedTypeReference(string name)
+        {
+            Name = name;
+        }
+
+        public DefinedTypeReference(TypeDefinition typeDef)
         {
             Type = typeDef;
         }
+        public string Name { get; set; }
         public TypeDefinition Type { get; set; }
         public override int Width => Type.Width;
     }
 
-    public abstract class IndirectTypeDeclaration : TypeDeclaration
+    public abstract class IndirectTypeReference : TypeReference
     {
-        public TypeDeclaration BaseType { get; set; }
+        public TypeReference BaseType { get; set; }
     }
 
-    public class PointerDeclaration : IndirectTypeDeclaration
+    public class PointerReference : IndirectTypeReference
     {
         public override int Width => 4;
     }
 
-    public class ArrayDeclaration : IndirectTypeDeclaration
+    public class ArrayReference : IndirectTypeReference
     {
         public override int Width => BaseType.Width * ArrayX;
         public int ArrayX { get; set; }
@@ -139,7 +170,7 @@ namespace m68kback
 
     public class RetStatement : Statement
     {
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
         //public string Value { get; set; }
         public Expression Value { get; set; }
         public override object Visit(IVisitor visitor)
@@ -156,7 +187,7 @@ namespace m68kback
 
     public class SwitchStatement : Statement
     {
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
         public Expression Value { get; set; }
         public string DefaultLabel { get; set; }
 
@@ -190,7 +221,7 @@ namespace m68kback
 
     public class ConditionalBrStatement : Statement
     {
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
         public string Identifier { get; set; }
         public string Label1 { get; set; }
         public string Label2 { get; set; }
@@ -226,9 +257,9 @@ namespace m68kback
 
     public class StoreStatement : Statement
     {
-        public TypeDeclaration ExprType { get; set; }
+        public TypeReference ExprType { get; set; }
         public Expression Value { get; set; }
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
         public string Variable { get; set; }
         public override object Visit(IVisitor visitor)
         {
@@ -287,7 +318,7 @@ namespace m68kback
 
     public class UserTypeDefinition : TypeDefinition
     {
-        public List<TypeDeclaration> Members { get; } = new List<TypeDeclaration>();
+        public List<TypeReference> Members { get; } = new List<TypeReference>();
 
         public override int Width
         {
@@ -297,14 +328,14 @@ namespace m68kback
 
     public class FunctionParameter
     {
-        public TypeDeclaration Type { get; set; }
+        public TypeReference Type { get; set; }
         public string Name { get; set; }
     }
 
     public class FunctionDefinition : AstBase
     {
         public string Name { get; set; }
-        public TypeDeclaration ReturnType { get; set; }
+        public TypeReference ReturnType { get; set; }
         public List<Statement> Statements { get; set; } = new List<Statement>();
         public List<FunctionParameter> Parameters { get; set; } = new List<FunctionParameter>();
 
@@ -314,10 +345,16 @@ namespace m68kback
         }
     }
 
+    /// <summary>
+    /// For example, function forware declaration
+    /// </summary>
     public class Declaration : AstBase
     {
         public string Name { get; set; }
         public string Value { get; set; }
+        public Expression Expr { get; set; }
+        public TypeReference Type { get; set; }
+        public bool InitializeToZero { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
@@ -328,6 +365,8 @@ namespace m68kback
     {
         public List<FunctionDefinition> Functions { get; set; } = new List<FunctionDefinition>();
         public List<Declaration> Declarations { get; set; } = new List<Declaration>();
+        public List<TypeDefinition> TypeDefinitions { get; set; } = new List<TypeDefinition>();
+
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
