@@ -27,7 +27,7 @@ namespace m68kback
                 var codeGenerator = new CodeGenerator();
                 codeGenerator.Visit(prg);
 
-                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Declare))
+                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Declare || d.Value.External))
                 {
                     //if (decl.Value.Value == null && decl.Value.Expr == null)
                     {
@@ -50,9 +50,9 @@ namespace m68kback
                     }
                 }
 
-                Console.WriteLine("         section __MERGED,DATA");
+                Console.WriteLine("         section data,DATA");
 
-                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Global))
+                foreach (var decl in codeGenerator.Globals.Where(d => (d.Value.Global || d.Value.Constant) && !d.Value.External))
                 {
                     if (decl.Value.Value != null)
                     {
@@ -99,7 +99,18 @@ namespace m68kback
                 else if (val.Value is IntegerConstant)
                 {
                     var constant = val.Value as IntegerConstant;
-                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L"))+ "   " + constant.Constant);
+                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
+                                      "   " + constant.Constant);
+                }
+                else if(val.Value == null)
+                {
+                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
+                                      "   0");
+                }
+                else
+                {
+                    Console.Write("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")));
+                    Console.WriteLine($"    {M68kInstruction.ConvertLabel(((VariableReference)((GetElementPtr)val.Value).PtrVal).Variable)}");
                 }
             }
         }

@@ -112,6 +112,17 @@ namespace m68kback
         }
     }
 
+    public class SelectExpression : Expression
+    {
+        public Expression Expr { get; set; }
+        public Expression TrueExpression { get; set; }
+        public Expression FalseExpression { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
     public abstract class Statement : AstBase
     {
         public string Label { get; set; }
@@ -260,7 +271,8 @@ namespace m68kback
         public TypeReference ExprType { get; set; }
         public Expression Value { get; set; }
         public TypeReference Type { get; set; }
-        public string Variable { get; set; }
+        public Expression PtrExpr { get; set; }
+
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);
@@ -357,6 +369,8 @@ namespace m68kback
         public bool InitializeToZero { get; set; }
         public bool Declare { get; set; }
         public bool Global { get; set; }
+        public bool Constant { get; set; }
+        public bool External { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);

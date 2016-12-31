@@ -90,6 +90,11 @@ namespace m68kback
             return null;
         }
 
+        public object Visit(SelectExpression expr)
+        {
+            return null;
+        }
+
         public object Visit(IntegerConstant integerConstant)
         {
             return null;
@@ -155,9 +160,18 @@ namespace m68kback
             return null;
         }
 
+        //Dictionary<string,Register> varRegs = new Dictionary<string, Register>();
+
         public object Visit(VariableAssignmentStatement variableAssignmentStatement)
         {
             return variableAssignmentStatement.Expr.Visit(this);
+
+            /*if (variableAssignmentStatement.Expr.Type is PointerReference)
+            {
+                varRegs[variableAssignmentStatement.Variable] = NewAddress
+            }
+
+            return null;*/
         }
 
         Dictionary<string,Declaration> declarations = new Dictionary<string, Declaration>();

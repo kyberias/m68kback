@@ -22,6 +22,7 @@
 #include <proto/exec.h>
 #include <proto/graphics.h>
 #include <proto/intuition.h>
+#include <stdio.h>
 
 USHORT wakeup;	/* Wake me up for event */
 USHORT class;	/* Intu event class */
@@ -66,15 +67,26 @@ void main(void)
 	register int k,co;
 	register long j;
 
+	//*SysBase = (struct ExecBase*)4L;
+
+	printf("IB = %08X\n", IntuitionBase);
+
+	IntuitionBase = OpenLibrary("intuition.library", 0L);
+
+	GfxBase = OpenLibrary("graphics.library", 0L);
+
 /************************ Set-Up routines **********************************/
 /*      Let the auto init code open our libraries for us.                  */
 
 	w = OpenWindow(&nw);
+	printf("w = %08X\n", w);
 	rp = w->RPort;			/* Get the raster port pointer */
-	vp = &w->WScreen->ViewPort;	/* Get the view port pointer */
+	//vp = &w->WScreen->ViewPort;	/* Get the view port pointer */
+	printf("rp = %08X\n", rp);
 	SetAPen(rp,3);			/* Set foreground pen to white */
 	SetDrMd(rp,JAM1);		/* Draw with foreground pen */
 
+	printf("w = %08X\n", w);
 	xlim = w->Width;
 	ylim = w->Height;
 	for(i=0;i<2;i++)
@@ -86,6 +98,7 @@ void main(void)
 	}
 	co = 1;
 	j = 0;
+	printf("loopit!\n");
 	do {
 #ifndef NOERASE
 		SetAPen(rp,0);

@@ -282,7 +282,8 @@ namespace m68kback
             AcceptElement(Token.Comma);
 
             expr.Type = ParseType();
-            expr.Variable = AcceptElement(Token.LocalIdentifier, Token.GlobalIdentifier).Data;
+
+            expr.PtrExpr = ParseExpression();
 
             if (PeekElement().Type == Token.Comma)
             {
@@ -349,12 +350,23 @@ namespace m68kback
         CastExpression ParseCastExpression()
         {
             var expr = new CastExpression();
-            expr.CastType = AcceptElement(Token.Bitcast, Token.Trunc, Token.Sext).Type;
+            expr.CastType = AcceptElement(Token.Bitcast, Token.Trunc, Token.Sext, Token.Inttoptr).Type;
+
+            var paren = false;
+            if (expr.CastType == Token.Bitcast)
+            {
+                paren = AcceptElementIfNext(Token.ParenOpen);
+            }
 
             expr.Type = ParseType();
             expr.Value = ParseExpression();
             AcceptElement(Token.To);
             expr.Type = ParseType();
+
+            if (paren)
+            {
+                AcceptElement(Token.ParenClose);
+            }
 
             return expr;
         }
@@ -380,12 +392,6 @@ namespace m68kback
             AcceptElement(Token.ParenClose);
             return bc;
         }
-
-        // <result> = [tail | musttail | notail ] 
-        //            call [fast-math flags] [cconv] [ret attrs] 
-        //                 <ty>|<fnty> <fnptrval>(<function args>) [fn attrs] [operand bundles]
-        //[TestCase("define i32 @main() #0 { %call5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @\"\\01??_C@_0N@GIINEEDM@hello?5world?6?$AA@\", i32 0, i32 0))\n }")]
-        //[TestCase("define i32 @main() #0 { %call1 = call i32 bitcast (i32 (...)* @atoi to i32 (i8*)*)(i8* %3) }")]
 
         CallExpression ParseCallExpression()
         {
@@ -478,7 +484,7 @@ namespace m68kback
         {
             var expr = new ArithmeticExpression();
             expr.Operator = AcceptElement(Token.Mul, Token.Sdiv, Token.Add, Token.Sub, Token.Srem, Token.Xor, Token.Zext, Token.And, Token.Or,
-                Token.Ashr).Type;
+                Token.Ashr, Token.Lshr).Type;
 
             if (AcceptElementIfNext(Token.Nuw))
             {
@@ -569,10 +575,29 @@ namespace m68kback
             return expr;
         }
 
+        SelectExpression ParseSelect()
+        {
+            var expr = new SelectExpression();
+            AcceptElement(Token.Select);
+            expr.Type = ParseType();
+            expr.Expr = ParseExpression();
+            AcceptElement(Token.Comma);
+            var ttype = ParseType();
+            expr.TrueExpression = ParseExpression();
+            expr.TrueExpression.Type = ttype;
+            AcceptElement(Token.Comma);
+            var ftype = ParseType();
+            expr.FalseExpression = ParseExpression();
+            expr.FalseExpression.Type = ftype;
+            return expr;
+        }
+
         Expression ParseExpression()
         {
             switch (PeekElement().Type)
             {
+                case Token.Select:
+                    return ParseSelect();
                 case Token.CurlyBraceOpen:
                     return ParseStructExpression();
                 case Token.Alloca:
@@ -580,6 +605,7 @@ namespace m68kback
                 case Token.Bitcast:
                 case Token.Trunc:
                 case Token.Sext:
+                case Token.Inttoptr:
                     return ParseCastExpression();
                 case Token.Tail:
                 case Token.Call:
@@ -596,6 +622,7 @@ namespace m68kback
                 case Token.And:
                 case Token.Or:
                 case Token.Ashr:
+                case Token.Lshr:
                     return ParseArithmeticExpression();
                 case Token.GetElementPtr:
                     return ParseGetElementPtr();
@@ -605,7 +632,6 @@ namespace m68kback
                     return ParsePhi();
             }
 
-            //var type = ParseType();
             var peek = PeekElement().Type;
 
             switch (peek)
@@ -670,14 +696,6 @@ namespace m68kback
                     stmt.Value = ParseExpression();
                 }
             }
-            /*switch (stmt.Type.Type)
-            {
-                case Token.I32:
-                    stmt.Value = AcceptElement(Token.IntegerLiteral).Data;
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }*/
             return stmt;
         }
 
@@ -685,7 +703,7 @@ namespace m68kback
         {
             var stmt = new IcmpExpression();
             AcceptElement(Token.Icmp);
-            stmt.Condition = AcceptElement(Token.Slt, Token.Sgt, Token.Eq, Token.Ne).Type;
+            stmt.Condition = AcceptElement(Token.Slt, Token.Sgt, Token.Eq, Token.Ne, Token.Ult).Type;
             stmt.Type = ParseType();
 
             stmt.Var = AcceptElement(Token.GlobalIdentifier, Token.LocalIdentifier).Data;
@@ -806,6 +824,9 @@ namespace m68kback
                 AcceptElement(Token.Assign);
 
                 AcceptElementIfNext(Token.Common);
+                AcceptElementIfNext(Token.Private);
+                bool ext = AcceptElementIfNext(Token.External);
+                decl.External = ext;
 
                 if (PeekElement().Type == Token.Global)
                 {
@@ -814,19 +835,22 @@ namespace m68kback
                     decl.Type = ParseType();
                     Debug.Assert(decl.Type != null);
 
-                    if (AcceptElementIfNext(Token.ZeroInitializer))
+                    if (!ext)
                     {
-                        decl.InitializeToZero = true;
-                    }
-                    else
-                    {
-                        if (PeekElement().Type != Token.Null)
+                        if (AcceptElementIfNext(Token.ZeroInitializer))
                         {
-                            decl.Expr = ParseExpression();
+                            decl.InitializeToZero = true;
                         }
                         else
                         {
-                            AcceptElement(Token.Null);
+                            if (PeekElement().Type != Token.Null)
+                            {
+                                decl.Expr = ParseExpression();
+                            }
+                            else
+                            {
+                                AcceptElement(Token.Null);
+                            }
                         }
                     }
                 }
@@ -837,10 +861,7 @@ namespace m68kback
                         AcceptElement(Token.Symbol);
                     }
 
-                    if (PeekElement().Type == Token.Constant)
-                    {
-                        AcceptElement(Token.Constant);
-                    }
+                    decl.Constant = AcceptElementIfNext(Token.Constant);
 
                     if (PeekElement().Type == Token.BracketOpen)
                     {
@@ -853,16 +874,18 @@ namespace m68kback
                     decl.Value = AcceptElement(Token.StringLiteral).Data;
                 }
 
-                AcceptElement(Token.Comma);
-
-                if(PeekElement().Type == Token.Comdat)
+                if (AcceptElementIfNext(Token.Comma))
                 {
-                    AcceptElement(Token.Comdat);
-                    AcceptElement(Token.Comma);
-                }
 
-                AcceptElement(Token.Align);
-                AcceptElement(Token.IntegerLiteral);
+                    if (PeekElement().Type == Token.Comdat)
+                    {
+                        AcceptElement(Token.Comdat);
+                        AcceptElement(Token.Comma);
+                    }
+
+                    AcceptElement(Token.Align);
+                    AcceptElement(Token.IntegerLiteral);
+                }
             }
             else if (PeekElement().Type == Token.Declare)
             {
@@ -945,24 +968,11 @@ namespace m68kback
 
                 if (types.Contains(el.Type))
                 {
-//                    Console.WriteLine($"Accept {el.Type} {el.Data}");
                     cursor++;
                     return el;
                 }
 
                 throw new Exception("Expected " + types[0] + ". Unexpected token " + el.Type + " " + (el.Data ?? ""));
-
-                //                if (Errors.Count == 0 || Errors.Last().Type != ParserErrorType.UnexpectedToken)
-                {
-                    /*Errors.Add(new ParserError
-                    {
-                        Type = ParserErrorType.UnexpectedToken,
-                        Column = el.Column,
-                        Line = el.Line
-                    });*/
-                    //cursor++;
-                    //return new TokenElement(type, el.Data);
-                }
             }
         }
     }

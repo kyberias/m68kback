@@ -10,7 +10,7 @@ int main(int argc, char**argv)
 	printf("argv[1] = %08X\n", argv[1]);
 	if (argv[1])
 	{
-		printf("argv[1] = %s\n", argv[1]);
+		printf("argv[1] = %s %d\n", argv[1], atoi(argv[1]) + 2);
 	}
 	printf("Exiting with %d...\n", 42);
 	return 42;

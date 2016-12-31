@@ -12,10 +12,13 @@ namespace m68kback
         {
             { "global", Token.Global },
             { "common", Token.Common },
+            { "private", Token.Private },
+            { "external", Token.External },
             { "target", Token.Target },
             { "datalayout", Token.Datalayout },
             { "triple", Token.Triple },
             { "comdat", Token.Comdat },
+            { "constant", Token.Constant },
             { "any", Token.Any },
             { "define", Token.Define },
             { "void", Token.Void },
@@ -51,6 +54,7 @@ namespace m68kback
             { "label", Token.Label },
             { "br", Token.Br },
             { "icmp", Token.Icmp },
+            { "lshr", Token.Lshr },
             { "eq", Token.Eq },
             { "ne", Token.Ne },
             { "sgt", Token.Sgt },
@@ -61,6 +65,7 @@ namespace m68kback
             { "phi", Token.Phi },
             { "bitcast", Token.Bitcast },
             { "trunc", Token.Trunc },
+            { "inttoptr", Token.Inttoptr },
             { "to", Token.To },
             { "attributes", Token.Attributes },
             { "nocapture", Token.NoCapture },
@@ -69,6 +74,8 @@ namespace m68kback
             { "true", Token.True },
             { "false", Token.False },
             { "switch", Token.Switch},
+            { "ult", Token.Ult},
+            { "select", Token.Select }
         };
 
         Regex CreateRegex()

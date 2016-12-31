@@ -70,6 +70,27 @@ ret3:
             return (int)emul.Regs[0];
         }
 
+        [Test]
+        public void GetElementPtr()
+        {
+            var source = @"
+%struct.MsgPort = type { %struct.Node, i8, i8, i8*, %struct.List }
+%struct.Node = type { %struct.Node*, %struct.Node*, i8, i8, i8* }
+%struct.List = type { %struct.Node*, %struct.Node*, %struct.Node*, i8, i8 }
+%struct.Message = type { %struct.Node, %struct.MsgPort*, i16 }
+
+define i32 @main(%struct.Message* %par1) #0 {
+  %Code = getelementptr inbounds %struct.Message, %struct.Message* %par1, i32 1, i32 0, i32 1
+  %40 = bitcast %struct.Node** %Code to i32
+    ret i32 %40
+}";
+            var emul = RunFunction(source, "@main", 0);
+
+//            Assert.IsTrue(emul.Instructions.Count < 20);
+
+  //          return (int)emul.Regs[0];
+        }
+
 
         [TestCase(6, 4, ExpectedResult = 6)]
         [TestCase(4, 6, ExpectedResult = 6)]

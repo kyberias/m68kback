@@ -9,6 +9,7 @@ namespace m68kback
         object Visit(CastExpression expression);
         object Visit(CallExpression callExpression);
         object Visit(ArithmeticExpression arithmeticExpression);
+        object Visit(SelectExpression expr);
         object Visit(IntegerConstant integerConstant);
         object Visit(BooleanConstant constant);
         object Visit(GetElementPtr getElementPtr);
