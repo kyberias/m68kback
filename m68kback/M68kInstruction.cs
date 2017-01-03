@@ -4,7 +4,6 @@ using System.Text;
 
 namespace m68kback
 {
-
     public enum M68kOpcode
     {
         Label,
@@ -264,7 +263,6 @@ namespace m68kback
             }
             return false;
         }
-
         public bool IsConditionalBranch()
         {
             switch (Opcode)
