@@ -871,7 +871,7 @@ namespace m68kback
             public Declaration Declaration { get; set; }
         }
 
-        public List<Reloc> Relocs { get; set; } = new List<Reloc>();
+        //public List<Reloc> Relocs { get; set; } = new List<Reloc>();
 
         void CalculatePtr(GetElementPtr getElementPtr, Register addr)
         {
@@ -1002,13 +1002,14 @@ namespace m68kback
                     Variable = decl.Name, //varref.Variable,
                     AddressingMode2 = M68kAddressingMode.Register,
                     Register2 = newReg,
-                    Comment = $"getelementptr (declaration {decl.Name})"
+                    //Comment = $"getelementptr (declaration {decl.Name})"
                 });
-                Relocs.Add(new Reloc
+                CalculatePtr(getElementPtr, newReg);
+                /*Relocs.Add(new Reloc
                 {
                     Index = Instructions.Count - 1,
-                    Declaration = Globals[ /*varref.Variable*/decl.Name]
-                });
+                    Declaration = Globals[ decl.Name]
+                });*/
                 return newReg;
             }
 

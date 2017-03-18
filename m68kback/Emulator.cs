@@ -1,6 +1,5 @@
 ﻿#define PRINTSTATES
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,21 +16,27 @@ namespace m68kback
         Dictionary<string, uint> globalAddress = new Dictionary<string, uint>();
         private IPrintf printf;
 
-        public Emulator(IList<M68kInstruction> insts, Dictionary<string, Declaration> globals, IPrintf printf)
+        public Dictionary<string, Func<IStackAccess,uint>> Functions { get; set; } = new Dictionary<string, Func<IStackAccess, uint>>();
+
+        public Emulator(IList<M68kInstruction> insts, Dictionary<string, Declaration> globals, 
+            IPrintf printf)
         {
             this.printf = printf;
             instructions = insts;
 
-            foreach (var g in globals)
+            foreach (var g in globals.Where(g => !g.Value.Declare))
             {
-                if (g.Value.Value != null)
+                //if (g.Value.Value != null)
                 {
                     globalAddress[g.Key] = globalUsed;
 
-                    var bytes = Encoding.ASCII.GetBytes(g.Value.Value);
-                    Array.Copy(bytes, 0, memory, (int)globalUsed, bytes.Length);
+                    if (g.Value.Value != null)
+                    {
+                        var bytes = Encoding.ASCII.GetBytes(g.Value.Value);
+                        Array.Copy(bytes, 0, memory, (int) globalUsed, bytes.Length);
+                    }
 
-                    globalUsed += (uint) g.Value.Value.Length;
+                    globalUsed += (uint) g.Value.Type.Width;
 
                     // align to 4 bytes
                     globalUsed = (globalUsed + 3)/4 * 4;
@@ -243,7 +248,12 @@ namespace m68kback
                                 {
                                     //var strPtr = memory[Sp + 4];
                                     var strPtr = Read32(Sp);
-                                    Regs[0] = printf.printf(NullTerminatedToString(memory, (int)strPtr), this);
+                                    Regs[0] = printf.printf(NullTerminatedToString(memory, (int) strPtr), this);
+                                }
+                                else
+                                {
+                                    var func = Functions[i.TargetLabel];
+                                    Regs[0] = func(this);
                                 }
                             }
                         }
@@ -406,11 +416,34 @@ namespace m68kback
                     case M68kOpcode.Lsl:
                         Regs[(int) i.FinalRegister2] = Regs[(int) i.FinalRegister2] << i.Immediate.Value;
                         break;
+                    case M68kOpcode.Lsr:
+                    {
+                        var shifter = i.AddressingMode1 == M68kAddressingMode.Immediate
+                            ? (uint)i.Immediate.Value
+                            : Regs[(int) i.FinalRegister1];
+                            Regs[(int) i.FinalRegister2] = Regs[(int) i.FinalRegister2] >> (int)shifter;
+                        }
+                        break;
                     case M68kOpcode.Tst:
                         {
                             var val = i.FinalRegister1.HasValue ? (int)Regs[(int)i.FinalRegister1] : i.Immediate;
                             Z = val == 0;
                             N = val < 0;
+                        }
+                        break;
+                    case M68kOpcode.Divs:
+                        {
+                            if (i.Width == M68Width.Word || i.Width == null)
+                            {
+                                var divResult = (int) Regs[(int) i.FinalRegister2]/(int) Regs[(int) i.FinalRegister1];
+                                var modResult = (int) Regs[(int) i.FinalRegister2]%(int) Regs[(int) i.FinalRegister1];
+                                var res = modResult << 16 | divResult & 0xFFFF;
+                                Regs[(int) i.FinalRegister2] = (uint) res;
+                            }
+                            else
+                            {
+                                throw new NotSupportedException();
+                            }
                         }
                         break;
                     default:

@@ -89,31 +89,47 @@ void main(void)
 	printf("w = %08X\n", w);
 	xlim = w->Width;
 	ylim = w->Height;
+	printf("xlim = %d, ylim=%d\n", xlim, ylim);
 	for(i=0;i<2;i++)
 	{
+		printf("i = %d\n", i);
 		x[i] = rand() % xlim + 1;
+		printf("x[]=%d, y[]=%d, xd[]=%d, yd[]=%d\n", x[i], y[i], xd[i], yd[i]);
 		y[i] = rand() % ylim + 1;
+		printf("x[]=%d, y[]=%d, xd[]=%d, yd[]=%d\n", x[i], y[i], xd[i], yd[i]);
 		xd[i] = rand() % 10 + 1;
+		printf("x[]=%d, y[]=%d, xd[]=%d, yd[]=%d\n", x[i], y[i], xd[i], yd[i]);
 		yd[i] = rand() % 10 + 1;
+		printf("x[]=%d, y[]=%d, xd[]=%d, yd[]=%d\n", x[i], y[i], xd[i], yd[i]);
 	}
+
+	CloseWindow(w);
+	return;
 	co = 1;
 	j = 0;
-	printf("loopit!\n");
 	do {
+		printf("loopit!\n");
+
+		printf("Move %d, %d", ox[0][j & 15], oy[0][j & 15]);
+		printf("Draw %d, %d", ox[1][j & 15], oy[1][j & 15]);
 #ifndef NOERASE
 		SetAPen(rp,0);
 		Move(rp,ox[0][j & 15],oy[0][j & 15]);
 		Draw(rp,ox[1][j & 15 ],oy[1][j & 15]);
 #endif
 		SetAPen(rp,co);
+		printf("Move %d, %d", x[0], y[0]);
+		printf("Draw %d, %d", x[1], y[1]);
 		Move(rp,x[0],y[0]);
 		Draw(rp,x[1],y[1]);
+
 		if((rand() & 127) < 2)
 		{
 			++co;
 			if(co > 3)	co = 1;
 			SetAPen(rp,co);
 		}
+		printf("loopit 2!\n");
 		for(i=0;i<2;i++)
 		{
 			ox[i][(j+10) & 15] = x[i];
@@ -155,12 +171,15 @@ void main(void)
 				k = 0;
 			}
 		}
+		printf("loopit 3!\n");
 		++j;
 		if (w->UserPort->mp_SigBit)
 		{
+			printf("Signal bit!\n");
 			message = (struct IntuiMessage *)GetMsg(w->UserPort);
 			if(message != NULL)
 			{
+				printf("Message!\n");
 				class = message->Class;
 				code = message->Code;
 				ReplyMsg((struct Message *)message);

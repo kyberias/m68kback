@@ -91,6 +91,51 @@ define i32 @main(%struct.Message* %par1) #0 {
   //          return (int)emul.Regs[0];
         }
 
+        [TestCase(1,2,ExpectedResult = 3)]
+        public int GetElementPtrArray(int a, int b)
+        {
+            var source = @"
+@x = common global [2 x i32] zeroinitializer, align 4
+
+define i32 @main(i32 %par1, i32 %par2) #0 {
+  store i32 %par1, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @x, i32 0, i32 0), align 4, !tbaa !1
+  store i32 %par2, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @x, i32 0, i32 1), align 4, !tbaa !1
+
+  %0 = load i32, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @x, i32 0, i32 0), align 4, !tbaa !1
+  %1 = load i32, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @x, i32 0, i32 1), align 4, !tbaa !1
+
+  %res = add i32 %0, %1
+
+    ret i32 %res
+}";
+            var emul = RunFunction(source, "@main", a, b);
+            return (int)emul.Regs[0];
+        }
+
+        [TestCase(5, 2, ExpectedResult = 1)]
+        [TestCase(10, 5, ExpectedResult = 0)]
+        [TestCase(int.MaxValue / 2, 300, ExpectedResult = (int.MaxValue / 2) % 300)]
+        [TestCase(int.MaxValue / 9, 100, ExpectedResult = (int.MaxValue / 9) % 100)]
+        public int ModTest(int rand, int a)
+        {
+            var source = @"
+define i32 @main(i32 %par1) #0 {
+
+  %r = tail call i32 @rand() #2
+
+  %res = srem i32 %r, %par1
+
+    ret i32 %res
+}
+declare i32 @rand() #1
+";
+            var emul = BuildEmulator(source);
+            emul.Functions["@rand"] = f => (uint)rand;
+
+            emul.RunFunction("@main", a);
+
+            return (int)emul.Regs[0];
+        }
 
         [TestCase(6, 4, ExpectedResult = 6)]
         [TestCase(4, 6, ExpectedResult = 6)]
@@ -177,6 +222,26 @@ ret i32 %b
 }";
             var emul = RunFunction(source, "@main", 11, 42);
             Assert.AreEqual(42 + 11, emul.Regs[0]);
+        }
+
+        [TestCase(0, ExpectedResult = 1)]
+        [TestCase(1, ExpectedResult = 2)]
+        [TestCase(2, ExpectedResult = 2)]
+        public int Icmp(int par1)
+        {
+            var source = @"define i32 @main(i32 %par1) #0 {   
+%tobool = icmp eq i8 %par1, 0
+  br i1 %tobool, label %do.cond, label %if.then
+
+do.cond:
+  ret i32 1
+
+if.then:
+  ret i32 2
+}
+";
+            var emul = RunFunction(source, "@main", par1);
+            return (int)emul.Regs[0];
         }
 
 
@@ -302,17 +367,6 @@ entry:
             var emul = RunFunction(source, "@store", 100, 66);
             Assert.AreEqual(66, emul.Regs[0]);
             Assert.AreEqual(42, emul.Memory[100]);
-        }
-
-        [Test]
-        public void Arithmetic()
-        {
-            int a = 10;
-            int b = -20;
-
-            uint c = (uint)(a + b);
-
-            Assert.AreEqual(-10, (int)c);
         }
 
         [Test]
@@ -497,7 +551,9 @@ for.end:                                          ; preds = %for.end.loopexit, %
             codeGenerator.Visit(prg);
 
             printf = new PrintfImpl();
-            return new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals, printf);
+            var emulator = new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals, printf);
+
+            return emulator;
         }
 
         Emulator RunFunction(string source, string func, params object[] pars)

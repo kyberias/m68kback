@@ -56,7 +56,7 @@ namespace m68kback
                 {
                     if (decl.Value.Value != null)
                     {
-                        Console.WriteLine("{0}    dc.b {1}",
+                        Console.WriteLine("{0}:    dc.b {1}",
                             M68kInstruction.ConvertLabel(decl.Value.Name),
                             string.Join(",", ToBytes(decl.Value.Value)));
                     }
@@ -64,8 +64,9 @@ namespace m68kback
                     {
                         if (decl.Value.InitializeToZero || decl.Value.Expr == null)
                         {
+                            // TODO: Why do I have to put +1 here? 8 bytes becomes 9 bytes. SAS/C ASM otherwise generates 7 bytes!!
                             Console.WriteLine(
-                                $"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    dcb.b {decl.Value.Type.Width},0");
+                                $"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    DCB.B {decl.Value.Type.Width+1},0");
                         }
                         else
                         {

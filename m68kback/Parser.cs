@@ -866,9 +866,19 @@ namespace m68kback
                     if (PeekElement().Type == Token.BracketOpen)
                     {
                         AcceptElement(Token.BracketOpen);
-                        while (PeekElement().Type != Token.BracketClose)
+                        var arr = new ArrayReference();
+
+                        arr.ArrayX = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
+                        AcceptElement(Token.Symbol);
+                        arr.BaseType = ParseType();
+
+                        /*while (PeekElement().Type != Token.BracketClose)
+                        {
+
                             AcceptElement(PeekElement().Type);
+                        }*/
                         AcceptElement(Token.BracketClose);
+                        decl.Type = arr;
                     }
 
                     decl.Value = AcceptElement(Token.StringLiteral).Data;
