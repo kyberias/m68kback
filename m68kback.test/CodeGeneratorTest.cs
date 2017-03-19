@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -369,6 +370,21 @@ entry:
             Assert.AreEqual(42, emul.Memory[100]);
         }
 
+        [TestCase(100, 4, ExpectedResult = 100 / 4)]
+        [TestCase(100, 2, ExpectedResult = 100 / 2)]
+        [TestCase(100, 3, ExpectedResult = 100 / 3)]
+        [TestCase(6000, 1, ExpectedResult = 6000)]
+        public uint SDiv(int a, int b)
+        {
+            var source = @"define i32 @divtest(i32 %a, i32 %b) #0 {
+entry:
+  %ret = sdiv i32 %a, %b 
+  ret i32 %ret
+}";
+            var emul = RunFunction(source, "@divtest", a, b);
+            return emul.Regs[0];
+        }
+
         [Test]
         public void Reverse()
         {
@@ -477,6 +493,10 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var arrStart = emul.AllocGlobal(par0);
             emul.AllocGlobal(par1);
 
+            Console.WriteLine($"argv: {arrStart}");
+            Console.WriteLine($"par0: {par0}");
+            Console.WriteLine($"par1: {par1}");
+
             emul.RunFunction("@main", 2, arrStart);
         }
 
@@ -522,11 +542,11 @@ for.end:                                          ; preds = %for.end.loopexit, %
             var prg = GetFileFromResource("DuffsDevice.ll");
 
             var emul = BuildEmulator(prg);
+            emul.MaximumInstructionsToExecute = 10000;
 
             emul.RunFunction("@main");
 
-            CollectionAssert.AreEquivalent(printf.PrintedStrings,
-                new[] { "Bitwise Not: -2 -3 2 -6\n", "Boolean Not: 0 1 0 1 0 1\n" });
+            CollectionAssert.AreEquivalent(new[] { "Sum is 4950\n" }, printf.PrintedStrings);
         }
 
         string GetFileFromResource(string filename)
@@ -544,14 +564,21 @@ for.end:                                          ; preds = %for.end.loopexit, %
 
         private PrintfImpl printf;
 
+        uint atoi(IStackAccess sa)
+        {
+            var str = sa.GetString(-1);
+            return uint.Parse(str);
+        }
+
         Emulator BuildEmulator(string source)
         {
             var prg = Parse(source);
-            var codeGenerator = new CodeGenerator();
+            var codeGenerator = new CodeGenerator(true);
             codeGenerator.Visit(prg);
 
             printf = new PrintfImpl();
             var emulator = new Emulator(codeGenerator.AllInstructions, codeGenerator.Globals, printf);
+            emulator.Functions["@atoi"] = atoi;
 
             return emulator;
         }

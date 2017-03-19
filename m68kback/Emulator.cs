@@ -44,8 +44,14 @@ namespace m68kback
             }
         }
 
+        void AlignGlobal()
+        {
+            while (globalUsed%4 > 0) globalUsed++;
+        }
+
         public uint AllocGlobal(uint data)
         {
+            AlignGlobal();
             var addr = globalUsed;
 
             var bytes = BitConverter.GetBytes(data);
@@ -58,6 +64,7 @@ namespace m68kback
 
         public uint AllocGlobal(string data)
         {
+            AlignGlobal();
             var addr = globalUsed;
 
             var bytes = Encoding.ASCII.GetBytes(data);
@@ -70,6 +77,8 @@ namespace m68kback
         }
 
         private int pc;
+
+        public int MaximumInstructionsToExecute { get; set; }
 
         public void RunFunction(string name, params object[] pars)
         {
@@ -172,7 +181,7 @@ namespace m68kback
 
         void Run()
         {
-            int maxI = 1000;
+            int maxI = MaximumInstructionsToExecute;
             int n = 0;
 
             while (true)
@@ -184,7 +193,7 @@ namespace m68kback
                 }
 
 #if PRINTSTATES
-                Console.WriteLine($"A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
+                Console.WriteLine($"SP: {Sp} A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
 #endif
                 var i = instructions[pc];
 #if PRINTSTATES
@@ -444,6 +453,14 @@ namespace m68kback
                             {
                                 throw new NotSupportedException();
                             }
+                        }
+                        break;
+                    case M68kOpcode.And:
+                        {
+                            var source = i.AddressingMode1 == M68kAddressingMode.Immediate
+                                ? i.Immediate
+                                : (int)Regs[(int) i.FinalRegister1];
+                            Regs[(int) i.FinalRegister2] = (uint)(Regs[(int) i.FinalRegister2] & source);
                         }
                         break;
                     default:

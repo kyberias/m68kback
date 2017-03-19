@@ -1,4 +1,3 @@
-//#define PRINTCODE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +7,13 @@ namespace m68kback
 {
     public class CodeGenerator : IVisitor
     {
+        private readonly bool _printOutput;
+
+        public CodeGenerator(bool printoutput = false)
+        {
+            _printOutput = printoutput;
+        }
+
         public List<M68kInstruction> AllInstructions { get; } = new List<M68kInstruction>();
 
         public object Visit(Program el)
@@ -375,13 +381,14 @@ namespace m68kback
                 }
             }
 
-#if PRINTCODE
-            Console.WriteLine("Before register allocation:");
-            foreach (var i in func.Instructions)
+            if (_printOutput)
             {
-                Console.WriteLine(i);
+                Console.WriteLine("Before register allocation:");
+                foreach (var i in func.Instructions)
+                {
+                    Console.WriteLine(i);
+                }
             }
-#endif
 
             var gcD = new GraphColoring(func.Instructions, spillStart: frameOffset);
             gcD.Main();
@@ -415,14 +422,16 @@ namespace m68kback
             }
 
             Instructions = func.Instructions;
-#if PRINTCODE
-            Console.WriteLine("========================================");
-            Console.WriteLine("AFTER register allocation and fixes:");
-            foreach (var i in func.Instructions)
+            if (_printOutput)
             {
-                Console.WriteLine(i);
+                Console.WriteLine("========================================");
+                Console.WriteLine("AFTER register allocation and fixes:");
+                foreach (var i in func.Instructions)
+                {
+                    Console.WriteLine(i);
+                }
             }
-#endif
+
             return null;
         }
 
@@ -446,6 +455,12 @@ namespace m68kback
 
         public object Visit(CallExpression callExpression)
         {
+            if (callExpression.FunctionName.Contains("llvm.lifetime.start") ||
+                callExpression.FunctionName.Contains("llvm.lifetime.end"))
+            {
+                return null;
+            }
+
             for (int i=callExpression.Parameters.Count-1; i >= 0; i--)
             {
                 var parExpr = callExpression.Parameters[i];
@@ -667,6 +682,16 @@ namespace m68kback
                                 Register2 = resultReg
                             });
                         }
+                        // resultReg = ResultReg & 0xFFFF
+                        Emit(new M68kInstruction
+                        {
+                            Width = M68Width.Long,
+                            Opcode = M68kOpcode.And,
+                            AddressingMode1 = M68kAddressingMode.Immediate,
+                            Immediate = 0xFFFF,
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = resultReg
+                        });
                     }
                     break;
                 case Token.Srem:
@@ -906,6 +931,18 @@ namespace m68kback
                     else
                     {
                         var ixReg = (Register)ix.Visit(this);
+
+                        var newTemp = NewDataReg();
+
+                        Emit(new M68kInstruction
+                        {
+                            Opcode = M68kOpcode.Move,
+                            AddressingMode1 = M68kAddressingMode.Register,
+                            Register1 = ixReg,
+                            AddressingMode2 = M68kAddressingMode.Register,
+                            Register2 = newTemp
+                        });
+
                         Debug.Assert(elSize == 1 || elSize == 2 || elSize == 4); // Don't support anything else yet
                         Emit(new M68kInstruction
                         {
@@ -913,13 +950,13 @@ namespace m68kback
                             AddressingMode1 = M68kAddressingMode.Immediate,
                             Immediate = elSize == 1 ? 0 : (elSize == 2 ? 1 : 2),
                             AddressingMode2 = M68kAddressingMode.Register,
-                            Register2 = ixReg
+                            Register2 = newTemp
                         });
 
                         Emit(new M68kInstruction
                         {
                             Opcode = M68kOpcode.Adda,
-                            Register1 = ixReg,
+                            Register1 = newTemp,
                             AddressingMode1 = M68kAddressingMode.Register,
                             Register2 = addr
                         });
@@ -975,17 +1012,14 @@ namespace m68kback
                 //var varReg = varOrOffset as Register;
                 var varReg = ptrval as Register;
 
-                if (varReg != null)
+                Emit(new M68kInstruction
                 {
-                    Emit(new M68kInstruction
-                    {
-                        Opcode = M68kOpcode.Move,
-                        Register1 = varReg,
-                        AddressingMode1 = M68kAddressingMode.Register,
-                        Register2 = newTemp,
-                        AddressingMode2 = M68kAddressingMode.Register
-                    });
-                }
+                    Opcode = M68kOpcode.Move,
+                    Register1 = varReg,
+                    AddressingMode1 = M68kAddressingMode.Register,
+                    Register2 = newTemp,
+                    AddressingMode2 = M68kAddressingMode.Register
+                });
                 CalculatePtr(getElementPtr, newTemp);
                 return newTemp;
             }
@@ -1411,6 +1445,21 @@ namespace m68kback
             return reg;
         }
 
+        M68Width ByteWidthToM68Width(int byteWidth)
+        {
+            switch (byteWidth)
+            {
+                case 1:
+                    return M68Width.Byte;
+                case 2:
+                    return M68Width.Word;
+                case 4:
+                    return M68Width.Long;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
         public object Visit(StoreStatement storeStatement)
         {
             var valueToSave = storeStatement.Value.Visit(this);
@@ -1437,7 +1486,7 @@ namespace m68kback
                         AddressingMode2 = M68kAddressingMode.Address,
                         Register2 = varReg,
                         Comment = "Store to reg",
-                        Width = storeStatement.ExprType.Width == 1 ? M68Width.Byte : M68Width.Long
+                        Width = ByteWidthToM68Width(storeStatement.ExprType.Width)
                     });
                 }
                 else
