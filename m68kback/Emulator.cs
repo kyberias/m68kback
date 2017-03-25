@@ -78,7 +78,7 @@ namespace m68kback
 
         private int pc;
 
-        public int MaximumInstructionsToExecute { get; set; }
+        public int MaximumInstructionsToExecute { get; set; } = 1000;
 
         public void RunFunction(string name, params object[] pars)
         {
