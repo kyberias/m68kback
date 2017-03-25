@@ -6,3 +6,4 @@ obj/
 *.db
 *.o
 *.run
+*.csproj.user

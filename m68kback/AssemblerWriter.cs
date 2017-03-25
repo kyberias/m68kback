@@ -5,7 +5,7 @@ using System.Text;
 
 namespace m68kback
 {
-    class AssemberWriter : OutputFileWriter
+    class AssemblerWriter : OutputFileWriter
     {
         public void WriteFile(string fileName, CodeGenerator codeGenerator)
         {

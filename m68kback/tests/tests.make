@@ -1,9 +1,10 @@
 SC = amirun sc:c/sc
-ASM = amirun sc:c/asm
-SLINK = amirun sc:c/slink
-CLANG = clang -S -emit-llvm
+ASM = ../../../amirun/debug/amirun sc:c/asm
+SLINK = ../../../amirun/debug/amirun sc:c/slink
+CLANG = clang -target i386-pc-none -m32 -S -emit-llvm -I.
 M68KBACK = ../bin/debug/m68kback
-TARGETS = test2.run test.run printfparam.run structs.run NotTest.run DuffsDevice.run
+TARGETS = test2.run test.run printfparam.run structs.run NotTest.run TestLoop.run
+#DuffsDevice.run 
 
 all : $(TARGETS)
 
@@ -14,7 +15,7 @@ all : $(TARGETS)
 	$(ASM) $<
 
 %.s : %.ll
-	$(M68KBACK) $< > $@
+	$(M68KBACK) $< $@ > $@
 
 %.ll : %.c
 	$(CLANG) $<

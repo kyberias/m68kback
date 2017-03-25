@@ -15,6 +15,7 @@ namespace m68kback
         Jmp,
         Jsr,
         Bgt,
+        Bge,
         Beq,
         Bne,
         Blt,
@@ -24,6 +25,7 @@ namespace m68kback
         Sub,
         Cmp,
         Divs,
+        Muls,
         Lsr,
         Lsl,
         Asr,
@@ -244,6 +246,7 @@ namespace m68kback
                 case M68kOpcode.Beq:
                 case M68kOpcode.Blt:
                 case M68kOpcode.Bgt:
+                case M68kOpcode.Bge:
                 case M68kOpcode.Bne:
                 case M68kOpcode.Jsr:
                     return 0;
@@ -269,6 +272,7 @@ namespace m68kback
             {
                 case M68kOpcode.Beq:
                 case M68kOpcode.Bgt:
+                case M68kOpcode.Bge:
                 case M68kOpcode.Blt:
                 case M68kOpcode.Bne:
                     return true;
@@ -538,7 +542,7 @@ namespace m68kback
             else
             {
                 if (Opcode == M68kOpcode.Jmp || Opcode == M68kOpcode.Beq || Opcode == M68kOpcode.Jsr || Opcode == M68kOpcode.Bgt
-                    || Opcode == M68kOpcode.Blt || Opcode == M68kOpcode.Bne)
+                    || Opcode == M68kOpcode.Blt || Opcode == M68kOpcode.Bne || Opcode == M68kOpcode.Bge)
                 {
                     sb.Append(ConvertLabel(TargetLabel));
                 }

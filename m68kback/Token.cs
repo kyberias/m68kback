@@ -76,6 +76,7 @@ namespace m68kback
         Select,
         Icmp,
         Sgt,
+        Sge,
         Slt,
         Ult,
         Mul,

@@ -384,7 +384,17 @@ namespace m68kback
                                 ? i.Immediate
                                 : (int) Regs[(int) i.FinalRegister1];
 
-                            Regs[(int) i.FinalRegister2] = (uint) ((int) Regs[(int) i.FinalRegister2] + valToAdd);
+                            /*uint mask = 0xFFFFFFFF;
+                            if (i.Width == M68Width.Word)
+                            {
+                                mask = 0xFFFF;
+                            }
+                            if (i.Width == M68Width.Byte)
+                            {
+                                mask = 0xFF;
+                            }*/
+
+                            Regs[(int) i.FinalRegister2] = (uint) ((int) Regs[(int) i.FinalRegister2] + valToAdd );
                         }
                         break;
                     case M68kOpcode.Eor:
@@ -397,6 +407,12 @@ namespace m68kback
                         break;
                     case M68kOpcode.Jmp:
                         pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1)))-1;
+                        break;
+                    case M68kOpcode.Bge:
+                        if ((N && V) || (!N && !V))
+                        {
+                            pc = instructions.IndexOf(instructions.First(ins => ins.Label == i.TargetLabel.Substring(1))) - 1;
+                        }
                         break;
                     case M68kOpcode.Bne:
                         if (!Z)
@@ -438,6 +454,15 @@ namespace m68kback
                             var val = i.FinalRegister1.HasValue ? (int)Regs[(int)i.FinalRegister1] : i.Immediate;
                             Z = val == 0;
                             N = val < 0;
+                        }
+                        break;
+                    case M68kOpcode.Muls:
+                    {
+                        var op1 = (int)(i.AddressingMode1 == M68kAddressingMode.Immediate
+                            ? (uint)i.Immediate.Value
+                            : Regs[(int) i.FinalRegister1]);
+                            var mulResult = (int)Regs[(int)i.FinalRegister2] * op1;
+                            Regs[(int)i.FinalRegister2] = (uint)mulResult;
                         }
                         break;
                     case M68kOpcode.Divs:

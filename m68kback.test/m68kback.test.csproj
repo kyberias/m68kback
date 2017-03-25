@@ -61,6 +61,8 @@
     <EmbeddedResource Include="TestFiles\printfparam.ll" />
     <EmbeddedResource Include="TestFiles\NotTest.ll" />
     <EmbeddedResource Include="TestFiles\DuffsDevice.ll" />
+    <EmbeddedResource Include="TestFiles\TestLoop.ll" />
+    <EmbeddedResource Include="TestFiles\TestLoop.reference_output" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\m68kback\m68kback.csproj">

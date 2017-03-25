@@ -58,6 +58,7 @@ namespace m68kback
             { "eq", Token.Eq },
             { "ne", Token.Ne },
             { "sgt", Token.Sgt },
+            { "sge", Token.Sge },
             { "slt", Token.Slt },
             { "mul", Token.Mul },
             { "sdiv", Token.Sdiv },

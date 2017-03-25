@@ -606,6 +606,7 @@ namespace m68kback
                             Immediate = ((IntegerConstant) arithmeticExpression.Operand2).Constant,
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
+                            Width = ByteWidthToM68Width(arithmeticExpression.Type.Width)
                         });
                     }
                     else
@@ -617,6 +618,7 @@ namespace m68kback
                             Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand2).Variable),
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
+                            Width = ByteWidthToM68Width(arithmeticExpression.Type.Width)
                         });
                     }
                     break;
@@ -633,6 +635,7 @@ namespace m68kback
                             Immediate = ((IntegerConstant)arithmeticExpression.Operand2).Constant,
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
+                            Width = ByteWidthToM68Width(arithmeticExpression.Type.Width)
                         });
                     }
                     else if (arithmeticExpression.Operand2 is BooleanConstant)
@@ -644,6 +647,7 @@ namespace m68kback
                             Immediate = ((BooleanConstant)arithmeticExpression.Operand2).Constant ? 1 : 0,
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
+                            Width = ByteWidthToM68Width(arithmeticExpression.Type.Width)
                         });
                     }
                     else
@@ -655,7 +659,36 @@ namespace m68kback
                             Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand2).Variable),
                             AddressingMode2 = M68kAddressingMode.Register,
                             Register2 = resultReg,
+                            Width = ByteWidthToM68Width(arithmeticExpression.Type.Width)
                         });
+                    }
+                    break;
+                case Token.Mul:
+                    {
+                        if (arithmeticExpression.Operand2 is VariableReference)
+                        {
+                            Emit(new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Muls,
+                                Width = M68Width.Long,
+                                AddressingMode1 = M68kAddressingMode.Register,
+                                Register1 = GetVarRegister(((VariableReference)arithmeticExpression.Operand2).Variable),
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = resultReg
+                            });
+                        }
+                        else
+                        {
+                            Emit(new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Muls,
+                                Width = M68Width.Long,
+                                AddressingMode1 = M68kAddressingMode.Immediate,
+                                Immediate = ((IntegerConstant)arithmeticExpression.Operand2).Constant,
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = resultReg
+                            });
+                        }
                     }
                     break;
                 case Token.Sdiv:
@@ -944,14 +977,18 @@ namespace m68kback
                         });
 
                         Debug.Assert(elSize == 1 || elSize == 2 || elSize == 4); // Don't support anything else yet
-                        Emit(new M68kInstruction
+
+                        if (elSize > 1)
                         {
-                            Opcode = M68kOpcode.Lsl,
-                            AddressingMode1 = M68kAddressingMode.Immediate,
-                            Immediate = elSize == 1 ? 0 : (elSize == 2 ? 1 : 2),
-                            AddressingMode2 = M68kAddressingMode.Register,
-                            Register2 = newTemp
-                        });
+                            Emit(new M68kInstruction
+                            {
+                                Opcode = M68kOpcode.Lsl,
+                                AddressingMode1 = M68kAddressingMode.Immediate,
+                                Immediate = elSize == 2 ? 1 : 2,
+                                AddressingMode2 = M68kAddressingMode.Register,
+                                Register2 = newTemp
+                            });
+                        }
 
                         Emit(new M68kInstruction
                         {
@@ -1338,6 +1375,9 @@ namespace m68kback
                     break;
                 case Token.Sgt:
                     opc = M68kOpcode.Bgt;
+                    break;
+                case Token.Sge:
+                    opc = M68kOpcode.Bge;
                     break;
                 default:
                     throw new NotSupportedException(condition.ToString());

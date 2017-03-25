@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -548,6 +549,27 @@ for.end:                                          ; preds = %for.end.loopexit, %
 
             CollectionAssert.AreEquivalent(new[] { "Sum is 4950\n" }, printf.PrintedStrings);
         }
+
+        [Test]
+        public void TestLoop()
+        {
+            var prg = GetFileFromResource("TestLoop.ll");
+
+            var emul = BuildEmulator(prg);
+            emul.MaximumInstructionsToExecute = 10000;
+
+            emul.RunFunction("@main", 1);
+
+            AssertOutputWithResource("TestLoop.reference_output", printf.PrintedStrings);
+        }
+
+        void AssertOutputWithResource(string resource, IEnumerable<string> output)
+        {
+            var res = GetFileFromResource(resource);
+
+            CollectionAssert.AreEquivalent(output.Select(s => s.Replace("\n", "")), res.Split('\n'));
+        }
+
 
         string GetFileFromResource(string filename)
         {

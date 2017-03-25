@@ -34,7 +34,7 @@ namespace m68kback
             var codeGenerator = new CodeGenerator();
             codeGenerator.Visit(prg);
 
-            OutputFileWriter writer = new AssemberWriter();
+            OutputFileWriter writer = new AssemblerWriter();
 
             writer.WriteFile(outputFileName, codeGenerator);
          }

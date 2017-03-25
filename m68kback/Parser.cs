@@ -27,8 +27,11 @@ namespace m68kback
 
         public void ParseTarget()
         {
-            AcceptElement(Token.Target);
-            AcceptElement(Token.Datalayout, Token.Triple);
+            if (!AcceptElementIfNext(Token.Symbol))
+            {
+                AcceptElement(Token.Target);
+                AcceptElement(Token.Datalayout, Token.Triple);
+            }
             AcceptElement(Token.Assign);
             AcceptElement(Token.StringLiteral);
         }
@@ -115,6 +118,7 @@ namespace m68kback
                     case Token.Attributes:
                         ParseAttributes();
                         break;
+                    case Token.Symbol:
                     case Token.Target:
                         ParseTarget();
                         break;
@@ -703,7 +707,7 @@ namespace m68kback
         {
             var stmt = new IcmpExpression();
             AcceptElement(Token.Icmp);
-            stmt.Condition = AcceptElement(Token.Slt, Token.Sgt, Token.Eq, Token.Ne, Token.Ult).Type;
+            stmt.Condition = AcceptElement(Token.Slt, Token.Sgt, Token.Sge, Token.Eq, Token.Ne, Token.Ult).Type;
             stmt.Type = ParseType();
 
             stmt.Var = AcceptElement(Token.GlobalIdentifier, Token.LocalIdentifier).Data;
