@@ -175,6 +175,8 @@ namespace m68kback
 
             AcceptElement(Token.ParenClose);
 
+            AcceptElementIfNext(Token.Symbol);
+
             if (PeekElement().Type == Token.Hash)
             {
                 AcceptElement(Token.Hash);
@@ -934,6 +936,7 @@ namespace m68kback
                 }
 
                 AcceptElement(Token.ParenClose);
+                AcceptElementIfNext(Token.Symbol);
 
                 if (AcceptElementIfNext(Token.Hash))
                 {

@@ -1433,6 +1433,11 @@ namespace m68kback
 
             if (offset is Register)
             {
+                if (((Register) offset).ToString()[0] != 'A')
+                {
+                    throw new Exception("Must be Address!");
+                }
+
                 Emit(new M68kInstruction
                 {
                     Opcode = M68kOpcode.Move,
@@ -1699,7 +1704,7 @@ namespace m68kback
                     Instructions.IndexOf(lab) + 1);
             }
 
-            var tempReg = NewDataReg();
+            var tempReg = phiExpression.Type is PointerReference ? NewAddressReg() : NewDataReg();
 
             Debug.Assert(lab != null);
 

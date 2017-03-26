@@ -63,6 +63,7 @@
     <EmbeddedResource Include="TestFiles\DuffsDevice.ll" />
     <EmbeddedResource Include="TestFiles\TestLoop.ll" />
     <EmbeddedResource Include="TestFiles\TestLoop.reference_output" />
+    <EmbeddedResource Include="TestFiles\store.ll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\m68kback\m68kback.csproj">

@@ -1,5 +1,4 @@
-﻿#define PRINTSTATES
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,7 @@ namespace m68kback
     public class Emulator : IStackAccess
     {
         private IList<M68kInstruction> instructions;
+        public bool PrintStates { get; set; } = false;
 
         public IList<M68kInstruction> Instructions => instructions;
 
@@ -44,9 +44,22 @@ namespace m68kback
             }
         }
 
-        void AlignGlobal()
+        void AlignGlobal(int bytes = 4)
         {
-            while (globalUsed%4 > 0) globalUsed++;
+            while (globalUsed % bytes > 0) globalUsed++;
+        }
+
+        public uint AllocGlobalWord(ushort data)
+        {
+            AlignGlobal(2);
+            var addr = globalUsed;
+
+            var bytes = BitConverter.GetBytes(data);
+
+            Array.Copy(bytes, 0, memory, (int)addr, 2);
+            globalUsed += 2;
+
+            return addr;
         }
 
         public uint AllocGlobal(uint data)
@@ -59,6 +72,13 @@ namespace m68kback
             Array.Copy(bytes, 0, memory, (int)addr, 4);
             globalUsed += 4;
 
+            return addr;
+        }
+
+        public uint AllocMemory(uint bytes)
+        {
+            var addr = globalUsed;
+            globalUsed += bytes;
             return addr;
         }
 
@@ -156,6 +176,18 @@ namespace m68kback
 #endif
         }
 
+        ushort Read16(uint addr)
+        {
+            var val = BitConverter.ToUInt16(memory, (int)addr);
+            return val;
+        }
+
+        void Write16(uint addr, ushort value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            Array.Copy(bytes, 0, memory, (int)addr, 2);
+        }
+
         byte Read8(uint addr)
         {
             return memory[addr];
@@ -192,13 +224,16 @@ namespace m68kback
                     throw new Exception("Maximum number of instructions.");
                 }
 
-#if PRINTSTATES
-                Console.WriteLine($"SP: {Sp} A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
-#endif
+                if (PrintStates)
+                {
+                    Console.WriteLine($"SP: {Sp} A0: {Regs[(int)M68kRegister.A0]}, A1: {Regs[(int)M68kRegister.A1]}, A6: {Regs[(int)M68kRegister.A6]}, D0: {Regs[(int)M68kRegister.D0]}, D1: {Regs[(int)M68kRegister.D1]}");
+                }
                 var i = instructions[pc];
-#if PRINTSTATES
-                Console.WriteLine(i);
-#endif
+
+                if (PrintStates)
+                {
+                    Console.WriteLine(i);
+                }
                 switch (i.Opcode)
                 {
                     case M68kOpcode.Label:
@@ -365,6 +400,39 @@ namespace m68kback
                                     }
                                 }
                                 break;
+                            case M68Width.Word:
+                                {
+                                    ushort val;
+                                    switch (i.AddressingMode1)
+                                    {
+                                        case M68kAddressingMode.Address:
+                                        case M68kAddressingMode.AddressWithOffset:
+                                            val = Read16(Regs[(int)i.FinalRegister1.Value] + (uint)(i.Offset ?? 0));
+                                            break;
+                                        case M68kAddressingMode.Register:
+                                            val = (ushort)(Regs[(int)i.FinalRegister1] & 0xFFFF);
+                                            break;
+                                        default:
+                                            throw new NotSupportedException();
+                                    }
+
+                                    switch (i.AddressingMode2)
+                                    {
+                                        case M68kAddressingMode.Register:
+                                            Regs[(int)i.FinalRegister2] = val | (Regs[(int)i.FinalRegister2] & 0xFFFF0000);
+                                            break;
+                                        case M68kAddressingMode.AddressWithOffset:
+                                            Write16(Regs[(uint)i.FinalRegister2.Value] + (uint)i.Offset, val);
+                                            break;
+                                        case M68kAddressingMode.Address:
+                                            Write16(Regs[(uint)i.FinalRegister2.Value], val);
+                                            break;
+                                        default:
+                                            throw new NotSupportedException();
+                                    }
+                                }
+                                break;
+
                         }
                         break;
                     // TODO: Update status register accordingly

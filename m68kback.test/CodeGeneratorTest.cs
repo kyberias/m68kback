@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -267,8 +268,11 @@ fooexit:
             Assert.AreEqual(42 + 2, emul.Regs[0]);
         }
 
-        [Test]
-        public void SwitchTest()
+        [TestCase(0, ExpectedResult = 0)]
+        [TestCase(1, ExpectedResult = 10)]
+        [TestCase(2, ExpectedResult = 20)]
+        [TestCase(3, ExpectedResult = 30)]
+        public int SwitchTest(int arg)
         {
             var source = @"define i32 @main(i32 %arg, i32 %par0, i32 %par1, i32 %par2, i32 %par3, i32 %def) #0 { 
 entry: 
@@ -294,8 +298,8 @@ retlab:
     %retval = phi i32 [%par0, %zero], [%par1, %one], [%par2, %two], [%par3, %three], [%def, %deflab]
     ret i32 %retval
 }";
-            var emul = RunFunction(source, "@main", 3, 0, 10, 20, 30, 42);
-            Assert.AreEqual(30, emul.Regs[0]);
+            var emul = RunFunction(source, "@main", arg, 0, 10, 20, 30, 42);
+            return (int)emul.Regs[0];
         }
 
         [TestCase(1,5,15,42, ExpectedResult = 15)]
@@ -369,6 +373,27 @@ entry:
             var emul = RunFunction(source, "@store", 100, 66);
             Assert.AreEqual(66, emul.Regs[0]);
             Assert.AreEqual(42, emul.Memory[100]);
+        }
+
+        [Test]
+        public void Store16()
+        {
+            var prg = GetFileFromResource("store.ll");
+
+            var emul = BuildEmulator(prg);
+            var s = emul.AllocGlobalWord(1);
+            emul.AllocGlobalWord(0xFFFF);
+            emul.AllocGlobalWord(0x890);
+            var d = emul.AllocMemory(2*3);
+
+            emul.RunFunction("@store16", s, d, 3);
+
+            Assert.AreEqual(1, emul.Memory[d]);
+            Assert.AreEqual(0, emul.Memory[d+1]);
+            Assert.AreEqual(0xff, emul.Memory[d+2]);
+            Assert.AreEqual(0xff, emul.Memory[d + 3]);
+            Assert.AreEqual(0x90, emul.Memory[d+4]);
+            Assert.AreEqual(0x08, emul.Memory[d + 5]);
         }
 
         [TestCase(100, 4, ExpectedResult = 100 / 4)]
