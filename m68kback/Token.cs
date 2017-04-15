@@ -88,12 +88,19 @@ namespace m68kback
         Ne,
         Attributes,
         NoCapture,
+        NoAlias,
         ReadOnly,
         True,
         False,
         Switch,
         Undef,
         ZeroInitializer,
+        LocalUnnamedAddr,
+        Internal,
+        Unreachable,
+        PtrToInt,
+        WriteOnly,
+        Opaque,
         Unknown
     }
 }

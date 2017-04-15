@@ -5,6 +5,7 @@ namespace m68kback
         object Visit(Program el);
         object Visit(FunctionDefinition el);
         object Visit(StructExpression expr);
+        object Visit(ArrayExpression expr);
         object Visit(AllocaExpression allocaExpression);
         object Visit(CastExpression expression);
         object Visit(CallExpression callExpression);

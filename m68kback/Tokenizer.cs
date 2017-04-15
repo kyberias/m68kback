@@ -64,19 +64,26 @@ namespace m68kback
             { "sdiv", Token.Sdiv },
             { "srem", Token.Srem },
             { "phi", Token.Phi },
+            { "unreachable", Token.Unreachable },
+            { "ptrtoint", Token.PtrToInt },
+            { "writeonly", Token.WriteOnly },
             { "bitcast", Token.Bitcast },
+            { "internal", Token.Internal },
             { "trunc", Token.Trunc },
             { "inttoptr", Token.Inttoptr },
             { "to", Token.To },
             { "attributes", Token.Attributes },
             { "nocapture", Token.NoCapture },
+            { "noalias", Token.NoAlias },
             { "readonly", Token.ReadOnly },
             { "type", Token.Type },
             { "true", Token.True },
             { "false", Token.False },
             { "switch", Token.Switch},
             { "ult", Token.Ult},
-            { "select", Token.Select }
+            { "opaque", Token.Opaque},
+            { "select", Token.Select },
+            { "local_unnamed_addr", Token.LocalUnnamedAddr }
         };
 
         Regex CreateRegex()

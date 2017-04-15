@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using NUnit.Framework;
 
 namespace m68kback.test
@@ -12,13 +11,6 @@ namespace m68kback.test
         Register d1 = new Register {Type = RegType.Data, Number = 1};
         Register d2 = new Register {Type = RegType.Data, Number = 2};
         Register d3 = new Register {Type = RegType.Data, Number = 3};
-        Register d4 = new Register { Type = RegType.Data, Number = 4 };
-        Register d5 = new Register { Type = RegType.Data, Number = 5 };
-        Register d6 = new Register { Type = RegType.Data, Number = 6 };
-        Register d7 = new Register { Type = RegType.Data, Number = 7 };
-        Register d8 = new Register { Type = RegType.Data, Number = 8 };
-        Register d9 = new Register { Type = RegType.Data, Number = 9 };
-        Register d10 = new Register { Type = RegType.Data, Number = 10 };
         Register d11 = new Register { Type = RegType.Data, Number = 11 };
         Register d12 = new Register { Type = RegType.Data, Number = 12 };
         Register d13 = new Register { Type = RegType.Data, Number = 13 };
@@ -26,7 +18,6 @@ namespace m68kback.test
         Register d15 = new Register { Type = RegType.Data, Number = 15 };
         Register d16 = new Register { Type = RegType.Data, Number = 16 };
         Register d17 = new Register { Type = RegType.Data, Number = 17 };
-        Register d18 = new Register { Type = RegType.Data, Number = 18 };
         Register d19 = new Register { Type = RegType.Data, Number = 19 };
         Register d20 = new Register { Type = RegType.Data, Number = 20 };
         Register d21 = new Register { Type = RegType.Data, Number = 21 };

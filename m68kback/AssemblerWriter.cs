@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -7,91 +8,124 @@ namespace m68kback
 {
     class AssemblerWriter : OutputFileWriter
     {
+        string FixName(string name)
+        {
+            return name.Replace("@", "_").Replace(".", "$");
+        }
+
         public void WriteFile(string fileName, CodeGenerator codeGenerator)
         {
-            foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Declare || d.Value.External))
+            using (var writer = new StreamWriter(fileName))
             {
-                //if (decl.Value.Value == null && decl.Value.Expr == null)
+
+                foreach (var decl in codeGenerator.Globals.Where(d => d.Value.Declare || d.Value.External))
                 {
-                    Console.WriteLine("    xref " + decl.Value.Name.Replace("@", "_"));
-                }
-            }
-
-            foreach (var func in codeGenerator.Functions.Keys)
-            {
-                Console.WriteLine("    xdef " + func.Replace("@", "_"));
-            }
-
-            Console.WriteLine("        section text,code");
-
-            foreach (var func in codeGenerator.Functions)
-            {
-                foreach (var inst in func.Value.Instructions)
-                {
-                    Console.WriteLine(inst);
-                }
-            }
-
-            Console.WriteLine("         section data,DATA");
-
-            foreach (var decl in codeGenerator.Globals.Where(d => (d.Value.Global || d.Value.Constant) && !d.Value.External))
-            {
-                if (decl.Value.Value != null)
-                {
-                    Console.WriteLine("{0}    dc.b {1}",
-                        M68kInstruction.ConvertLabel(decl.Value.Name),
-                        string.Join(",", ToBytes(decl.Value.Value)));
-                }
-                else if (decl.Value.Type != null)
-                {
-                    if (decl.Value.InitializeToZero || decl.Value.Expr == null)
+                    //if (decl.Value.Value == null && decl.Value.Expr == null)
                     {
-                        Console.WriteLine(
-                            $"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    dcb.b {decl.Value.Type.Width},0");
+                        writer.WriteLine("    xref " + FixName(decl.Value.Name));
                     }
-                    else
+                }
+
+                foreach (var func in codeGenerator.Functions.Keys)
+                {
+                    writer.WriteLine("    xdef " + FixName(func));
+                }
+
+                writer.WriteLine("        section text,code");
+
+                foreach (var func in codeGenerator.Functions)
+                {
+                    foreach (var inst in func.Value.Instructions)
                     {
-                        Console.Write($"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    ");
-                        var sexpr = decl.Value.Expr as StructExpression;
-                        if (sexpr != null)
+                        writer.WriteLine(inst);
+                    }
+                }
+
+                writer.WriteLine("         section data,DATA");
+
+                foreach (
+                    var decl in
+                        codeGenerator.Globals.Where(d => (d.Value.Global || d.Value.Constant) && !d.Value.External))
+                {
+                    if (decl.Value.Value != null)
+                    {
+                        writer.WriteLine("{0}    dc.b {1}",
+                            M68kInstruction.ConvertLabel(decl.Value.Name),
+                            string.Join(",", ToBytes(decl.Value.Value)));
+                    }
+                    else if (decl.Value.Type != null)
+                    {
+                        if (decl.Value.InitializeToZero || decl.Value.Expr == null)
                         {
-                            GenerateStructExprData(sexpr);
+                            writer.WriteLine(
+                                $"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    dcb.b {decl.Value.Type.Width},0");
                         }
                         else
                         {
-                            var constant = decl.Value.Expr as IntegerConstant;
-                            Console.WriteLine("DC." + (decl.Value.Type.Width == 1 ? "B" : (decl.Value.Type.Width == 2 ? "W" : "L") + "   " + constant.Constant));
+                            writer.Write($"{M68kInstruction.ConvertLabel(decl.Value.Name)}:    ");
+                            var sexpr = decl.Value.Expr as StructExpression;
+                            if (sexpr != null)
+                            {
+                                GenerateStructExprData(sexpr, writer);
+                            }
+                            else if (decl.Value.Expr is ArrayExpression)
+                            {
+                                var arre = (ArrayExpression) decl.Value.Expr;
+
+                                foreach (var vl in arre.Values)
+                                {
+                                    if (vl is VariableReference)
+                                    {
+                                        var e = (VariableReference) vl;
+                                        writer.WriteLine("\tDC.L " + FixName(e.Variable));
+                                    }
+                                    else if (vl is GetElementPtr)
+                                    {
+                                        var gep = (GetElementPtr) vl;
+                                        writer.WriteLine("\tDC.L " + FixName(((VariableReference)gep.PtrVal).Variable));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var constant = decl.Value.Expr as IntegerConstant;
+                                writer.WriteLine("DC." +
+                                                  (decl.Value.Type.Width == 1
+                                                      ? "B"
+                                                      : (decl.Value.Type.Width == 2 ? "W" : "L") + "   " +
+                                                        constant.Constant));
+                            }
                         }
                     }
                 }
-            }
 
-            Console.WriteLine("         end");
+                writer.WriteLine("         end");
+            }
         }
 
-        static void GenerateStructExprData(StructExpression sexpr)
+        static void GenerateStructExprData(StructExpression sexpr, TextWriter writer)
         {
             foreach (var val in sexpr.Values)
             {
                 if (val.Value is StructExpression)
                 {
-                    GenerateStructExprData((StructExpression)val.Value);
+                    GenerateStructExprData((StructExpression)val.Value, writer);
                 }
                 else if (val.Value is IntegerConstant)
                 {
                     var constant = val.Value as IntegerConstant;
-                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
+                    writer.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
                                       "   " + constant.Constant);
                 }
                 else if (val.Value == null)
                 {
-                    Console.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
+                    writer.WriteLine("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")) +
                                       "   0");
                 }
                 else
                 {
-                    Console.Write("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")));
-                    Console.WriteLine($"    {M68kInstruction.ConvertLabel(((VariableReference)((GetElementPtr)val.Value).PtrVal).Variable)}");
+                    writer.Write("    DC." + (val.Type.Width == 1 ? "B" : (val.Type.Width == 2 ? "W" : "L")));
+                    writer.WriteLine($"    {M68kInstruction.ConvertLabel(((VariableReference)((GetElementPtr)val.Value).PtrVal).Variable)}");
                 }
             }
         }

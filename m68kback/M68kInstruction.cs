@@ -11,6 +11,7 @@ namespace m68kback
         MoveA,
         MoveQ,
         Lea,
+        Pea,
         Rts,
         Jmp,
         Jsr,
@@ -46,6 +47,7 @@ namespace m68kback
         AddressWithPreIncrement, // +(An)
         AddressWithPreDecrement, // -(An)
         AddressWithOffset, // #x(An)
+        ProgramCounterIndirectWithIndex,
         Absolute,
         Immediate
     }
@@ -68,6 +70,7 @@ namespace m68kback
         A5,
         A6,
         SP,
+        PC,
         CCR,
         CCR0,
         CCR1,
@@ -131,6 +134,13 @@ namespace m68kback
         public bool IgnoreLabelForPhi { get; set; }
         public M68kOpcode Opcode { get; set; }
         public M68Width? Width { get; set; }
+
+        private bool? isTerminating;
+        public bool IsTerminating
+        {
+            get { return isTerminating.HasValue ? isTerminating.Value : Opcode == M68kOpcode.Rts; }
+            set { isTerminating = value; }
+        }
 
         public int WidthInBytes
         {
@@ -242,15 +252,17 @@ namespace m68kback
             switch (Opcode)
             {
                 case M68kOpcode.Rts:
-                case M68kOpcode.Jmp:
                 case M68kOpcode.Beq:
                 case M68kOpcode.Blt:
                 case M68kOpcode.Bgt:
                 case M68kOpcode.Bge:
                 case M68kOpcode.Bne:
-                case M68kOpcode.Jsr:
                     return 0;
+                case M68kOpcode.Jmp:
+                case M68kOpcode.Jsr:
+                    return Register1 != null ? 1 : 0;
                 case M68kOpcode.Tst:
+                case M68kOpcode.Pea:
                     return 1;
                 default:
                     return 2;
@@ -487,55 +499,62 @@ namespace m68kback
 
             if (NumOperands() > 0)
             {
-                switch (AddressingMode1)
+                if (!string.IsNullOrEmpty(TargetLabel))
                 {
-                    case M68kAddressingMode.Address:
-                        sb.Append("(" + Reg1ToString + ")");
-                        break;
-                    case M68kAddressingMode.AddressWithOffset:
-                        sb.Append("" + Offset.Value + "(" + Reg1ToString + ")");
-                        break;
-                    case M68kAddressingMode.AddressWithPreIncrement:
-                        sb.Append("+(" + Reg1ToString + ")");
-                        break;
-                    case M68kAddressingMode.AddressWithPreDecrement:
-                        sb.Append("-(" + Reg1ToString + ")");
-                        break;
-                    case M68kAddressingMode.Register:
-                        sb.Append(Reg1ToString);
-                        break;
-                    case M68kAddressingMode.Immediate:
-                        sb.Append("#" + Immediate);
-                        break;
-                    case M68kAddressingMode.Absolute:
-                        sb.Append(ConvertLabel(Variable));
-                        break;
+                    sb.Append(ConvertLabel(TargetLabel));
                 }
-
-                if (NumOperands() > 1)
+                else
                 {
-                    sb.Append(",");
-
-                    switch (AddressingMode2)
+                    switch (AddressingMode1)
                     {
                         case M68kAddressingMode.Address:
-                            sb.Append("(" + Reg2ToString + ")");
+                            sb.Append("(" + Reg1ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithOffset:
-                            sb.Append("" + Offset.Value + "(" + Reg2ToString + ")");
+                            sb.Append("" + Offset.Value + "(" + Reg1ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithPreIncrement:
-                            sb.Append("+(" + Reg2ToString + ")");
+                            sb.Append("+(" + Reg1ToString + ")");
                             break;
                         case M68kAddressingMode.AddressWithPreDecrement:
-                            sb.Append("-(" + Reg2ToString + ")");
+                            sb.Append("-(" + Reg1ToString + ")");
                             break;
                         case M68kAddressingMode.Register:
-                            sb.Append(Reg2ToString);
+                            sb.Append(Reg1ToString);
                             break;
                         case M68kAddressingMode.Immediate:
                             sb.Append("#" + Immediate);
                             break;
+                        case M68kAddressingMode.Absolute:
+                            sb.Append(ConvertLabel(Variable));
+                            break;
+                    }
+
+                    if (NumOperands() > 1)
+                    {
+                        sb.Append(",");
+
+                        switch (AddressingMode2)
+                        {
+                            case M68kAddressingMode.Address:
+                                sb.Append("(" + Reg2ToString + ")");
+                                break;
+                            case M68kAddressingMode.AddressWithOffset:
+                                sb.Append("" + Offset.Value + "(" + Reg2ToString + ")");
+                                break;
+                            case M68kAddressingMode.AddressWithPreIncrement:
+                                sb.Append("+(" + Reg2ToString + ")");
+                                break;
+                            case M68kAddressingMode.AddressWithPreDecrement:
+                                sb.Append("-(" + Reg2ToString + ")");
+                                break;
+                            case M68kAddressingMode.Register:
+                                sb.Append(Reg2ToString);
+                                break;
+                            case M68kAddressingMode.Immediate:
+                                sb.Append("#" + Immediate);
+                                break;
+                        }
                     }
                 }
             }

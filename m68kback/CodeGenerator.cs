@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace m68kback
 {
+    /// <summary>
+    /// Generates 68000 code from LLVM AST
+    /// </summary>
     public class CodeGenerator : IVisitor
     {
         private readonly bool _printOutput;
@@ -18,6 +21,7 @@ namespace m68kback
 
         public object Visit(Program el)
         {
+            currentProgram = el;
             foreach (var d in el.Declarations)
             {
                 d.Visit(this);
@@ -145,6 +149,7 @@ namespace m68kback
 
         private FunctionDef currentFunction;
         private int functionIx;
+        private Program currentProgram;
 
         public object Visit(FunctionDefinition el)
         {
@@ -361,7 +366,7 @@ namespace m68kback
 
             // Restore all callee saved before returning
 
-            var returns = func.Instructions.Where(i => i.Opcode == M68kOpcode.Rts).ToList();
+            var returns = func.Instructions.Where(i => i.Opcode == M68kOpcode.Rts && i.IsTerminating).ToList();
 
             foreach (var ret in returns)
             {
@@ -421,7 +426,9 @@ namespace m68kback
                 of.Offset += frameOffset;
             }
 
+            func.Instructions = FixJsrs(func.Instructions).ToList();
             Instructions = func.Instructions;
+
             if (_printOutput)
             {
                 Console.WriteLine("========================================");
@@ -435,9 +442,59 @@ namespace m68kback
             return null;
         }
 
+        IEnumerable<M68kInstruction> FixJsrs(IEnumerable<M68kInstruction> instructions)
+        {
+            foreach (var i in instructions)
+            {
+                if (i.Opcode == M68kOpcode.Jsr && i.FinalRegister1.HasValue)
+                {
+                    var jmpLabel = TempLabel();
+
+                    // First push the return address back to here (two instructions ahead)
+                    yield return new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Pea,
+                        TargetLabel = jmpLabel
+                    };
+
+                    // Sad but I couldn't figure out how to jump to register content,
+                    // so we first push the target to stack and then RTS (which will effectively) do the JSR.
+
+                    yield return new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Move,
+                        FinalRegister1 = i.FinalRegister1,
+                        AddressingMode1 = M68kAddressingMode.Register,
+                        FinalRegister2 = M68kRegister.SP,
+                        AddressingMode2 = M68kAddressingMode.AddressWithPreDecrement,
+                    };
+
+                    yield return new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Rts,
+                        IsTerminating = false
+                    };
+
+                    yield return new M68kInstruction
+                    {
+                        Opcode = M68kOpcode.Label,
+                        Label = jmpLabel
+                    };
+                    continue;
+                }
+
+                yield return i;
+            }
+        }
+
         public object Visit(StructExpression expr)
         {
             return null;
+        }
+
+        public object Visit(ArrayExpression expr)
+        {
+            throw new NotImplementedException();
         }
 
         public object Visit(AllocaExpression allocaExpression)
@@ -455,8 +512,9 @@ namespace m68kback
 
         public object Visit(CallExpression callExpression)
         {
-            if (callExpression.FunctionName.Contains("llvm.lifetime.start") ||
-                callExpression.FunctionName.Contains("llvm.lifetime.end"))
+            if (callExpression.FunctionName != null && 
+                (callExpression.FunctionName.Contains("llvm.lifetime.start") ||
+                callExpression.FunctionName.Contains("llvm.lifetime.end")))
             {
                 return null;
             }
@@ -478,9 +536,9 @@ namespace m68kback
                     });
                     frameTune += 4;
                 }
-                else if (parReg is Declaration)
+                else if (parReg is Declaration || parReg is FunctionDefinition)
                 {
-                    var decl = parReg as Declaration;
+                    var decl = parReg as INamed;
                     var addReg = NewAddressReg();
 
                     Emit(new M68kInstruction
@@ -519,11 +577,29 @@ namespace m68kback
                 }
             }
 
-            Emit(new M68kInstruction
+            if (!string.IsNullOrEmpty(callExpression.VariableName))
             {
-                Opcode = M68kOpcode.Jsr,
-                TargetLabel = callExpression.FunctionName
-            });
+                var functionPointer = GetVarRegister(callExpression.VariableName);
+                Debug.Assert(functionPointer != null);
+                var jmpLabel = TempLabel();
+
+
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Jsr,
+                    Register1 = functionPointer,
+                    AddressingMode1 = M68kAddressingMode.Register
+                });
+
+            }
+            else
+            {
+                Emit(new M68kInstruction
+                {
+                    Opcode = M68kOpcode.Jsr,
+                    TargetLabel = callExpression.FunctionName
+                });
+            }
 
             var resultReg = NewDataReg();
             Emit(new M68kInstruction
@@ -803,14 +879,19 @@ namespace m68kback
             return resultReg;
         }
 
+        string TempLabel()
+        {
+            return "L" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+
         public object Visit(SelectExpression expr)
         {
             var reg = (Register)expr.Expr.Visit(this);
 
             var resultReg = NewDataReg();
 
-            var falseLabel = "false" + Guid.NewGuid().ToString().Replace("-", "");
-            var doneLabel = "done" + Guid.NewGuid().ToString().Replace("-", "");
+            var falseLabel = "false" + TempLabel();
+            var doneLabel = "done" + TempLabel();
 
             Emit(new M68kInstruction
             {
@@ -920,7 +1001,16 @@ namespace m68kback
 
         public object Visit(BooleanConstant constant)
         {
-            throw new NotImplementedException();
+            var reg = NewDataReg();
+            Emit(new M68kInstruction
+            {
+                Opcode = M68kOpcode.Move,
+                AddressingMode1 = M68kAddressingMode.Immediate,
+                Immediate = constant.Constant ? 1 : 0,
+                AddressingMode2 = M68kAddressingMode.Register,
+                Register2 = reg
+            });
+            return reg;
         }
 
         public class Reloc
@@ -1116,7 +1206,11 @@ namespace m68kback
 
             if (variableReference.Variable[0] == '@')
             {
-                return Globals[variableReference.Variable];
+                if (Globals.ContainsKey(variableReference.Variable))
+                {
+                    return Globals[variableReference.Variable];
+                }
+                return currentProgram.Functions.First(f => f.Name == variableReference.Variable);
             }
 
             var varReg = GetVarRegister(variableReference.Variable);

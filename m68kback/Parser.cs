@@ -81,6 +81,14 @@ namespace m68kback
 
             AcceptElement(Token.Assign);
             AcceptElement(Token.Type);
+
+            if (AcceptElementIfNext(Token.Opaque))
+            {
+                var td = new OpaqueTypeDefinition();
+                td.Name = id.Data;
+                return td;
+            }
+
             AcceptElement(Token.CurlyBraceOpen);
 
             while (PeekElement().Type != Token.CurlyBraceClose)
@@ -143,7 +151,7 @@ namespace m68kback
         {
             var func = new FunctionDefinition();
             AcceptElement(Token.Define);
-
+            func.Internal = AcceptElementIfNext(Token.Internal);
             func.ReturnType = ParseType();
 
             var name = AcceptElement(Token.GlobalIdentifier);
@@ -155,9 +163,18 @@ namespace m68kback
             {
                 while (true)
                 {
-                    var par = new FunctionParameter();
-                    par.Type = ParseType();
+                    if (AcceptElementIfNext(Token.Ellipsis))
+                    {
+                        func.VariableNumParameters = true;
+                        break;
+                    }
 
+                    var par = new FunctionParameter
+                    {
+                        Type = ParseType()
+                    };
+
+                    AcceptElementIfNext(Token.NoAlias);
                     AcceptElementIfNext(Token.NoCapture);
                     AcceptElementIfNext(Token.ReadOnly);
 
@@ -175,7 +192,7 @@ namespace m68kback
 
             AcceptElement(Token.ParenClose);
 
-            AcceptElementIfNext(Token.Symbol);
+            AcceptElementIfNext(Token.LocalUnnamedAddr);
 
             if (PeekElement().Type == Token.Hash)
             {
@@ -252,6 +269,11 @@ namespace m68kback
 
             if (PeekElement().Type == Token.ParenOpen)
             {
+                var ftype = new FunctionTypeReference
+                {
+                    ReturnValue = decl
+                };
+                decl = ftype;
                 AcceptElement(Token.ParenOpen);
                 // Parameter list
                 while (true)
@@ -262,7 +284,7 @@ namespace m68kback
                         break;
                     }
 
-                    ParseType();
+                    ftype.Parameters.Add(ParseType());
                     if (PeekElement().Type == Token.ParenClose)
                     {
                         break;
@@ -273,7 +295,12 @@ namespace m68kback
                 AcceptElement(Token.ParenClose);
             }
 
-            AcceptElementIfNext(Token.Asterisk);
+            while (AcceptElementIfNext(Token.Asterisk))
+            {
+                var ptype = new PointerReference();
+                ptype.BaseType = decl;
+                decl = ptype;
+            }
 
             return decl;
         }
@@ -356,7 +383,7 @@ namespace m68kback
         CastExpression ParseCastExpression()
         {
             var expr = new CastExpression();
-            expr.CastType = AcceptElement(Token.Bitcast, Token.Trunc, Token.Sext, Token.Inttoptr).Type;
+            expr.CastType = AcceptElement(Token.Bitcast, Token.Trunc, Token.Sext, Token.Inttoptr, Token.PtrToInt).Type;
 
             var paren = false;
             if (expr.CastType == Token.Bitcast)
@@ -415,7 +442,14 @@ namespace m68kback
             }
             else
             {
-                expr.FunctionName = AcceptElement(Token.GlobalIdentifier).Data;
+                if (PeekElement().Type == Token.GlobalIdentifier)
+                {
+                    expr.FunctionName = AcceptElement(Token.GlobalIdentifier).Data;
+                }
+                else
+                {
+                    expr.VariableName = AcceptElement(Token.LocalIdentifier).Data;
+                }
             }
 
             AcceptElement(Token.ParenOpen);
@@ -544,6 +578,35 @@ namespace m68kback
             return phi;
         }
 
+        ArrayExpression ParseArrayExpression()
+        {
+            var expr = new ArrayExpression()
+            {
+                Values = new List<Expression>()
+            };
+
+            AcceptElement(Token.BracketOpen);
+
+            if (PeekElement().Type != Token.BracketClose)
+            {
+                while (true)
+                {
+                    ParseType();
+                    var val = ParseExpression();
+                    expr.Values.Add(val);
+
+                    if (!AcceptElementIfNext(Token.Comma))
+                    {
+                        break;
+                    }
+                    //AcceptElement(Token.Comma);
+                }
+            }
+
+            AcceptElement(Token.BracketClose);
+            return expr;
+        }
+
         StructExpression ParseStructExpression()
         {
             var expr = new StructExpression
@@ -602,6 +665,10 @@ namespace m68kback
         {
             switch (PeekElement().Type)
             {
+                case Token.BracketOpen:
+                    return ParseArrayExpression();
+                case Token.PtrToInt:
+                    return ParseCastExpression();
                 case Token.Select:
                     return ParseSelect();
                 case Token.CurlyBraceOpen:
@@ -671,7 +738,11 @@ namespace m68kback
                     };
                 case Token.Null:
                     AcceptElement(Token.Null);
-                    return null;
+                    return new IntegerConstant
+                    {
+                        Constant = 0
+                    };
+                    //return null;
                 default:
                     throw new NotSupportedException();
             }
@@ -746,6 +817,7 @@ namespace m68kback
         Statement ParseStatement()
         {
             string label = null;
+
             if (PeekElement().Type == Token.Symbol)
             {
                 label = AcceptElement(Token.Symbol).Data;
@@ -756,6 +828,10 @@ namespace m68kback
             var next = PeekElement().Type;
             switch (next)
             {
+                case Token.Unreachable:
+                    AcceptElement(Token.Unreachable);
+                    stmt = new Unreachable();
+                    break;
                 case Token.LocalIdentifier:
                     stmt = ParseAssignmentStatement();
                     break;
@@ -833,6 +909,7 @@ namespace m68kback
                 AcceptElementIfNext(Token.Private);
                 bool ext = AcceptElementIfNext(Token.External);
                 decl.External = ext;
+                AcceptElementIfNext(Token.LocalUnnamedAddr);
 
                 if (PeekElement().Type == Token.Global)
                 {
@@ -887,7 +964,14 @@ namespace m68kback
                         decl.Type = arr;
                     }
 
-                    decl.Value = AcceptElement(Token.StringLiteral).Data;
+                    if (PeekElement().Type == Token.StringLiteral)
+                    {
+                        decl.Value = AcceptElement(Token.StringLiteral).Data;
+                    }
+                    else
+                    {
+                        decl.Expr = ParseExpression();
+                    }
                 }
 
                 if (AcceptElementIfNext(Token.Comma))
@@ -920,6 +1004,7 @@ namespace m68kback
                     {
                         ParseType();
                         AcceptElementIfNext(Token.NoCapture);
+                        AcceptElementIfNext(Token.WriteOnly);
                         AcceptElementIfNext(Token.ReadOnly);
 
                         while (AcceptElementIfNext(Token.Comma))
@@ -936,7 +1021,7 @@ namespace m68kback
                 }
 
                 AcceptElement(Token.ParenClose);
-                AcceptElementIfNext(Token.Symbol);
+                AcceptElementIfNext(Token.LocalUnnamedAddr);
 
                 if (AcceptElementIfNext(Token.Hash))
                 {

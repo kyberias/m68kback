@@ -7,3 +7,5 @@ obj/
 *.o
 *.run
 *.csproj.user
+stdlib/*.ll
+stdlib/*.s

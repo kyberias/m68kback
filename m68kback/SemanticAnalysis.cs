@@ -70,6 +70,11 @@ namespace m68kback
             return null;
         }
 
+        public object Visit(ArrayExpression expr)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public object Visit(AllocaExpression allocaExpression)
         {
             return null;

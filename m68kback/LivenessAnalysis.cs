@@ -61,7 +61,8 @@ namespace m68kback
                     node.Pred.Add(prev);
                 }
 
-                if (t.Opcode != M68kOpcode.Rts)
+                //if (t.Opcode != M68kOpcode.Rts)
+                if(!t.IsTerminating)
                 {
                     prev = node;
                 }
@@ -77,7 +78,7 @@ namespace m68kback
                 {
                     foreach (var node in nodes.Where(n => n.Instruction.Opcode == M68kOpcode.Label))
                     {
-                        if (node.Instruction.Label == nodes[i].Instruction.TargetLabel.Replace("%",""))
+                        if (nodes[i].Instruction.TargetLabel != null && node.Instruction.Label == nodes[i].Instruction.TargetLabel.Replace("%",""))
                         {
                             node.Pred.Add(nodes[i]);
                             nodes[i].Succ.Add(node);

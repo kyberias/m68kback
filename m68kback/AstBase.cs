@@ -30,6 +30,15 @@ namespace m68kback
         }
     }
 
+    public class ArrayExpression : Expression
+    {
+        public IList<Expression> Values { get; set; }
+        public override object Visit(IVisitor visitor)
+        {
+            return visitor.Visit(this);
+        }
+    }
+
     public class AllocaExpression : Expression
     {
         public int Alignment { get; set; }
@@ -52,6 +61,7 @@ namespace m68kback
     public class CallExpression : Expression
     {
         public string FunctionName { get; set; }
+        public string VariableName { get; set; }
         public List<Expression> Parameters { get; set; }
         public override object Visit(IVisitor visitor)
         {
@@ -128,6 +138,14 @@ namespace m68kback
         public string Label { get; set; }
     }
 
+    public class Unreachable : Statement
+    {
+        public override object Visit(IVisitor visitor)
+        {
+            return null;
+        }
+    }
+
     public class ExpressionStatement : Statement
     {
         public Expression Expression { get; set; }
@@ -161,6 +179,21 @@ namespace m68kback
         public string Name { get; set; }
         public TypeDefinition Type { get; set; }
         public override int Width => Type.Width;
+    }
+
+    public class FunctionTypeReference : TypeReference
+    {
+        public override int Width
+        {
+            get
+            {
+                throw new Exception("Function type doesn't have width");
+            }
+        }
+
+        public TypeReference ReturnValue { get; set; }
+
+        public List<TypeReference> Parameters { get; set; }  = new List<TypeReference>();
     }
 
     public abstract class IndirectTypeReference : TypeReference
@@ -301,6 +334,34 @@ namespace m68kback
         public abstract int Width { get; }
     }
 
+    public class OpaqueTypeDefinition : TypeDefinition
+    {
+        public override int Width
+        {
+            get
+            {
+                throw new Exception("Opaque type doesn't have width");
+            }
+        }
+    }
+
+    /// <summary>
+    /// The type that defines the signature of the function
+    /// </summary>
+/*    public class FunctionTypeDefinition : TypeDefinition
+    {
+        public override int Width
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public TypeDefinition ReturnType { get; set; }
+        public List<TypeDefinition> Parameters { get; set; }
+    }*/
+
     public class InternalTypeDefinition : TypeDefinition
     {
         public Token Type { get; set; }
@@ -311,6 +372,8 @@ namespace m68kback
             {
                 switch (Type)
                 {
+                    case Token.I64:
+                        return 8;
                     case Token.I32:
                         return 4;
                     case Token.I16:
@@ -344,12 +407,19 @@ namespace m68kback
         public string Name { get; set; }
     }
 
-    public class FunctionDefinition : AstBase
+    public interface INamed
+    {
+        string Name { get; set; }
+    }
+
+    public class FunctionDefinition : AstBase, INamed
     {
         public string Name { get; set; }
         public TypeReference ReturnType { get; set; }
         public List<Statement> Statements { get; set; } = new List<Statement>();
         public List<FunctionParameter> Parameters { get; set; } = new List<FunctionParameter>();
+        public bool VariableNumParameters { get; set; }
+        public bool Internal { get; set; }
 
         public override object Visit(IVisitor visitor)
         {
@@ -360,7 +430,7 @@ namespace m68kback
     /// <summary>
     /// For example, function forware declaration
     /// </summary>
-    public class Declaration : AstBase
+    public class Declaration : AstBase, INamed
     {
         public string Name { get; set; }
         public string Value { get; set; }
