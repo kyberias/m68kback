@@ -63,6 +63,7 @@ namespace m68kback
         public string FunctionName { get; set; }
         public string VariableName { get; set; }
         public List<Expression> Parameters { get; set; }
+        public bool ZeroExtended { get; set; }
         public override object Visit(IVisitor visitor)
         {
             return visitor.Visit(this);

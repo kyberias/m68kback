@@ -434,6 +434,8 @@ namespace m68kback
             AcceptElementIfNext(Token.Tail);
             AcceptElement(Token.Call);
 
+            expr.ZeroExtended = AcceptElementIfNext(Token.ZeroExt);
+
             expr.Type = ParseType();
 
             if (PeekElement().Type == Token.Bitcast)

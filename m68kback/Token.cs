@@ -101,6 +101,7 @@ namespace m68kback
         PtrToInt,
         WriteOnly,
         Opaque,
+        ZeroExt,
         Unknown
     }
 }
