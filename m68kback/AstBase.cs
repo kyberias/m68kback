@@ -60,9 +60,17 @@ namespace m68kback
 
     public class CallExpression : Expression
     {
+        public class CallParameter
+        {
+            public TypeReference Type { get; set; }
+            public Expression Expression { get; set; }
+            public bool ByVal { get; set; }
+            public int? Align { get; set; }
+        }
+
         public string FunctionName { get; set; }
         public string VariableName { get; set; }
-        public List<Expression> Parameters { get; set; }
+        public List<CallParameter> Parameters { get; set; } = new List<CallParameter>();
         public bool ZeroExtended { get; set; }
         public override object Visit(IVisitor visitor)
         {

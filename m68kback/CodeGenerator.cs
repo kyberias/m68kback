@@ -521,7 +521,8 @@ namespace m68kback
 
             for (int i=callExpression.Parameters.Count-1; i >= 0; i--)
             {
-                var parExpr = callExpression.Parameters[i];
+                // TODO: Byval not yet supported
+                var parExpr = callExpression.Parameters[i].Expression;
                 var parReg = parExpr.Visit(this);
 
                 if (parReg is Register)
@@ -601,7 +602,7 @@ namespace m68kback
                 });
             }
 
-            var resultReg = NewDataReg();
+            var resultReg = callExpression.Type is PointerReference ? NewAddressReg() : NewDataReg();
             Emit(new M68kInstruction
             {
                 Opcode = M68kOpcode.Move,
@@ -639,6 +640,8 @@ namespace m68kback
             {
                 case Token.And:
                     return M68kOpcode.And;
+                case Token.Or:
+                    return M68kOpcode.Or;
                 case Token.Add:
                     return M68kOpcode.Add;
                 case Token.Sub:
@@ -698,6 +701,7 @@ namespace m68kback
                         });
                     }
                     break;
+                case Token.Or:
                 case Token.And:
                 case Token.Xor:
                 case Token.Ashr:

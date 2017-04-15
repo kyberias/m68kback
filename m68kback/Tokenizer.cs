@@ -84,6 +84,7 @@ namespace m68kback
             { "opaque", Token.Opaque},
             { "select", Token.Select },
             { "zeroext", Token.ZeroExt },
+            { "byval", Token.Byval },
             { "local_unnamed_addr", Token.LocalUnnamedAddr }
         };
 

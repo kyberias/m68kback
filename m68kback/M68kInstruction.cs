@@ -33,6 +33,7 @@ namespace m68kback
         Asl,
         Eor,
         And,
+        Or,
         RegDef,
         RegUse
     }

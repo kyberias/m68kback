@@ -429,7 +429,6 @@ namespace m68kback
         CallExpression ParseCallExpression()
         {
             var expr = new CallExpression();
-            expr.Parameters = new List<Expression>();
 
             AcceptElementIfNext(Token.Tail);
             AcceptElement(Token.Call);
@@ -460,11 +459,20 @@ namespace m68kback
             {
                 while (true)
                 {
-                    ParseType();
+                    var par = new CallExpression.CallParameter();
 
+                    par.Type = ParseType();
+
+                    par.ByVal = AcceptElementIfNext(Token.Byval);
                     AcceptElementIfNext(Token.Nonnull);
 
-                    expr.Parameters.Add(ParseExpression());
+                    if (AcceptElementIfNext(Token.Align))
+                    {
+                        par.Align = int.Parse(AcceptElement(Token.IntegerLiteral).Data);
+                    }
+
+                    par.Expression = ParseExpression();
+                    expr.Parameters.Add(par);
 
                     if (PeekElement().Type == Token.Comma)
                     {
@@ -995,6 +1003,7 @@ namespace m68kback
                 // declare i32 @printf(i8*, ...) #1
 
                 AcceptElement(Token.Declare);
+                AcceptElementIfNext(Token.ZeroExt); // TODO: Handle properly?
                 ParseType();
 
                 decl.Name = AcceptElement(Token.GlobalIdentifier).Data;
@@ -1002,9 +1011,15 @@ namespace m68kback
 
                 if (!AcceptElementIfNext(Token.Ellipsis))
                 {
+                    // TODO Refactor this idiocy.
                     if (PeekElement().Type != Token.ParenClose)
                     {
                         ParseType();
+                        AcceptElementIfNext(Token.Byval);
+                        if (AcceptElementIfNext(Token.Align))
+                        {
+                            AcceptElement(Token.IntegerLiteral);
+                        }
                         AcceptElementIfNext(Token.NoCapture);
                         AcceptElementIfNext(Token.WriteOnly);
                         AcceptElementIfNext(Token.ReadOnly);
@@ -1016,6 +1031,11 @@ namespace m68kback
                                 break;
                             }
                             ParseType();
+                            AcceptElementIfNext(Token.Byval);
+                            if (AcceptElementIfNext(Token.Align))
+                            {
+                                AcceptElement(Token.IntegerLiteral);
+                            }
                             AcceptElementIfNext(Token.NoCapture);
                             AcceptElementIfNext(Token.ReadOnly);
                         }

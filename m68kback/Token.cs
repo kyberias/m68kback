@@ -102,6 +102,7 @@ namespace m68kback
         WriteOnly,
         Opaque,
         ZeroExt,
+        Byval,
         Unknown
     }
 }
